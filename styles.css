@@ -1,0 +1,82 @@
+:root {
+    /* colour theme */
+    --fontColour: #333333;
+    --primary: #26374a;
+    --primaryBg: #ffffff;
+    --primaryHover: #444444;
+    --secondary: #335075;
+    --secondaryBg: #cfd1d5;
+    --tertiary: #af3c43;
+    --link: #284162;
+    --headerTitleColor: #000000;
+
+    --smBorderRadius: 5px;
+    --borderRadius: 10px;
+
+    --navTransition: all 0.75s ease-in-out;
+}
+
+
+/* For small phone screeens */
+@media screen and (max-width: 600px) {
+    body { 
+        font-size: calc(0.8em + 1vw) !important; 
+    }
+
+    main {
+        font-size: calc(0.8em + 1vw) !important;
+    }
+    
+    h1 {
+        font-size: calc(1.7em + 1vw) !important; 
+    }
+
+    h2 {
+        font-size: calc(1.3em + 1vw) !important; 
+    }
+    
+    h3 {
+        font-size: calc(1em + 1vw) !important; 
+    }
+
+    .btn {
+        font-size: calc(0.6em + 1vw) !important;
+        margin: 3px 0;
+    }
+}
+
+
+body {
+    font-family: "Noto Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "wdth" 100;
+
+    color: var(--fontColour);
+}
+
+/* URL Links in the site*/
+.link {
+    color: var(--link);
+}
+
+#mainPage {
+    min-height: 70vh;
+    position: relative;
+}
+
+.mainMenuContainer {
+    max-width: 30%;
+}
+
+.menuNav {
+    border: 1px solid var(--secondaryBg);
+    border-radius: var(--smBorderRadius);
+}
+
+.menu {
+    min-height: 70vh;
+    background-color: var(--primaryBg);
+    border: 1px solid var(--secondaryBg);
+    border-radius: var(--borderRadius);
+}
