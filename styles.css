@@ -3,7 +3,10 @@
     --fontColour: #333333;
     --primary: #26374a;
     --primaryBg: #ffffff;
+    --primaryBgHover: #ffffff;
     --primaryHover: #444444;
+    --primaryFontColour: #333333;
+    --primaryBorderColour: #7D828B;
     --secondary: #335075;
     --secondaryBg: #cfd1d5;
     --tertiary: #af3c43;
@@ -14,6 +17,10 @@
     --borderRadius: 10px;
 
     --navTransition: all 0.75s ease-in-out;
+}
+
+body {
+    background-color: var(--primaryBg);
 }
 
 
@@ -54,6 +61,33 @@ body {
 
     color: var(--fontColour);
 }
+
+/* =========== Dropdowns on the app ================== */
+
+.dropdown-menu {
+    background-color: var(--primaryBg);
+    color: var(--primaryFontColour);
+    border-color: var(--primaryBorderColour);
+}
+
+.dropdown-item {
+    color: var(--fontColour);
+}
+
+.dropdown-item.active {
+    background-color: var(--primary);
+}
+
+.dropdown-item:focus, .dropdown-item:active {
+    background-color: var(--primaryHover);
+}
+
+.dropdown-item:hover {
+    background-color: var(--primaryHover);
+    color: var(--primaryFontColour);
+}
+
+/* =================================================== */
 
 /* URL Links in the site*/
 .link {

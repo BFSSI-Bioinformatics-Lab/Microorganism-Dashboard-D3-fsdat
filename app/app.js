@@ -19,6 +19,10 @@ class App {
         $("#header").load("./static/header/header.html", () => { self.setupHeader(); }); 
         $("#footer").load("./static/footer/footer.html");
 
+        // global theme variables
+        this.themeVars = document.querySelector(':root');
+        this.setTheme();
+
         this.loadMainPage();
     }
 
@@ -26,7 +30,7 @@ class App {
     setupHeader() {
         const self = this;
         d3.selectAll(".navBarContainer .nav-item .nav-link")
-            .on("click", (event) => {self.setActiveNavOption(event);}); 
+            .on("click", (event) => {self.setActiveNavOption(event); });
 
         // register the link to change the language
         this.headerLink = d3.select(".headerOption:last-child");
@@ -38,20 +42,34 @@ class App {
             self.updateText();
         });
 
+        this.themeDropdown = d3.select("#themeDropdownMenu");
+
         // add the different options for the theme
-        d3.select("#themeDropdownMenu")
+        this.themeDropdown
             .selectAll("li")
             .data(Object.values(ThemeNames))
             .enter()
             .append("li")
             .append("a")
-            .attr("class", "dropdown-item themeDropdownItem")
+            .attr("class", (themeName) => {
+                let result = "dropdown-item themeDropdownItem";
+                if (themeName == self.theme) {
+                    result += " active";
+                }
+
+                return result;
+            })
             .attr("href", "#")
             .attr("value", (d) => d)
             .on("click", (event) => {
-                const themeLink = d3.select(event.target);
-                self.theme = themeLink.attr("value");
-                console.log(self.theme);
+                const selectedThemeLink = d3.select(event.target);
+                const activeThemeLink = this.themeDropdown.select(".themeDropdownItem.active");
+
+                activeThemeLink.classed("active", false);
+                selectedThemeLink.classed("active", true);
+
+                self.theme = selectedThemeLink.attr("value");
+                self.setTheme();
             })
 
         self.updateText();
@@ -78,8 +96,13 @@ class App {
         }
     }
 
-    setActiveTheme(event) {
-
+    // setTheme(): Changes the colour for the theme selected
+    setTheme() {
+        const themeObj = Themes[this.theme];
+        for (const themeKey in themeObj) {
+            const themeColour = themeObj[themeKey];
+            this.themeVars.style.setProperty(`--${themeKey}`, themeColour);
+        }
     }
 
     // Changes the language registered on the website
