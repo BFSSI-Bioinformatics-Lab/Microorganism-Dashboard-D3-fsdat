@@ -1,5 +1,4 @@
 // ################## CONSTANTS ###############################
-// ############################################################
 
 // Different Pages in the App
 export const Pages = {
@@ -28,6 +27,7 @@ export const Languages = {
 export const DefaultLanguage = Languages.English;
 
 
+// ############################################################
 // ################## THEMES ##################################
 
 export const ThemeNames = {
@@ -40,16 +40,52 @@ export const DefaultTheme = ThemeNames.Light;
 
 export const Themes = {};
 
+
+// See here for Infobase's colour scheme: https://design-system.alpha.canada.ca/en/styles/colour/
 Themes[ThemeNames.Light] = {
     fontColour: "#333333",
     primary: "#26374a",
     primaryBg: "#ffffff",
+    primaryBgHover: "#ffffff",
     primaryHover: "#444444",
+    primaryFontColour: "#ffffff",
+    primaryBorderColour: "#7D828B",
     secondary: "#335075",
     secondaryBg: "#cfd1d5",
     tertiary: "#af3c43",
     link: "#284162",
     headerTitleColor: "#000000"
+};
+
+Themes[ThemeNames.Dark] = {
+    fontColour: "#ffffff",
+    primary: "#26374a",
+    primaryBg: "#000000",
+    primaryHover: "#444444",
+    primaryBgHover: "#ffffff",
+    primaryFontColour: "#ffffff",
+    primaryBorderColour: "#d6d8db",
+    secondary: "#335075",
+    secondaryBg: "#cfd1d5",
+    tertiary: "#af3c43",
+    link: "#6e93c4",
+    headerTitleColor: "#ffffff"
+};
+
+// Mountain Haze Theme: https://www.canva.com/colors/color-palettes/mountain-haze/
+Themes[ThemeNames.Blue] = {
+    fontColour: "#333333",
+    primary: "#738fa7",
+    primaryBg: "#ffffff",
+    primaryHover: "#0c4160",
+    primaryBgHover: "#ffffff",
+    primaryFontColour: "#ffffff",
+    primaryBorderColour: "#7D828B",
+    secondary: "red",
+    secondaryBg: "blue",
+    tertiary: "purple",
+    link: "#0c4160",
+    headerTitleColor: "#333333"
 };
 
 // ############################################################
@@ -99,7 +135,7 @@ NavigationFR[Pages.Contact] = REMPLACER_MOI;
 // names for colour themes
 const ColourThemesFR = {};
 ColourThemesFR[ThemeNames.Light] = "Clair"
-ColourThemesFR[ThemeNames.Dark] = "Foncée"
+ColourThemesFR[ThemeNames.Dark] = "Foncé"
 ColourThemesFR[ThemeNames.Blue] = "Bleu"
 
 const LangFR = {
@@ -114,8 +150,8 @@ const LangFR = {
 
 // ==============================================
 
-// ############################################################
-
 export const TranslationObj = {};
 TranslationObj[Languages.English] = {translation: LangEN};
 TranslationObj[Languages.French] = {translation: LangFR};
+
+// ############################################################

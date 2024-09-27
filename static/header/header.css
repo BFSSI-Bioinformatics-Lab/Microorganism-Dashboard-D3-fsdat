@@ -51,13 +51,13 @@
 /* ===== Menu options on the navigation bar ===== */
 
 .navBarContainer .nav-link {
-    color: var(--primaryBg);
+    color: var(--primaryFontColour);
     padding: 1px !important;
 }
 
 .navBarContainer .nav-link.active {
     background-color: var(--primaryHover) !important;
-    color: var(--primaryBg) !important;
+    color: var(--primaryFontColour) !important;
     border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
 }
 
@@ -76,15 +76,15 @@
 
 /* hovering on the navigation bar option */
 .navBarContainer .nav-link:hover,  .navBarContainer .nav-link.active:hover {
-    background-color: var(--primaryBg) !important;
+    background-color: var(--primaryBgHover) !important;
     color: var(--primaryHover) !important;
     border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
-    border-top: 1px solid var(--primaryBg);
+    border-top: 1px solid var(--primaryBgHover);
     transition: var(--navTransition);
 }
 
 .navBarContainer .nav-link:hover div, .navBarContainer .nav-link.active:hover div {
-    border-color: var(--primaryBg);
+    border-color: var(--primaryBgHover);
     transition: var(--navTransition);
 }
 
@@ -94,7 +94,7 @@
 }
 
 .navBarContainer .nav-link:visited, .navBarContainer .nav-link.active:visited {
-    color: var(--primaryBg) !important;
+    color: var(--primaryFontColour) !important;
 }
 
 /* ============================================== */
@@ -114,12 +114,12 @@
     width: 30px;
     margin: 4px;
     border-radius: var(--smBorderRadius);
-    background-color: var(--primaryBg);
+    background-color: var(--primaryFontColour);
 }
 
 /* hovering over the icon */
 .navBarContainer .navbar-toggler:hover, .themeDropdown:hover {
-    background-color: var(--primaryBg) !important;
+    background-color: var(--primaryBgHover) !important;
     color: var(--primaryHover);
     transition: all 0.5s ease-out;
 }
@@ -136,13 +136,19 @@
 /* ============================================== */
 /* ===== Theme Dropdown Selection =============== */
 
+.navBarContainer .dropdown {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
 #themeIcon {
     max-width: 35px; 
     height: auto;
 }
 
 #themeIconPath {
-    fill: var(--primaryBg);
+    fill: var(--primaryFontColour);
 }
 
 .themeDropdown:hover #themeIconPath {
@@ -155,15 +161,6 @@
     border: none;
     padding: 11px var(--headerNavItemHorPadding);
     border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
-}
-
-.themeDropdown:focus, .themeDropdown:active {
-    background-color: var(--primaryHover);
-}
-
-.themeDropdownItem:hover {
-    background-color: var(--primaryHover);
-    color: var(--primaryBg);
 }
 
 /* ============================================== */
