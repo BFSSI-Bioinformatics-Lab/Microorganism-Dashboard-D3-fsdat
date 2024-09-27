@@ -1,6 +1,4 @@
-import { Pages, DefaultPage, PageSrc, Languages, DefaultLanguage } from "../constants/constants.js"
-import { TranslationObj } from "../constants/translations.js";
-import { ThemeNames, Themes, DefaultTheme } from "../constants/themes.js";
+import { Pages, DefaultPage, PageSrc, Languages, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme } from "./constants.js"
 import { Translation } from "./tools.js";
 
 
@@ -95,6 +93,8 @@ class App {
     // updateText(): Updates the text throughout the document
     updateText() {
         document.title = Translation.translate("websiteTabTitle");
+        document.querySelector('meta[name="description"]').setAttribute("content", Translation.translate("websiteDescriptions"));
+
         this.updateHeaderText();
     }
 
