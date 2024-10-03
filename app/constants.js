@@ -1,3 +1,16 @@
+/////////////////////////////////////////////////////////
+//                                                     //
+// Purpose: Defines constants within the app           //
+//                                                     //
+// What it contains:                                   //
+//      - Colours Themes                               //
+//      - EN/FR Translations                           //
+//      - Strings                                      //
+//      - Enumerations                                 //
+//                                                     //
+/////////////////////////////////////////////////////////
+
+
 // ################## CONSTANTS ###############################
 
 // Different Pages in the App
@@ -9,14 +22,34 @@ export const Pages = {
     Contact: "Contact"
 }
 
-export const DefaultPage = Pages.TrendsOverTime;
-
+// File locations for each page
 export const PageSrc = {};
-PageSrc[Pages.TrendsOverTime] = "./static/trendsOverTime/trendsOverTime.html"
-PageSrc[Pages.Overview] = "./static/overview/overview.html"
-PageSrc[Pages.About] = "./static/about/about.html"
-PageSrc[Pages.Contact] = "./static/contact/contact.html"
+PageSrc[Pages.TrendsOverTime] = "./templates/trendsOverTime.html"
+PageSrc[Pages.Overview] = "./templates/overview.html"
+PageSrc[Pages.About] = "./templates/about.html"
+PageSrc[Pages.Contact] = "./templates/contact.html"
 
+// Different sections in the "Trends Over Time" page
+export const TrendsOverTimeSections = {
+    ByFood: "ByFood",
+    ByMicroorganism: "ByMicroorganism"
+}
+
+// Different sections in the "Overview" page
+export const OverviewSections = {
+    ByMicroorganism: "ByMicroorganism",
+    ByFood: "ByFood",
+    ByOrg: "ByOrg"
+}
+
+// Default selected pages and tabs
+export const DefaultPage = Pages.TrendsOverTime;
+export const DefaultTrendsOverTimeSection = TrendsOverTimeSections.ByFood;
+export const DefaultOverviewSection = OverviewSections.ByMicroorganism;
+
+export const DefaultTabs = {};
+DefaultTabs[Pages.TrendsOverTime] = DefaultTrendsOverTimeSection;
+DefaultTabs[Pages.Overview] = DefaultOverviewSection;
 
 // Available Languages
 export const Languages = {
@@ -52,6 +85,8 @@ Themes[ThemeNames.Light] = {
     primaryBorderColour: "#7D828B",
     secondary: "#335075",
     secondaryBg: "#cfd1d5",
+    secondaryBorderColour: "#bbbfc5",
+    secondaryHover: "#0535d2",
     tertiary: "#af3c43",
     link: "#284162",
     headerTitleColor: "#000000"
@@ -65,8 +100,10 @@ Themes[ThemeNames.Dark] = {
     primaryBgHover: "#ffffff",
     primaryFontColour: "#ffffff",
     primaryBorderColour: "#d6d8db",
-    secondary: "#335075",
+    secondary: "#83a1c9",
     secondaryBg: "#cfd1d5",
+    secondaryBorderColour: "#d6d8db",
+    secondaryHover: "#5179fb",
     tertiary: "#af3c43",
     link: "#6e93c4",
     headerTitleColor: "#ffffff"
@@ -81,8 +118,10 @@ Themes[ThemeNames.Blue] = {
     primaryBgHover: "#ffffff",
     primaryFontColour: "#ffffff",
     primaryBorderColour: "#7D828B",
-    secondary: "red",
-    secondaryBg: "blue",
+    secondary: "#0c2d48",
+    secondaryBg: "#b1d4e0",
+    secondaryBorderColour: "#145da0",
+    secondaryHover: "#2e8bc0",
     tertiary: "purple",
     link: "#0c4160",
     headerTitleColor: "#333333"
@@ -97,7 +136,7 @@ const REMPLACER_MOI_AVEC_ARGUMENTS = `${REMPLACER_MOI} - les arguments du texte:
 
 // ============== ENGLISH =======================
 
-// names for the main navigation options
+// names for the main navigation pages
 const NavigationEN = {};
 NavigationEN[Pages.Home] = "Home";
 NavigationEN[Pages.TrendsOverTime] = "Trends Over Time";
@@ -111,6 +150,17 @@ ColourThemesEN[ThemeNames.Light] = "Light"
 ColourThemesEN[ThemeNames.Dark] = "Dark"
 ColourThemesEN[ThemeNames.Blue] = "Blue"
 
+// names for the "Trends Over Time" sections
+const TrendsOverTimeSectionsEN = {};
+TrendsOverTimeSectionsEN[TrendsOverTimeSections.ByFood] = "By Food";
+TrendsOverTimeSectionsEN[TrendsOverTimeSections.ByMicroorganism] = "By Microorganism";
+
+// names for the "Overview" sections
+const OverviewSectionsEN = {};
+OverviewSectionsEN[OverviewSections.ByFood] = "By Food";
+OverviewSectionsEN[OverviewSections.ByMicroorganism] = "By Microorganism";
+OverviewSectionsEN[OverviewSections.ByOrg] = "By Org";
+
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
     "websiteTabTitle": "FSDAT -Microbiology",
@@ -118,7 +168,9 @@ const LangEN = {
     "changeLanguage": "Français",
     "changeLanguageValue": Languages.French,
     navigation: NavigationEN,
-    themes: ColourThemesEN
+    themes: ColourThemesEN,
+    trendsOverTimeSections: TrendsOverTimeSectionsEN,
+    overviewSections: OverviewSectionsEN
 }
 
 // ==============================================
@@ -138,6 +190,17 @@ ColourThemesFR[ThemeNames.Light] = "Clair"
 ColourThemesFR[ThemeNames.Dark] = "Foncé"
 ColourThemesFR[ThemeNames.Blue] = "Bleu"
 
+// names for the "Trends Over Time" sections
+const TrendsOverTimeSectionsFR = {};
+TrendsOverTimeSectionsFR[TrendsOverTimeSections.ByFood] = REMPLACER_MOI;
+TrendsOverTimeSectionsFR[TrendsOverTimeSections.ByMicroorganism] = REMPLACER_MOI;
+
+// names for the "Overview" sections
+const OverviewSectionsFR = {};
+OverviewSectionsFR[OverviewSections.ByFood] = REMPLACER_MOI;
+OverviewSectionsFR[OverviewSections.ByMicroorganism] = REMPLACER_MOI;
+OverviewSectionsFR[OverviewSections.ByOrg] = REMPLACER_MOI;
+
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,
     "websiteTabTitle": REMPLACER_MOI,
@@ -145,7 +208,9 @@ const LangFR = {
     "changeLanguage": "English",
     "changeLanguageValue": Languages.English,
     navigation: NavigationFR,
-    themes: ColourThemesFR
+    themes: ColourThemesFR,
+    trendsOverTimeSections: TrendsOverTimeSectionsFR,
+    overviewSections: OverviewSectionsFR
 }
 
 // ==============================================

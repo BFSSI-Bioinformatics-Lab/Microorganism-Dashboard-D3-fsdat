@@ -1,3 +1,13 @@
+/////////////////////////////////////////////////////////////////////
+//                                                                 //
+// Purpose: Defines the helper functions used in the app           //
+//                                                                 //
+// What it contains:                                               //
+//      - Language Translation functions                           //
+//                                                                 //
+/////////////////////////////////////////////////////////////////////
+
+
 // Translation: Helper class for doing translations
 export class Translation {
     static register(resources){

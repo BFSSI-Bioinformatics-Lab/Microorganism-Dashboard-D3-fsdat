@@ -1,26 +1,53 @@
+/*********************************************************************
+ *                                                                   *
+ * Purpose: Defines the styles for the app                           *
+ *                                                                   *
+ * What it Contains:                                                 *
+ *      - variables for colour themes                                *
+ *      - styling for the header and footer                          *
+ *      - styling for the main page                                  *
+ *********************************************************************/
+
+
 :root {
     /* colour theme */
     --fontColour: #333333;
     --primary: #26374a;
     --primaryBg: #ffffff;
-    --primaryBgHover: #ffffff;
-    --primaryHover: #444444;
     --primaryFontColour: #333333;
     --primaryBorderColour: #7D828B;
+    --primaryHover: #444444;
+    --primaryBgHover: #ffffff;
     --secondary: #335075;
     --secondaryBg: #cfd1d5;
+    --secondaryHover: #0535d2;
+    --secondaryBorderColour: #bbbfc5;
     --tertiary: #af3c43;
     --link: #284162;
     --headerTitleColor: #000000;
 
     --smBorderRadius: 5px;
     --borderRadius: 10px;
-
     --navTransition: all 0.75s ease-in-out;
+
+    /* ----- Header ----- */
+    --headerTitleWidth: 3px;
+    --navBarBorderWidth: 1px;
+    --headerNavItemHorPadding: 20px;
+    --headerNavItemVertPadding: 15px;
+
+    /* ----- Footer ----- */
+    --footerLandscapeMinHeight: 200px;
+    --footerLogoMinHeight: 100px;
 }
 
 body {
+    font-family: "Noto Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "wdth" 100;
     background-color: var(--primaryBg);
+    color: var(--fontColour);
 }
 
 
@@ -53,14 +80,238 @@ body {
 }
 
 
-body {
-    font-family: "Noto Sans", sans-serif;
-    font-optical-sizing: auto;
-    font-style: normal;
-    font-variation-settings: "wdth" 100;
+/* ################### HEADER ############################### */
 
-    color: var(--fontColour);
+/* For small phone screeens */
+@media screen and (max-width: 600px) {
+    .navbar-toggler {
+        padding-top: calc(0.5em + 1vw) !important;
+        padding-bottom: calc(0.5em + 1vw) !important;
+    }
 }
+
+
+.headerTitleSection {
+    background-color: var(--primaryBg);
+    border-bottom: var(--headerTitleWidth) solid var(--primary);
+    padding: 15px 0 20px 0;
+}
+
+.headerOption {
+    float: right;
+}
+
+.headerTitle {
+    text-decoration: none;
+    color: var(--headerTitleColor);
+}
+
+.navBarContainer {
+    margin-top: calc(-1 * var(--headerTitleWidth) + 0.5px);
+}
+
+.navBarContainer .navbar {
+    background-color: var(--primary);
+    padding-top: 0;
+    padding-bottom: 0;
+    border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
+    border-bottom: var(--navBarBorderWidth) solid var(--primary);
+    border-left: var(--navBarBorderWidth) solid var(--primary);
+    border-right: var(--navBarBorderWidth) solid var(--primary);
+}
+
+.container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* ===== Menu options on the navigation bar ===== */
+
+.navBarContainer .nav-link {
+    color: var(--primaryFontColour);
+    padding: 1px !important;
+}
+
+.navBarContainer .nav-link.active {
+    background-color: var(--primaryHover) !important;
+    color: var(--primaryFontColour) !important;
+    border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
+}
+
+.navBarContainer .nav-link div {
+    padding-top: var(--headerNavItemVertPadding);
+    padding-bottom: var(--headerNavItemVertPadding);
+    padding-left: var(--headerNavItemHorPadding) !important;
+    padding-right: var(--headerNavItemHorPadding) !important;
+    border: 1px solid var(--primary);
+    border-radius: var(--smBorderRadius);
+}
+
+.navBarContainer .nav-link.active div {
+    border-color: var(--primaryHover);
+}
+
+/* hovering on the navigation bar option */
+.navBarContainer .nav-link:hover,  .navBarContainer .nav-link.active:hover {
+    background-color: var(--primaryBgHover) !important;
+    color: var(--primaryHover) !important;
+    border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
+    border-top: 1px solid var(--primaryBgHover);
+    transition: var(--navTransition);
+}
+
+.navBarContainer .nav-link:hover div, .navBarContainer .nav-link.active:hover div {
+    border-color: var(--primaryBgHover);
+    transition: var(--navTransition);
+}
+
+/* clicking on the navigation bar option */
+.navBarContainer .nav-link:active div {
+    border-color: var(--primary);
+}
+
+.navBarContainer .nav-link:visited, .navBarContainer .nav-link.active:visited {
+    color: var(--primaryFontColour) !important;
+}
+
+/* ============================================== */
+/* ===== Menu icon for mobile phones ============ */
+
+.navBarContainer .navbar-toggler {
+    padding-top: var(--headerNavItemVertPadding);
+    padding-bottom: var(--headerNavItemVertPadding);
+    padding-left: var(--headerNavItemHorPadding) !important;
+    padding-right: var(--headerNavItemHorPadding) !important;
+    border-color: var(--primary);
+}
+
+/* the 3 lines on the icon */
+.mobileMenuLine {
+    height: 3px;
+    width: 30px;
+    margin: 4px;
+    border-radius: var(--smBorderRadius);
+    background-color: var(--primaryFontColour);
+}
+
+/* hovering over the icon */
+.navBarContainer .navbar-toggler:hover, .themeDropdown:hover {
+    background-color: var(--primaryBgHover) !important;
+    color: var(--primaryHover);
+    transition: all 0.5s ease-out;
+}
+
+/* pressing on the icon button */
+.navBarContainer .navbar-toggler:hover .mobileMenuLine {
+    background-color: var(--primaryHover);
+    transition: var(--navTransition);
+}
+
+.navBarContainer .navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* ============================================== */
+/* ===== Theme Dropdown Selection =============== */
+
+.navBarContainer .dropdown {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+/* icon for the theme dropdown */
+#themeIcon {
+    max-width: 35px; 
+    height: auto;
+}
+
+#themeIconPath {
+    fill: var(--primaryFontColour);
+}
+
+/* hovering over the theme icon */
+.themeDropdown:hover #themeIconPath {
+    fill: var(--primaryHover);
+}
+
+/* theme dropdown */
+.themeDropdown {
+    background-color: var(--primary);
+    color: var(--primaryBg);
+    border: none;
+    padding: 11px var(--headerNavItemHorPadding);
+    border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
+}
+
+/* ============================================== */
+
+
+/* ########################################################## */
+/* ################### FOOTER ############################### */
+
+.footerContainer {
+    min-height: calc(var(--footerLandscapeMinHeight) + var(--footerLogoMinHeight));
+}
+
+/* ===== Footer navigation bar ===== */
+
+.footerLandscapeContainer {
+    position: relative;
+}
+
+.footerLandscapeFiller, .footerLandscape, .footerLandscapeFilter {
+    min-height: var(--footerLandscapeMinHeight);
+    width: 100%;
+}
+
+.footerLandscape, .footerLandscapeFilter {
+    position: absolute;
+}
+
+.footerLandscape {
+    background: white url("../../assets/landscape.png") no-repeat right bottom;
+    z-index: 0;
+}
+
+.footerLandscapeFilter {
+    z-index: 1;
+    background: var(--primary);
+    opacity: 0.9;
+}
+
+/* ================================= */
+/* ===== Footer Logo =============== */
+
+.footerLogoContainer {
+    min-height: var(--footerLogoMinHeight);
+}
+
+.footerLogo {
+    height: 40px;
+    width: auto;
+    margin-top: 20px;
+    margin-right: 20px;
+    float: right;
+}
+
+.footerUrlLinks {
+    padding: 2em 0;
+}
+
+/* text on the logo */
+.fip_text {
+    fill: var(--fontColour);
+}
+
+/* the flag on the logo */
+.fip_flag {
+    fill: #ff0000;
+}
+
+/* ================================= */
+
+/* ########################################################## */
 
 /* =========== Dropdowns on the app ================== */
 
@@ -99,18 +350,50 @@ body {
     position: relative;
 }
 
-.mainMenuContainer {
-    max-width: 30%;
+.visualContainer {
+    min-height: 70vh;
 }
 
+/* =========== Menu for the graphs =================== */
+
 .menuNav {
-    border: 1px solid var(--secondaryBg);
-    border-radius: var(--smBorderRadius);
+    border: 1px solid var(--primaryBorderColour);
+    border-radius: var(--smBorderRadius) var(--smBorderRadius) 0 0;
+    color: var(--secondary);
+    display: inline-flex;
+    display: inline flex;
 }
 
 .menu {
     min-height: 70vh;
     background-color: var(--primaryBg);
-    border: 1px solid var(--secondaryBg);
-    border-radius: var(--borderRadius);
+    border: 1px solid var(--primaryBorderColour);
+    border-radius: 0 var(--borderRadius) var(--borderRadius) var(--borderRadius);
 }
+
+.mainMenuContainer .nav-tabs {
+    border-bottom: none;
+}
+
+.mainMenuContainer .nav-link {
+    color: var(--secondary) !important;
+    transition: var(--navTransition);
+    border-bottom: none;
+}
+
+/* selected menu tab */
+.mainMenuContainer .nav-link.active {
+    border-color: var(--primaryBorderColour);
+    background-color: var(--primaryBg);
+    border-bottom: none;
+}
+
+/* hovering over the menu tab */
+.mainMenuContainer .nav-link:hover {
+    color: var(--secondaryHover) !important;
+    border-color: var(--secondaryBorderColour);
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+/* =================================================== */
