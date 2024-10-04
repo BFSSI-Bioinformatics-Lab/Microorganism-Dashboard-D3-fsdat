@@ -28,7 +28,9 @@
 
     --smBorderRadius: 5px;
     --borderRadius: 10px;
-    --navTransition: all 0.75s ease-in-out;
+
+    --fastTransition: all 0.5s ease-in-out;
+    --defaultTransition: all 0.75s ease-in-out;
 
     /* ----- Header ----- */
     --headerTitleWidth: 3px;
@@ -157,12 +159,12 @@ body {
     color: var(--primaryHover) !important;
     border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
     border-top: 1px solid var(--primaryBgHover);
-    transition: var(--navTransition);
+    transition: var(--defaultTransition);
 }
 
 .navBarContainer .nav-link:hover div, .navBarContainer .nav-link.active:hover div {
     border-color: var(--primaryBgHover);
-    transition: var(--navTransition);
+    transition: var(--defaultTransition);
 }
 
 /* clicking on the navigation bar option */
@@ -204,7 +206,7 @@ body {
 /* pressing on the icon button */
 .navBarContainer .navbar-toggler:hover .mobileMenuLine {
     background-color: var(--primaryHover);
-    transition: var(--navTransition);
+    transition: var(--defaultTransition);
 }
 
 .navBarContainer .navbar-toggler:focus {
@@ -354,6 +356,40 @@ body {
     min-height: 70vh;
 }
 
+/* =========== Collapsibles/Accordions================= */
+.accordion {
+    --bs-accordion-color: var(--fontColour);
+    --bs-accordion-bg: var(--primaryBg);
+    --bs-accordion-btn-color: var(--secondary);
+    --bs-accordion-active-color: var(--secondary);
+    --bs-accordion-border-color: var(--secondaryBorderColour);
+    --bs-accordion-active-bg: var(--primaryBg);
+    --bs-accordion-btn-icon: none;
+    --bs-accordion-btn-active-icon: none;
+}
+
+.accordion-button {
+    transition: var(--defaultTransition);
+}
+
+.accordion-button:hover {
+    color: var(--secondaryHover);
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.accordionIcon {
+    position: absolute;
+    right: 15px;
+    transition: var(--fastTransition);
+}
+
+.accordion-button:not(.collapsed) .accordionIcon {
+    transform: rotate(-180deg);
+}
+
+
+/* =================================================== */
 /* =========== Menu for the graphs =================== */
 
 .menuNav {
@@ -371,13 +407,16 @@ body {
     border-radius: 0 var(--borderRadius) var(--borderRadius) var(--borderRadius);
 }
 
+
+/* ****** Menu Tabs ****** */
+
 .mainMenuContainer .nav-tabs {
     border-bottom: none;
 }
 
 .mainMenuContainer .nav-link {
     color: var(--secondary) !important;
-    transition: var(--navTransition);
+    transition: var(--defaultTransition);
     border-bottom: none;
 }
 
@@ -395,5 +434,7 @@ body {
     text-decoration: underline;
     font-weight: bold;
 }
+
+/* *********************** */
 
 /* =================================================== */
