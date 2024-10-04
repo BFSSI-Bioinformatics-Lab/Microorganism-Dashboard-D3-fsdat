@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, DefaultPage, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme, DefaultTabs} from "./constants.js"
+import { Pages, DefaultPage, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme, DefaultTabs, TrendsOverTimeSections} from "./constants.js"
 import { Translation } from "./tools.js";
 
 
@@ -253,18 +253,35 @@ class App {
         });
     }
 
+    // updateMenuFilterNames(): Updates the names for the filters
+    updateMenuFilterNames() {
+        d3.selectAll(".menuTab").each((tabData, tabInd, tabElements) => {
+            const tab = d3.select(tabElements[tabInd]);
+            const tabValue = tab.attr("value");
+
+            tab.selectAll(".menuFilterHeading button span").text((filterData, filterInd, filterElements) => {
+                const filter = d3.select(filterElements[filterInd]);
+                const filterValue = filter.attr("value");
+                return Translation.translate(`filterNames.${this.page}.${tabValue}.${filterValue}`);
+            });
+        });
+    }
+
     // updateTrendsOverTime(): Updates the "Trends Over Time" page
     updateTrendsOverTime() {
         this.menuTabs = d3.selectAll(".mainMenuContainer .nav-link");
         this.setupMenuTabs();
 
-        /* ------- update the text of the menu -s----------- */
+        /* ------- update the text of the menu ------------ */
 
+        // menu tabs
         this.menuTabs.text((data, ind, elements) => {
             const tab = d3.select(elements[ind]);
             const tabValue = tab.attr("value");
             return Translation.translate(`trendsOverTimeSections.${tabValue}`);
         });
+
+        this.updateMenuFilterNames();
 
         /* ------------------------------------------------ */
     }
@@ -281,6 +298,8 @@ class App {
             const tabValue = tab.attr("value");
             return Translation.translate(`overviewSections.${tabValue}`);
         });
+
+        this.updateMenuFilterNames();
 
         /* ------------------------------------------------ */
     }

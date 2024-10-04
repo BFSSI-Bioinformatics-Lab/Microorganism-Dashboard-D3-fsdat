@@ -44,7 +44,7 @@ export const OverviewSections = {
 
 // Default selected pages and tabs
 export const DefaultPage = Pages.TrendsOverTime;
-export const DefaultTrendsOverTimeSection = TrendsOverTimeSections.ByFood;
+export const DefaultTrendsOverTimeSection = TrendsOverTimeSections.ByMicroorganism;
 export const DefaultOverviewSection = OverviewSections.ByMicroorganism;
 
 export const DefaultTabs = {};
@@ -109,7 +109,8 @@ Themes[ThemeNames.Dark] = {
     headerTitleColor: "#ffffff"
 };
 
-// Mountain Haze Theme: https://www.canva.com/colors/color-palettes/mountain-haze/
+// Primary ---> Mountain Haze Theme: https://www.canva.com/colors/color-palettes/mountain-haze/
+// Secondary --> Mermaid Lagoon Theme: https://www.canva.com/colors/color-palettes/mermaid-lagoon/
 Themes[ThemeNames.Blue] = {
     fontColour: "#333333",
     primary: "#738fa7",
@@ -161,6 +162,46 @@ OverviewSectionsEN[OverviewSections.ByFood] = "By Food";
 OverviewSectionsEN[OverviewSections.ByMicroorganism] = "By Microorganism";
 OverviewSectionsEN[OverviewSections.ByOrg] = "By Org";
 
+// names for the filters
+const FilterNamesEN = {};
+FilterNamesEN[Pages.TrendsOverTime] = {};
+FilterNamesEN[Pages.Overview] = {};
+Object.keys(TrendsOverTimeSections).forEach((section) => { FilterNamesEN[Pages.TrendsOverTime][section] = {} });
+Object.keys(OverviewSections).forEach((section) => { FilterNamesEN[Pages.TrendsOverTime][section] = {} });
+
+// Filter names for "Trends Over Time" ==> "By Food"
+FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeSections.ByFood] = {
+    "food": "1. Select Food(s)",
+    "microorganism": "2. Select Microorganism",
+    "dataType": "3. Select DataType",
+    "surveyType": "4. Select Survey Type"
+}
+
+// Filter names for "Trends Over Time" ==> "By Microorganism"
+FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeSections.ByMicroorganism] = {
+    "microorganism": "1. Select Microorganism",
+    "food": "2. Select Food(s)",
+    "dataType": "3. Select DataType",
+    "surveyType": "4. Select Survey Type"
+}
+
+// Filter names for "Overview" ==> "By Microorganism"
+FilterNamesEN[Pages.Overview][OverviewSections.ByMicroorganism] = {
+    "microorganism": "1. Select Microorganism",
+    "surveyType": "2. Select Survey Type"
+}
+
+// Filter names for "Overview" ==> "By Food"
+FilterNamesEN[Pages.Overview][OverviewSections.ByFood] = {
+    "food": "1. Select Food(s)",
+    "surveyType": "2. Select Survey Type"
+}
+
+// Filter names for "Overview" ==> "By Org"
+FilterNamesEN[Pages.Overview][OverviewSections.ByOrg] = {
+    "surveyType": "1. Select Survey Type"
+}
+
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
     "websiteTabTitle": "FSDAT -Microbiology",
@@ -170,7 +211,8 @@ const LangEN = {
     navigation: NavigationEN,
     themes: ColourThemesEN,
     trendsOverTimeSections: TrendsOverTimeSectionsEN,
-    overviewSections: OverviewSectionsEN
+    overviewSections: OverviewSectionsEN,
+    filterNames: FilterNamesEN
 }
 
 // ==============================================
@@ -201,6 +243,46 @@ OverviewSectionsFR[OverviewSections.ByFood] = REMPLACER_MOI;
 OverviewSectionsFR[OverviewSections.ByMicroorganism] = REMPLACER_MOI;
 OverviewSectionsFR[OverviewSections.ByOrg] = REMPLACER_MOI;
 
+// names for the filters
+const FilterNamesFR = {};
+FilterNamesFR[Pages.TrendsOverTime] = {};
+FilterNamesFR[Pages.Overview] = {};
+Object.keys(TrendsOverTimeSections).forEach((section) => { FilterNamesFR[Pages.TrendsOverTime][section] = {} });
+Object.keys(OverviewSections).forEach((section) => { FilterNamesFR[Pages.TrendsOverTime][section] = {} });
+
+// Filter names for "Trends Over Time" ==> "By Food"
+FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeSections.ByFood] = {
+    "food": REMPLACER_MOI,
+    "microorganism": REMPLACER_MOI,
+    "dataType": REMPLACER_MOI,
+    "surveyType": REMPLACER_MOI
+}
+
+// Filter names for "Trends Over Time" ==> "By Microorganism"
+FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeSections.ByMicroorganism] = {
+    "microorganism": REMPLACER_MOI,
+    "food": REMPLACER_MOI,
+    "dataType": REMPLACER_MOI,
+    "surveyType": REMPLACER_MOI
+}
+
+// Filter names for "Overview" ==> "By Microorganism"
+FilterNamesFR[Pages.Overview][OverviewSections.ByMicroorganism] = {
+    "microorganism": REMPLACER_MOI,
+    "surveyType": REMPLACER_MOI
+}
+
+// Filter names for "Overview" ==> "By Food"
+FilterNamesFR[Pages.Overview][OverviewSections.ByFood] = {
+    "food": REMPLACER_MOI,
+    "surveyType": REMPLACER_MOI
+}
+
+// Filter names for "Overview" ==> "By Org"
+FilterNamesFR[Pages.Overview][OverviewSections.ByOrg] = {
+    "surveyType": REMPLACER_MOI
+}
+
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,
     "websiteTabTitle": REMPLACER_MOI,
@@ -210,7 +292,8 @@ const LangFR = {
     navigation: NavigationFR,
     themes: ColourThemesFR,
     trendsOverTimeSections: TrendsOverTimeSectionsFR,
-    overviewSections: OverviewSectionsFR
+    overviewSections: OverviewSectionsFR,
+    filterNames: FilterNamesFR
 }
 
 // ==============================================
