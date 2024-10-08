@@ -8,8 +8,9 @@ What it contains:
 
 -------------------------------------------------->
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
 
-<div class="my-5 mx-3 row">
+<div class="my-5 mx-3 row pageContainer">
   <div class="mainMenuContainer col-12 col-lg-6 col-xl-4">
     <nav>
       <div class="nav nav-tabs" id="nav-tab" role="tablist">
@@ -48,7 +49,22 @@ What it contains:
             </h2>
             <div id="byMicroorganismSelectFoodFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismSelectFoodFilterHeading" data-bs-parent="#byMicroorganismSelectFoodFilterContainer">
               <div class="accordion-body">
-                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                <div>
+                  <span class="me-2">Dummy Food Groups:</span>
+                  <select class="multiSelect" multiple data-actions-box="true" data-none-selected-text="NONONNON">
+                    <option>test</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                  </select>
+                </div>
+                <div class="mt-3">
+                  <span class="me-2">Dummy Foods:</span>
+                  <select class="multiSelect" multiple data-actions-box="true">
+                    <option>test</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -65,7 +81,18 @@ What it contains:
             </h2>
             <div id="byMicroorganismSelectDataTypeFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismSelectDataTypeFilterHeading" data-bs-parent="#byMicroorganismSelectDataTypeFilterContainer">
               <div class="accordion-body">
-                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                
+                <label class="radioContainer">
+                  <span>Dummy Presence/Absence</span>
+                  <input type="radio" checked="checked" name="ByMicroorganism_DataType">
+                  <span class="radioIcon"></span>
+                </label>
+                <label class="radioContainer">
+                  <span>Dummy Concentration</span>
+                  <input type="radio" name="ByMicroorganism_DataType">
+                  <span class="radioIcon"></span>
+                </label> 
+
               </div>
             </div>
           </div>
@@ -74,12 +101,46 @@ What it contains:
         <div class="accordion mt-3" id="byMicroorganismSelectSurveyTypeFilterContainer">
           <div class="accordion-item">
             <h2 class="menuFilterHeading accordion-header" id="byMicroorganismSelectSurveyTypeFilterHeading">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismSelectSurveyTypeFilter" aria-controls="byFoodSeslectSurveyTypeFilter">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismSelectSurveyTypeFilter" aria-controls="byMicroorganismSelectSurveyTypeFilter">
                 <span value="surveyType">Dummy Name for the Survey Type Filter Name (This will be overwritten and you will not see me!)</span>
                 <i class="accordionIcon fas fa-chevron-down"></i>
               </button>
             </h2>
             <div id="byMicroorganismSelectSurveyTypeFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismSelectSurveyTypeFilterHeading" data-bs-parent="#byMicroorganismSelectSurveyTypeFilterContainer">
+              <div class="accordion-body">
+
+                <label class="checkBoxContainer">
+                  <span>Dummy HC</span>
+                  <input type="checkbox" checked="checked">
+                  <span class="checkmarkIcon"></span>
+                </label>
+                
+                <label class="checkBoxContainer">
+                  <span>Dummy PHAC</span>
+                  <input type="checkbox">
+                  <span class="checkmarkIcon"></span>
+                </label>
+                
+                <label class="checkBoxContainer">
+                  <span>Dummy CFIA</span>
+                  <input type="checkbox">
+                  <span class="checkmarkIcon"></span>
+                </label>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion mt-3" id="byMicroorganismAdjustGraphFilterContainer">
+          <div class="accordion-item">
+            <h2 class="menuFilterHeading accordion-header" id="byMicroorganismAdjustGraphFilterHeading">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismAdjustGraphFilter" aria-controls="byMicroorganismAdjustGraphFilter">
+                <span value="adjustGraph">Dummy Name for the Survey Type Filter Name (This will be overwritten and you will not see me!)</span>
+                <i class="accordionIcon fas fa-chevron-down"></i>
+              </button>
+            </h2>
+            <div id="byMicroorganismAdjustGraphFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismAdjustGraphFilterHeading" data-bs-parent="#byMicroorganismAdjustGraphFilterContainer">
               <div class="accordion-body">
                 <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
               </div>
@@ -134,7 +195,18 @@ What it contains:
             </h2>
             <div id="byFoodSelectDataTypeFilter" class="accordion-collapse collapse show" aria-labelledby="byFoodSelectDataTypeFilterHeading" data-bs-parent="#byFoodSelectDataTypeFilterContainer">
               <div class="accordion-body">
-                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                
+                <label class="radioContainer">
+                  <span>Dummy Presence/Absence</span>
+                  <input type="radio" checked="checked" name="ByFood_DataType">
+                  <span class="radioIcon"></span>
+                </label>
+                <label class="radioContainer">
+                  <span>Dummy Concentration</span>
+                  <input type="radio" name="ByFood_DataType">
+                  <span class="radioIcon"></span>
+                </label>  
+
               </div>
             </div>
           </div>
@@ -149,6 +221,22 @@ What it contains:
               </button>
             </h2>
             <div id="byFoodSelectSurveyTypeFilter" class="accordion-collapse collapse show" aria-labelledby="byFoodSelectSurveyTypeFilterHeading" data-bs-parent="#byFoodSelectSurveyTypeFilterContainer">
+              <div class="accordion-body">
+                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion mt-3" id="byFoodAdjustGraphFilterContainer">
+          <div class="accordion-item">
+            <h2 class="menuFilterHeading accordion-header" id="byFoodAdjustGraphFilterHeading">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byFoodAdjustGraphFilter" aria-controls="byFoodAdjustGraphFilter">
+                <span value="adjustGraph">Dummy Name for the Adjust Graph Filter Name (This will be overwritten and you will not see me!)</span>
+                <i class="accordionIcon fas fa-chevron-down"></i>
+              </button>
+            </h2>
+            <div id="byFoodAdjustGraphFilter" class="accordion-collapse collapse show" aria-labelledby="byFoodAdjustGraphFilterHeading" data-bs-parent="#byFoodAdjustGraphFilterContainer">
               <div class="accordion-body">
                 <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
               </div>

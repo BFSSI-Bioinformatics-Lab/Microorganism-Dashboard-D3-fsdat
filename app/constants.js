@@ -29,23 +29,37 @@ PageSrc[Pages.Overview] = "./templates/overview.html"
 PageSrc[Pages.About] = "./templates/about.html"
 PageSrc[Pages.Contact] = "./templates/contact.html"
 
-// Different sections in the "Trends Over Time" page
-export const TrendsOverTimeSections = {
+// Tabs in the "Trends Over Time" page
+export const TrendsOverTimeTabs = {
     ByFood: "ByFood",
     ByMicroorganism: "ByMicroorganism"
 }
 
-// Different sections in the "Overview" page
-export const OverviewSections = {
+// Tabs in the "Overview" page
+export const OverviewTabs = {
     ByMicroorganism: "ByMicroorganism",
     ByFood: "ByFood",
     ByOrg: "ByOrg"
 }
 
+// All tabs on the app
+export const Tabs = {};
+Tabs[Pages.TrendsOverTime] = TrendsOverTimeTabs;
+Tabs[Pages.Overview] = OverviewTabs;
+
+// Inputs available
+export const Inputs = {
+    DataType: "DataType",
+    FoodGroup: "FoodGroup",
+    Food: "Food",
+    MicroOrganism: "Microorganism",
+    SurveyType: "SurveyType"
+};
+
 // Default selected pages and tabs
 export const DefaultPage = Pages.TrendsOverTime;
-export const DefaultTrendsOverTimeSection = TrendsOverTimeSections.ByMicroorganism;
-export const DefaultOverviewSection = OverviewSections.ByMicroorganism;
+export const DefaultTrendsOverTimeSection = TrendsOverTimeTabs.ByMicroorganism;
+export const DefaultOverviewSection = OverviewTabs.ByMicroorganism;
 
 export const DefaultTabs = {};
 DefaultTabs[Pages.TrendsOverTime] = DefaultTrendsOverTimeSection;
@@ -59,6 +73,21 @@ export const Languages = {
 
 export const DefaultLanguage = Languages.English;
 
+// Data types available for the "select Data Type" filter
+export const MicroBioDataTypes = {
+    "PresenceAbsence": "presenceAbsence",
+    "Concentration": "concentration"
+};
+
+// Survey Types
+export const SurveyTypes = {
+    HC: "HC",
+    PHAC: "PHAC",
+    CFIA: "CFIA",
+    CFSIN: "CFSIN"
+};
+
+export const DefaultSurveyTypes = [SurveyTypes.HC, SurveyTypes.PHAC, SurveyTypes.CFIA];
 
 // ############################################################
 // ################## THEMES ##################################
@@ -85,8 +114,9 @@ Themes[ThemeNames.Light] = {
     primaryBorderColour: "#7D828B",
     secondary: "#335075",
     secondaryBg: "#cfd1d5",
+    secondaryBgHover: "#d8dadd",
     secondaryBorderColour: "#bbbfc5",
-    secondaryHover: "#0535d2",
+    secondaryHover: "#753350",
     tertiary: "#af3c43",
     link: "#284162",
     headerTitleColor: "#000000"
@@ -95,15 +125,16 @@ Themes[ThemeNames.Light] = {
 Themes[ThemeNames.Dark] = {
     fontColour: "#ffffff",
     primary: "#26374a",
-    primaryBg: "#000000",
+    primaryBg: "#191919",
     primaryHover: "#444444",
     primaryBgHover: "#ffffff",
     primaryFontColour: "#ffffff",
     primaryBorderColour: "#d6d8db",
-    secondary: "#83a1c9",
-    secondaryBg: "#cfd1d5",
+    secondary: "#4a74aa",
+    secondaryBg: "#cfd1d5", 
+    secondaryBgHover: "#d8dadd",
     secondaryBorderColour: "#d6d8db",
-    secondaryHover: "#5179fb",
+    secondaryHover: "#aa4a74",
     tertiary: "#af3c43",
     link: "#6e93c4",
     headerTitleColor: "#ffffff"
@@ -121,6 +152,7 @@ Themes[ThemeNames.Blue] = {
     primaryBorderColour: "#7D828B",
     secondary: "#0c2d48",
     secondaryBg: "#b1d4e0",
+    secondaryBgHover: "#c0dce6",
     secondaryBorderColour: "#145da0",
     secondaryHover: "#2e8bc0",
     tertiary: "purple",
@@ -152,53 +184,56 @@ ColourThemesEN[ThemeNames.Dark] = "Dark"
 ColourThemesEN[ThemeNames.Blue] = "Blue"
 
 // names for the "Trends Over Time" sections
-const TrendsOverTimeSectionsEN = {};
-TrendsOverTimeSectionsEN[TrendsOverTimeSections.ByFood] = "By Food";
-TrendsOverTimeSectionsEN[TrendsOverTimeSections.ByMicroorganism] = "By Microorganism";
+const TrendsOverTimeTabsEN = {};
+TrendsOverTimeTabsEN[TrendsOverTimeTabs.ByFood] = "By Food";
+TrendsOverTimeTabsEN[TrendsOverTimeTabs.ByMicroorganism] = "By Microorganism";
 
 // names for the "Overview" sections
-const OverviewSectionsEN = {};
-OverviewSectionsEN[OverviewSections.ByFood] = "By Food";
-OverviewSectionsEN[OverviewSections.ByMicroorganism] = "By Microorganism";
-OverviewSectionsEN[OverviewSections.ByOrg] = "By Org";
+const OverviewTabsEN = {};
+OverviewTabsEN[OverviewTabs.ByFood] = "By Food";
+OverviewTabsEN[OverviewTabs.ByMicroorganism] = "By Microorganism";
+OverviewTabsEN[OverviewTabs.ByOrg] = "By Org";
 
 // names for the filters
 const FilterNamesEN = {};
 FilterNamesEN[Pages.TrendsOverTime] = {};
 FilterNamesEN[Pages.Overview] = {};
-Object.keys(TrendsOverTimeSections).forEach((section) => { FilterNamesEN[Pages.TrendsOverTime][section] = {} });
-Object.keys(OverviewSections).forEach((section) => { FilterNamesEN[Pages.TrendsOverTime][section] = {} });
+Object.keys(TrendsOverTimeTabs).forEach((section) => { FilterNamesEN[Pages.TrendsOverTime][section] = {} });
+Object.keys(OverviewTabs).forEach((section) => { FilterNamesEN[Pages.TrendsOverTime][section] = {} });
 
 // Filter names for "Trends Over Time" ==> "By Food"
-FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeSections.ByFood] = {
+FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
     "food": "1. Select Food(s)",
     "microorganism": "2. Select Microorganism",
     "dataType": "3. Select DataType",
-    "surveyType": "4. Select Survey Type"
+    "surveyType": "4. Select Survey Type",
+    "adjustGraph": "5. Adjust Graph"
 }
 
 // Filter names for "Trends Over Time" ==> "By Microorganism"
-FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeSections.ByMicroorganism] = {
+FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
     "microorganism": "1. Select Microorganism",
     "food": "2. Select Food(s)",
     "dataType": "3. Select DataType",
-    "surveyType": "4. Select Survey Type"
+    "surveyType": "4. Select Survey Type",
+    "adjustGraph": "5. Adjust Graph"
 }
 
 // Filter names for "Overview" ==> "By Microorganism"
-FilterNamesEN[Pages.Overview][OverviewSections.ByMicroorganism] = {
+FilterNamesEN[Pages.Overview][OverviewTabs.ByMicroorganism] = {
     "microorganism": "1. Select Microorganism",
-    "surveyType": "2. Select Survey Type"
+    "surveyType": "2. Select Survey Type",
+    "adjustGraph": "3. Adjust Graph"
 }
 
 // Filter names for "Overview" ==> "By Food"
-FilterNamesEN[Pages.Overview][OverviewSections.ByFood] = {
+FilterNamesEN[Pages.Overview][OverviewTabs.ByFood] = {
     "food": "1. Select Food(s)",
     "surveyType": "2. Select Survey Type"
 }
 
 // Filter names for "Overview" ==> "By Org"
-FilterNamesEN[Pages.Overview][OverviewSections.ByOrg] = {
+FilterNamesEN[Pages.Overview][OverviewTabs.ByOrg] = {
     "surveyType": "1. Select Survey Type"
 }
 
@@ -208,11 +243,16 @@ const LangEN = {
     "websiteDescription": "FSDAT -Microbiology",
     "changeLanguage": "Français",
     "changeLanguageValue": Languages.French,
+    
     navigation: NavigationEN,
     themes: ColourThemesEN,
-    trendsOverTimeSections: TrendsOverTimeSectionsEN,
-    overviewSections: OverviewSectionsEN,
-    filterNames: FilterNamesEN
+    TrendsOverTimeTabs: TrendsOverTimeTabsEN,
+    OverviewTabs: OverviewTabsEN,
+    filterNames: FilterNamesEN,
+
+    "allFoodGroups": "All Food Groups",
+    "allFoods": "All Foods",
+    "allMicroorganisms": "All Microorganisms"
 }
 
 // ==============================================
@@ -233,25 +273,25 @@ ColourThemesFR[ThemeNames.Dark] = "Foncé"
 ColourThemesFR[ThemeNames.Blue] = "Bleu"
 
 // names for the "Trends Over Time" sections
-const TrendsOverTimeSectionsFR = {};
-TrendsOverTimeSectionsFR[TrendsOverTimeSections.ByFood] = REMPLACER_MOI;
-TrendsOverTimeSectionsFR[TrendsOverTimeSections.ByMicroorganism] = REMPLACER_MOI;
+const TrendsOverTimeTabsFR = {};
+TrendsOverTimeTabsFR[TrendsOverTimeTabs.ByFood] = REMPLACER_MOI;
+TrendsOverTimeTabsFR[TrendsOverTimeTabs.ByMicroorganism] = REMPLACER_MOI;
 
 // names for the "Overview" sections
-const OverviewSectionsFR = {};
-OverviewSectionsFR[OverviewSections.ByFood] = REMPLACER_MOI;
-OverviewSectionsFR[OverviewSections.ByMicroorganism] = REMPLACER_MOI;
-OverviewSectionsFR[OverviewSections.ByOrg] = REMPLACER_MOI;
+const OverviewTabsFR = {};
+OverviewTabsFR[OverviewTabs.ByFood] = REMPLACER_MOI;
+OverviewTabsFR[OverviewTabs.ByMicroorganism] = REMPLACER_MOI;
+OverviewTabsFR[OverviewTabs.ByOrg] = REMPLACER_MOI;
 
 // names for the filters
 const FilterNamesFR = {};
 FilterNamesFR[Pages.TrendsOverTime] = {};
 FilterNamesFR[Pages.Overview] = {};
-Object.keys(TrendsOverTimeSections).forEach((section) => { FilterNamesFR[Pages.TrendsOverTime][section] = {} });
-Object.keys(OverviewSections).forEach((section) => { FilterNamesFR[Pages.TrendsOverTime][section] = {} });
+Object.keys(TrendsOverTimeTabs).forEach((section) => { FilterNamesFR[Pages.TrendsOverTime][section] = {} });
+Object.keys(OverviewTabs).forEach((section) => { FilterNamesFR[Pages.TrendsOverTime][section] = {} });
 
 // Filter names for "Trends Over Time" ==> "By Food"
-FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeSections.ByFood] = {
+FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
     "food": REMPLACER_MOI,
     "microorganism": REMPLACER_MOI,
     "dataType": REMPLACER_MOI,
@@ -259,7 +299,7 @@ FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeSections.ByFood] = {
 }
 
 // Filter names for "Trends Over Time" ==> "By Microorganism"
-FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeSections.ByMicroorganism] = {
+FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
     "microorganism": REMPLACER_MOI,
     "food": REMPLACER_MOI,
     "dataType": REMPLACER_MOI,
@@ -267,19 +307,19 @@ FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeSections.ByMicroorganism] = {
 }
 
 // Filter names for "Overview" ==> "By Microorganism"
-FilterNamesFR[Pages.Overview][OverviewSections.ByMicroorganism] = {
+FilterNamesFR[Pages.Overview][OverviewTabs.ByMicroorganism] = {
     "microorganism": REMPLACER_MOI,
     "surveyType": REMPLACER_MOI
 }
 
 // Filter names for "Overview" ==> "By Food"
-FilterNamesFR[Pages.Overview][OverviewSections.ByFood] = {
+FilterNamesFR[Pages.Overview][OverviewTabs.ByFood] = {
     "food": REMPLACER_MOI,
     "surveyType": REMPLACER_MOI
 }
 
 // Filter names for "Overview" ==> "By Org"
-FilterNamesFR[Pages.Overview][OverviewSections.ByOrg] = {
+FilterNamesFR[Pages.Overview][OverviewTabs.ByOrg] = {
     "surveyType": REMPLACER_MOI
 }
 
@@ -289,11 +329,16 @@ const LangFR = {
     "websiteDescription": REMPLACER_MOI,
     "changeLanguage": "English",
     "changeLanguageValue": Languages.English,
+
     navigation: NavigationFR,
     themes: ColourThemesFR,
-    trendsOverTimeSections: TrendsOverTimeSectionsFR,
-    overviewSections: OverviewSectionsFR,
-    filterNames: FilterNamesFR
+    TrendsOverTimeTabs: TrendsOverTimeTabsFR,
+    OverviewTabs: OverviewTabsFR,
+    filterNames: FilterNamesFR,
+
+    "allFoodGroups": REMPLACER_MOI,
+    "allFoods": REMPLACER_MOI,
+    "allMicroorganisms": REMPLACER_MOI
 }
 
 // ==============================================
