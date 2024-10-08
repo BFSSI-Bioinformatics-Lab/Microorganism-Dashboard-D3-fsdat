@@ -10,7 +10,7 @@ What it contains:
 
 
 
-<div class="my-5 mx-3 row">
+<div class="my-5 mx-3 row pageContainer">
     <div class="mainMenuContainer col-12 col-lg-6 col-xl-4">
       <nav>
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
@@ -56,6 +56,22 @@ What it contains:
                     </div>
                 </div>
             </div>
+
+            <div class="accordion mt-3" id="byMicroorganismAjustGraphFilterContainer">
+              <div class="accordion-item">
+                  <h2 class="menuFilterHeading accordion-header" id="byMicroorganismAjustGraphFilterHeading">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismAjustGraphFilter" aria-controls="byMicroorganismAjustGraphFilter">
+                        <span value="adjustGraph">Dummy Name for the Adjust Graph Filter Name (This will be overwritten and you will not see me!)</span>
+                        <i class="accordionIcon fas fa-chevron-down"></i>
+                      </button>
+                  </h2>
+                  <div id="byMicroorganismAjustGraphFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismAjustGraphFilterHeading" data-bs-parent="#byMicroorganismAjustGraphFilterContainer">
+                      <div class="accordion-body">
+                          <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                      </div>
+                  </div>
+              </div>
+          </div>
 
         </div>
 

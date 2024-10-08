@@ -11,24 +11,22 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, DefaultPage, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme, DefaultTabs, TrendsOverTimeSections} from "./constants.js"
+import { Pages, DefaultPage, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme, DefaultTabs, TrendsOverTimeTabs} from "./constants.js"
 import { Translation } from "./tools.js";
+import { Model } from "./backend.js";
 
 
 // App: The class for the overall application
 class App {
-    constructor() {
-        this.page = DefaultPage;
+    constructor(model) {
+        this.model = model;
         this.lang = DefaultLanguage;
         this.theme = DefaultTheme;
-
-        this.activeTabs = JSON.parse(JSON.stringify(DefaultTabs)); // get a deepcopy of the default tabs
     }
 
     // init(): Initializes the entire app
     init() {
         const self = this;
-        Translation.register(TranslationObj);
         this.changeLanguage(self.lang);
 
         // setup the header
@@ -60,7 +58,7 @@ class App {
                     // load the new page
                     const page = data;
                     if (page) {
-                        self.page = page;
+                        self.model.pageName = page;
                         self.loadMainPage();
                     }
                 });
@@ -154,7 +152,7 @@ class App {
         // load the new page
         const page = selectedHeader.attr("value");
         if (page) {
-            this.page = page;
+            this.model.pageName = page;
             this.loadMainPage();
         }
     }
@@ -210,21 +208,30 @@ class App {
     // Loads the selected main page for the app
     loadMainPage() {
         const self = this;
-        $("#mainPage").load(PageSrc[self.page], function() { self.updateMainPage(); });
+        $("#mainPage").load(PageSrc[self.model.pageName], function() { self.updateMainPage(); });
     }
 
     // updateMainPage(): Updates the entire main page without loading its corresponding HTML
     updateMainPage() {
-        if (this.page == Pages.TrendsOverTime) {
+        this.page = d3.select(".pageContainer");
+        
+        if (this.model.pageName == Pages.TrendsOverTime) {
             this.updateTrendsOverTime();
-        } else if (this.page == Pages.Overview) {
+        } else if (this.model.pageName == Pages.Overview) {
             this.updateOverview();
         }
+
+        // load the multiselect options
+        // This is a bug in the bootstrap-select library, requiring the multiselect widget to be manually initialized if
+        //  the multiselect is dynamically added into the HTML (we dynamically add the multiselect by calling the .load function using JQuery)
+        //
+        // https://github.com/snapappointments/bootstrap-select/issues/2606
+        $(".multiSelect").selectpicker();
     }
 
     // setupMenuTabs(): Initial setup needed for the menu tabs
     setupMenuTabs() {
-        const activeTab = this.activeTabs[this.page];
+        const activeTab = this.model.activeTabs[this.model.pageName];
 
         // initial setup of which tab is selected
         this.menuTabs.each((data, ind, elements) => {
@@ -249,27 +256,27 @@ class App {
         this.menuTabs.on("click", (event) => {
             const tab = d3.select(event.target);
             const tabValue = tab.attr("value");
-            this.activeTabs[this.page] = tabValue;
+            this.model.activeTabs[this.model.pageName] = tabValue;
         });
     }
 
     // updateMenuFilterNames(): Updates the names for the filters
     updateMenuFilterNames() {
-        d3.selectAll(".menuTab").each((tabData, tabInd, tabElements) => {
+        this.page.selectAll(".menuTab").each((tabData, tabInd, tabElements) => {
             const tab = d3.select(tabElements[tabInd]);
             const tabValue = tab.attr("value");
 
             tab.selectAll(".menuFilterHeading button span").text((filterData, filterInd, filterElements) => {
                 const filter = d3.select(filterElements[filterInd]);
                 const filterValue = filter.attr("value");
-                return Translation.translate(`filterNames.${this.page}.${tabValue}.${filterValue}`);
+                return Translation.translate(`filterNames.${this.model.pageName}.${tabValue}.${filterValue}`);
             });
         });
     }
 
     // updateTrendsOverTime(): Updates the "Trends Over Time" page
     updateTrendsOverTime() {
-        this.menuTabs = d3.selectAll(".mainMenuContainer .nav-link");
+        this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
         this.setupMenuTabs();
 
         /* ------- update the text of the menu ------------ */
@@ -278,7 +285,7 @@ class App {
         this.menuTabs.text((data, ind, elements) => {
             const tab = d3.select(elements[ind]);
             const tabValue = tab.attr("value");
-            return Translation.translate(`trendsOverTimeSections.${tabValue}`);
+            return Translation.translate(`TrendsOverTimeTabs.${tabValue}`);
         });
 
         this.updateMenuFilterNames();
@@ -288,7 +295,7 @@ class App {
 
     // updateOverview(): Updates the "overview" page
     updateOverview() {
-        this.menuTabs = d3.selectAll(".mainMenuContainer .nav-link");
+        this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
         this.setupMenuTabs();
 
         /* ------- update the text of the menu ------------ */
@@ -296,7 +303,7 @@ class App {
         this.menuTabs.text((data, ind, elements) => {
             const tab = d3.select(elements[ind]);
             const tabValue = tab.attr("value");
-            return Translation.translate(`overviewSections.${tabValue}`);
+            return Translation.translate(`OverviewTabs.${tabValue}`);
         });
 
         this.updateMenuFilterNames();
@@ -312,5 +319,9 @@ class App {
 // MAIN //
 //////////
 
-let app = new App();
+Translation.register(TranslationObj);
+let model = new Model();
+model.init();
+
+let app = new App(model);
 app.init();

@@ -20,7 +20,8 @@
     --primaryBgHover: #ffffff;
     --secondary: #335075;
     --secondaryBg: #cfd1d5;
-    --secondaryHover: #0535d2;
+    --secondaryHover: #753350;
+    --secondaryBgHover: #d8dadd;
     --secondaryBorderColour: #bbbfc5;
     --tertiary: #af3c43;
     --link: #284162;
@@ -81,7 +82,195 @@ body {
     }
 }
 
+/* ################ GENERAL STYLES ########################## */
 
+/* URL Links in the site*/
+.link {
+    color: var(--link);
+}
+
+/* =========== Collapsibles/Accordions================= */
+.accordion {
+    --bs-accordion-color: var(--fontColour);
+    --bs-accordion-bg: var(--primaryBg);
+    --bs-accordion-btn-color: var(--secondary);
+    --bs-accordion-active-color: var(--secondary);
+    --bs-accordion-border-color: var(--secondaryBorderColour);
+    --bs-accordion-active-bg: var(--primaryBg);
+    --bs-accordion-btn-icon: none;
+    --bs-accordion-btn-active-icon: none;
+    --bs-accordion-btn-focus-box-shadow: none;
+}
+
+.accordion-button {
+    transition: var(--defaultTransition);
+}
+
+.accordion-button:hover {
+    color: var(--secondaryHover);
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.accordionIcon {
+    position: absolute;
+    right: 15px;
+    transition: var(--fastTransition);
+}
+
+.accordion-button:not(.collapsed):focus {
+    border-bottom: 1px var(--secondaryBorderColour) solid;
+}
+
+.accordion-button:not(.collapsed) .accordionIcon {
+    transform: rotate(-180deg);
+}
+
+/* =================================================== */
+/* =========== Dropdowns on the app ================== */
+
+.dropdown-menu {
+    background-color: var(--primaryBg);
+    color: var(--primaryFontColour);
+    border-color: var(--primaryBorderColour);
+}
+
+.dropdown-item {
+    color: var(--fontColour);
+}
+
+.dropdown-item.active {
+    background-color: var(--primary);
+}
+
+.dropdown-item:focus, .dropdown-item:active {
+    background-color: var(--primaryHover);
+}
+
+.dropdown-item:hover {
+    background-color: var(--primaryHover);
+    color: var(--primaryFontColour);
+}
+
+/* =================================================== */
+/* ======== Radio Buttons/ CheckBoxes ================ */
+
+/* Reference: https://www.w3schools.com/howto/howto_css_custom_checkbox.asp */
+
+/* The container */
+.radioContainer, .checkBoxContainer {
+    display: block;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.radioContainer input, .checkBoxContainer input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Create a custom radio button */
+.radioIcon, .checkmarkIcon {
+    position: absolute;
+    top: calc(var(--bs-body-font-size) / 4);
+    left: 0;
+    height: 1em;
+    width: 1em;
+    background-color: var(--primaryBg);
+    border: 1px solid var(--primaryBorderColour);
+    transition: var(--fastTransition);
+}
+
+.radioIcon {
+    border-radius: 50%;
+}
+
+.checkmarkIcon {
+    border-radius: 0.2em;
+}
+
+/* On mouse-over, add a grey background color */
+.radioContainer:hover input ~ .radioIcon, .checkBoxContainer:hover input ~ .checkmarkIcon {
+    background-color: var(--secondaryHover);
+}
+
+/* When the radio button is checked, add a blue background */
+.radioContainer input:checked ~ .radioIcon, .checkBoxContainer input:checked ~ .checkmarkIcon {
+    background-color: var(--secondary);
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.radioIcon:after, .checkmarkIcon:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.radioContainer input:checked ~ .radioIcon:after, .checkBoxContainer input:checked ~ .checkmarkIcon:after {
+    display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.radioContainer .radioIcon:after {
+    top: 0.2em;
+    left: 0.2em;
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--primaryBgHover);
+}
+
+/* Style the checkmark/indicator */
+.checkBoxContainer .checkmarkIcon:after {
+    left: 0.25em;
+    top: 0;
+    width: 0.4em;
+    height: 0.8em;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+
+/* =================================================== */
+/* ======== Multiselect ============================== */
+
+.bootstrap-select > .dropdown-toggle.bs-placeholder {
+    color: var(--secondary);
+    background-color: var(--primaryBg);
+    transition: var(--defaultTransition);
+}
+
+.bootstrap-select > .dropdown-toggle.bs-placeholder:hover {
+    color: var(--secondaryHover);
+}
+
+.btn-light {
+    --bs-btn-bg: var(--secondaryBg);
+    --bs-btn-color: var(--secondary);
+    --bs-btn-border-color: var(--secondaryBorderColour);
+    --bs-btn-active-bg: var(--primaryBg);
+    --bs-btn-hover-color: var(--secondaryHover);
+    --bs-btn-hover-bg: var(--secondaryBgHover);
+}
+
+.btn.show {
+    color: var(--secondaryHover);
+}
+
+/* =================================================== */
+
+/* ########################################################## */
 /* ################### HEADER ############################### */
 
 /* For small phone screeens */
@@ -248,7 +437,6 @@ body {
 
 /* ============================================== */
 
-
 /* ########################################################## */
 /* ################### FOOTER ############################### */
 
@@ -315,38 +503,6 @@ body {
 
 /* ########################################################## */
 
-/* =========== Dropdowns on the app ================== */
-
-.dropdown-menu {
-    background-color: var(--primaryBg);
-    color: var(--primaryFontColour);
-    border-color: var(--primaryBorderColour);
-}
-
-.dropdown-item {
-    color: var(--fontColour);
-}
-
-.dropdown-item.active {
-    background-color: var(--primary);
-}
-
-.dropdown-item:focus, .dropdown-item:active {
-    background-color: var(--primaryHover);
-}
-
-.dropdown-item:hover {
-    background-color: var(--primaryHover);
-    color: var(--primaryFontColour);
-}
-
-/* =================================================== */
-
-/* URL Links in the site*/
-.link {
-    color: var(--link);
-}
-
 #mainPage {
     min-height: 70vh;
     position: relative;
@@ -356,40 +512,6 @@ body {
     min-height: 70vh;
 }
 
-/* =========== Collapsibles/Accordions================= */
-.accordion {
-    --bs-accordion-color: var(--fontColour);
-    --bs-accordion-bg: var(--primaryBg);
-    --bs-accordion-btn-color: var(--secondary);
-    --bs-accordion-active-color: var(--secondary);
-    --bs-accordion-border-color: var(--secondaryBorderColour);
-    --bs-accordion-active-bg: var(--primaryBg);
-    --bs-accordion-btn-icon: none;
-    --bs-accordion-btn-active-icon: none;
-}
-
-.accordion-button {
-    transition: var(--defaultTransition);
-}
-
-.accordion-button:hover {
-    color: var(--secondaryHover);
-    text-decoration: underline;
-    font-weight: bold;
-}
-
-.accordionIcon {
-    position: absolute;
-    right: 15px;
-    transition: var(--fastTransition);
-}
-
-.accordion-button:not(.collapsed) .accordionIcon {
-    transform: rotate(-180deg);
-}
-
-
-/* =================================================== */
 /* =========== Menu for the graphs =================== */
 
 .menuNav {
