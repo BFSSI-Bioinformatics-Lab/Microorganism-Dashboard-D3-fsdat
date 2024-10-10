@@ -56,6 +56,31 @@ export const Inputs = {
     SurveyType: "SurveyType"
 };
 
+// order for the filter inputs for each tab
+export const InputOrder = {};
+InputOrder[Pages.TrendsOverTime] = {};
+InputOrder[Pages.Overview] = {};
+InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
+InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.MicroOrganism, Inputs.SurveyType];
+InputOrder[Pages.Overview][OverviewTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.SurveyType];
+InputOrder[Pages.Overview][OverviewTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
+InputOrder[Pages.Overview][OverviewTabs.ByOrg] = [Inputs.SurveyType];
+
+
+// indices for the order of the filter inputs in each tab
+export const InputOrderInds = {};
+for (const page in InputOrder) {
+    const pageInputOrders = InputOrder[page];
+    InputOrderInds[page] = {};
+
+    for (const tab in pageInputOrders) {
+        const tabInputOrder = pageInputOrders[tab];
+        const tabOrderInds = {};
+        tabInputOrder.forEach((input, ind) => {tabOrderInds[input] = ind});
+        InputOrderInds[page][tab] = tabOrderInds;
+    }
+}
+
 // Default selected pages and tabs
 export const DefaultPage = Pages.TrendsOverTime;
 export const DefaultTrendsOverTimeSection = TrendsOverTimeTabs.ByMicroorganism;
@@ -81,13 +106,31 @@ export const MicroBioDataTypes = {
 
 // Survey Types
 export const SurveyTypes = {
-    HC: "HC",
-    PHAC: "PHAC",
-    CFIA: "CFIA",
+    HC: "HC Targeted Surveys",
+    PHAC: "PHAC FoodNet",
+    CFIA: "CFIA Surveys",
     CFSIN: "CFSIN"
 };
 
-export const DefaultSurveyTypes = [SurveyTypes.HC, SurveyTypes.PHAC, SurveyTypes.CFIA];
+// Delimeter for joining each node in the Phylogentic tree
+export const PhylogeneticDelim = "==>"
+
+// Columns in the Health Canada Data
+// Note: Copy the exact column names from "CANLINE Micro -no... .csv" except for the Columns with 3 stars (***)
+export const HCDataCols = {
+    Agent: "Agent",
+    Genus: "Genus",
+    Species: "Species",
+    Subspecies: "Subspecies/Genogroup",
+    Genotype: "Genotype",
+    Subgenotype: "Subgenotype",
+    Serotype: "Serotype",
+    OtherTyping: "Other typing",
+    FoodGroup: "Food Group",
+    FoodName: "Food Name",
+    ProjectCode: "Project Code",
+    SurveyType: "Survey Type" // ***
+}
 
 // ############################################################
 // ################## THEMES ##################################
@@ -252,7 +295,11 @@ const LangEN = {
 
     "allFoodGroups": "All Food Groups",
     "allFoods": "All Foods",
-    "allMicroorganisms": "All Microorganisms"
+    "allMicroorganisms": "All Microorganisms",
+
+    "foodGroupLabel": "Food Groups:",
+    "foodLabel": "Foods:",
+    "microorganismLabel": "Microorganisms:"
 }
 
 // ==============================================
@@ -338,7 +385,11 @@ const LangFR = {
 
     "allFoodGroups": REMPLACER_MOI,
     "allFoods": REMPLACER_MOI,
-    "allMicroorganisms": REMPLACER_MOI
+    "allMicroorganisms": REMPLACER_MOI,
+
+    "foodGroupLabel": REMPLACER_MOI,
+    "foodLabel": REMPLACER_MOI,
+    "microorganismLabel": REMPLACER_MOI
 }
 
 // ==============================================

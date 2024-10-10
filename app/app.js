@@ -25,7 +25,7 @@ class App {
     }
 
     // init(): Initializes the entire app
-    init() {
+    async init() {
         const self = this;
         this.changeLanguage(self.lang);
 
@@ -257,7 +257,11 @@ class App {
             const tab = d3.select(event.target);
             const tabValue = tab.attr("value");
             this.model.activeTabs[this.model.pageName] = tabValue;
+            this.model.setupTab();
         });
+
+        // load the data for the tab
+        this.model.setupTab();
     }
 
     // updateMenuFilterNames(): Updates the names for the filters
@@ -279,6 +283,91 @@ class App {
         this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
         this.setupMenuTabs();
 
+        function getTree() {
+            // Some logic to retrieve, or generate tree structure
+            return [{
+                text: "All Microrganisms",
+                nodes: [
+                    {
+                        text: "Parent 1",
+                        nodes: [
+                          {
+                            text: "Child 1",
+                            nodes: [
+                              {
+                                text: "Grandchild 1"
+                              },
+                              {
+                                text: "Grandchild 2"
+                              }
+                            ]
+                          },
+                          {
+                            text: "Child 2"
+                          }
+                        ]
+                      },
+                      {
+                        text: "Parent 2"
+                      },
+                      {
+                        text: "Parent 3"
+                      },
+                      {
+                        text: "Parent 4"
+                      },
+                      {
+                        text: "Parent 5"
+                      }
+                ]
+            }];
+          }
+          
+        let treeData = getTree();
+        let tree = $('#tree');
+        tree.treeview({data: treeData,
+                       backColor: "var(--primaryBg)",
+                       borderColor: "var(--secondaryBorderColour)",
+                       color: "var(--fontColour)",
+                       onhoverColor: "var(--primaryHover)",
+                       selectedBackColor: "var(--primary)",
+                       selectedColor: "var(--primaryBgHover)",
+                       collapseIcon: 'fas fa-chevron-down',
+                       expandIcon: 'fas fa-chevron-right',
+                       checkedIcon: 'far fa-check-square',
+                       uncheckedIcon: 'far fa-square',
+                       showCheckbox: true,
+                       showIcon: true,
+                       multiSelect: true,
+                       levels: 1
+        });
+
+        tree.on('nodeChecked', function(event, node) {
+            tree.data("treeview").selectNode(node.nodeId, { silent: true });
+            if (node.nodes === undefined) return;
+
+            for (const n of node.nodes) {
+                tree.data('treeview').checkNode(n.nodeId);
+            }
+        });
+
+        tree.on('nodeUnchecked', function(event, node) {
+            tree.data("treeview").unselectNode(node.nodeId, { silent: true });
+            if (node.nodes === undefined) return;
+
+            for (const n of node.nodes) {
+                tree.data('treeview').uncheckNode(n.nodeId);
+            }
+        });
+
+        tree.on("nodeSelected", function(event, node) {
+            tree.data('treeview').checkNode(node.nodeId);
+        });
+
+        tree.on("nodeUnselected", function(event, node) {
+            tree.data('treeview').uncheckNode(node.nodeId);
+        });
+
         /* ------- update the text of the menu ------------ */
 
         // menu tabs
@@ -289,6 +378,9 @@ class App {
         });
 
         this.updateMenuFilterNames();
+        d3.selectAll("#foodGroupLabel").text(Translation.translate("foodGroupLabel"));
+        d3.selectAll("#foodLabel").text(Translation.translate("foodLabel"));
+        d3.selectAll("#microorganismLabel").text(Translation.translate("microorganismLabel"));
 
         /* ------------------------------------------------ */
     }
@@ -321,7 +413,7 @@ class App {
 
 Translation.register(TranslationObj);
 let model = new Model();
-model.init();
+await model.load();
 
 let app = new App(model);
-app.init();
+await app.init();
