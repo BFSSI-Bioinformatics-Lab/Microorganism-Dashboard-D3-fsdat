@@ -56,6 +56,31 @@ export const Inputs = {
     SurveyType: "SurveyType"
 };
 
+// order for the filter inputs for each tab
+export const InputOrder = {};
+InputOrder[Pages.TrendsOverTime] = {};
+InputOrder[Pages.Overview] = {};
+InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = [Inputs.SurveyType, Inputs.MicroOrganism, Inputs.FoodGroup, Inputs.Food];
+InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = [Inputs.SurveyType, Inputs.FoodGroup, Inputs.Food, Inputs.MicroOrganism];
+InputOrder[Pages.Overview][OverviewTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.SurveyType];
+InputOrder[Pages.Overview][OverviewTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
+InputOrder[Pages.Overview][OverviewTabs.ByOrg] = [Inputs.SurveyType];
+
+
+// indices for the order of the filter inputs in each tab
+export const InputOrderInds = {};
+for (const page in InputOrder) {
+    const pageInputOrders = InputOrder[page];
+    InputOrderInds[page] = {};
+
+    for (const tab in pageInputOrders) {
+        const tabInputOrder = pageInputOrders[tab];
+        const tabOrderInds = {};
+        tabInputOrder.forEach((input, ind) => {tabOrderInds[input] = ind});
+        InputOrderInds[page][tab] = tabOrderInds;
+    }
+}
+
 // Default selected pages and tabs
 export const DefaultPage = Pages.TrendsOverTime;
 export const DefaultTrendsOverTimeSection = TrendsOverTimeTabs.ByMicroorganism;
@@ -81,13 +106,45 @@ export const MicroBioDataTypes = {
 
 // Survey Types
 export const SurveyTypes = {
-    HC: "HC",
-    PHAC: "PHAC",
-    CFIA: "CFIA",
+    HC: "HC Targeted Surveys",
+    PHAC: "PHAC FoodNet",
+    CFIA: "CFIA Surveys",
     CFSIN: "CFSIN"
 };
 
-export const DefaultSurveyTypes = [SurveyTypes.HC, SurveyTypes.PHAC, SurveyTypes.CFIA];
+// Delimeter for joining each node in the Phylogentic tree
+export const PhylogeneticDelim = "==>"
+
+// Attributes in the node of the phylogenetic tree
+export const MicroorganismNodeAtts = {
+    Nodes: "nodes",
+    Name: "text",
+    States: "state",
+}
+
+
+// Attributes for the different states of the nodes in the phylogenetic tree
+export const MicroorganismNodeStates = {
+    Checked: "checked",
+    Selected: "selected"
+}
+
+// Columns in the Health Canada Data
+// Note: Copy the exact column names from "CANLINE Micro -no... .csv" except for the Columns with 3 stars (***)
+export const HCDataCols = {
+    Agent: "Agent",
+    Genus: "Genus",
+    Species: "Species",
+    Subspecies: "Subspecies/Genogroup",
+    Genotype: "Genotype",
+    Subgenotype: "Subgenotype",
+    Serotype: "Serotype",
+    OtherTyping: "Other typing",
+    FoodGroup: "Food Group",
+    FoodName: "Food Name",
+    ProjectCode: "Project Code",
+    SurveyType: "Survey Type" // ***
+}
 
 // ############################################################
 // ################## THEMES ##################################
@@ -203,19 +260,19 @@ Object.keys(OverviewTabs).forEach((section) => { FilterNamesEN[Pages.TrendsOverT
 
 // Filter names for "Trends Over Time" ==> "By Food"
 FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
-    "food": "1. Select Food(s)",
-    "microorganism": "2. Select Microorganism",
-    "dataType": "3. Select DataType",
-    "surveyType": "4. Select Survey Type",
+    "dataType": "1. Select DataType",
+    "surveyType": "2. Select Survey Type",
+    "food": "3. Select Food(s)",
+    "microorganism": "4. Select Microorganism",
     "adjustGraph": "5. Adjust Graph"
 }
 
 // Filter names for "Trends Over Time" ==> "By Microorganism"
 FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
-    "microorganism": "1. Select Microorganism",
-    "food": "2. Select Food(s)",
-    "dataType": "3. Select DataType",
-    "surveyType": "4. Select Survey Type",
+    "dataType": "1. Select DataType",
+    "surveyType": "2. Select Survey Type",
+    "microorganism": "3. Select Microorganism",
+    "food": "4. Select Food(s)",
     "adjustGraph": "5. Adjust Graph"
 }
 
@@ -237,6 +294,13 @@ FilterNamesEN[Pages.Overview][OverviewTabs.ByOrg] = {
     "surveyType": "1. Select Survey Type"
 }
 
+// Survey Types
+const SurveyTypesEN = {};
+SurveyTypesEN[SurveyTypes.HC] = "HC";
+SurveyTypesEN[SurveyTypes.PHAC] = "PHAC";
+SurveyTypesEN[SurveyTypes.CFIA] = "CFIA";
+SurveyTypesEN[SurveyTypes.CFSIN] = "CFSIN";
+
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
     "websiteTabTitle": "FSDAT -Microbiology",
@@ -252,7 +316,14 @@ const LangEN = {
 
     "allFoodGroups": "All Food Groups",
     "allFoods": "All Foods",
-    "allMicroorganisms": "All Microorganisms"
+    "allMicroorganisms": "All Microorganisms",
+    "nonSpeciated": "Non Speciated",
+
+    "foodGroupLabel": "Food Groups:",
+    "foodLabel": "Foods:",
+    "microorganismLabel": "Microorganisms:",
+
+    surveyTypes: SurveyTypesEN
 }
 
 // ==============================================
@@ -292,18 +363,20 @@ Object.keys(OverviewTabs).forEach((section) => { FilterNamesFR[Pages.TrendsOverT
 
 // Filter names for "Trends Over Time" ==> "By Food"
 FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
+    "dataType": REMPLACER_MOI,
+    "surveyType": REMPLACER_MOI,
     "food": REMPLACER_MOI,
     "microorganism": REMPLACER_MOI,
-    "dataType": REMPLACER_MOI,
-    "surveyType": REMPLACER_MOI
+    "adjustGraph": REMPLACER_MOI
 }
 
 // Filter names for "Trends Over Time" ==> "By Microorganism"
 FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
+    "dataType": REMPLACER_MOI,
+    "surveyType": REMPLACER_MOI,
     "microorganism": REMPLACER_MOI,
     "food": REMPLACER_MOI,
-    "dataType": REMPLACER_MOI,
-    "surveyType": REMPLACER_MOI
+    "adjustGraph": REMPLACER_MOI
 }
 
 // Filter names for "Overview" ==> "By Microorganism"
@@ -323,6 +396,13 @@ FilterNamesFR[Pages.Overview][OverviewTabs.ByOrg] = {
     "surveyType": REMPLACER_MOI
 }
 
+// Survey Types
+const SurveyTypesFR = {};
+SurveyTypesFR[SurveyTypes.HC] = REMPLACER_MOI;
+SurveyTypesFR[SurveyTypes.PHAC] = REMPLACER_MOI;
+SurveyTypesFR[SurveyTypes.CFIA] = REMPLACER_MOI;
+SurveyTypesFR[SurveyTypes.CFSIN] = REMPLACER_MOI;
+
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,
     "websiteTabTitle": REMPLACER_MOI,
@@ -338,7 +418,14 @@ const LangFR = {
 
     "allFoodGroups": REMPLACER_MOI,
     "allFoods": REMPLACER_MOI,
-    "allMicroorganisms": REMPLACER_MOI
+    "allMicroorganisms": REMPLACER_MOI,
+    "nonSpeciated": REMPLACER_MOI,
+
+    "foodGroupLabel": REMPLACER_MOI,
+    "foodLabel": REMPLACER_MOI,
+    "microorganismLabel": REMPLACER_MOI,
+
+    surveyTypes: SurveyTypesFR
 }
 
 // ==============================================

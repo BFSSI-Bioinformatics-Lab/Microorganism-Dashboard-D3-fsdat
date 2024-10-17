@@ -53,3 +53,23 @@ export class Translation {
         return this.translate("Number", translateArgs);
     }
 }
+
+
+// SetTools: Class for handling with Sets
+//     This class is mostly used to deal with compatibility issues with older browsers
+//     since some of Javascript's Set functions are only recently implemented in 2023-2024
+export class SetTools {
+
+    // difference(set1, set2, newCopy): Computes the set difference of set1 - set2
+    // Note:
+    //  If 'newCopy' is set to false, the result for the set difference is stored
+    //      back in 'set1'
+    static difference(set1, set2, newCopy = false) {
+        const result = newCopy ? new Set(set1) : set1;
+        for (const element of set2) {
+            result.delete(element);
+        }
+
+        return result;
+    }
+}
