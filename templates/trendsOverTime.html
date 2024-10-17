@@ -23,53 +23,6 @@ What it contains:
       <!-- By Microorganism Tab -->
       <div class="menuTab tab-pane fade" value="ByMicroorganism" id="nav-ByMicroorganism" role="tabpanel" aria-labelledby="nav-ByMicroorganism-tab">
 
-        <div class="accordion" id="byMicroorganismSelectMicroorganismFilterContainer">
-          <div class="accordion-item">
-            <h2 class="menuFilterHeading accordion-header" id="byMicroorganismSelectMicroorganismFilterHeading">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismSelectMicroorganismFilter" aria-controls="byMicroorganismSelectMicroorganismFilter">
-                <span value="microorganism">Dummy Name for the Microorganism Filter Name (This will be overwritten and you will not see me!)</span>
-                <i class="accordionIcon fas fa-chevron-down"></i>
-              </button>
-            </h2>
-            <div id="byMicroorganismSelectMicroorganismFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismSelectMicroorganismFilterHeading" data-bs-parent="#byMicroorganismSelectMicroorganismFilterContainer">
-              <div class="accordion-body">
-                <span id="microorganismLabel">Microorganism:</span><div id="tree"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="accordion mt-3" id="byMicroorganismSelectFoodFilterContainer">
-          <div class="accordion-item">
-            <h2 class="menuFilterHeading accordion-header" id="byMicroorganismSelectFoodFilterHeading">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismSelectFoodFilter" aria-controls="byMicroorganismSelectFoodFilter">
-                <span value="food">Dummy Name for the Food Filter Name (This will be overwritten and you will not see me!)</span>
-                <i class="accordionIcon fas fa-chevron-down"></i>
-              </button>
-            </h2>
-            <div id="byMicroorganismSelectFoodFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismSelectFoodFilterHeading" data-bs-parent="#byMicroorganismSelectFoodFilterContainer">
-              <div class="accordion-body">
-                <div>
-                  <span class="me-2" id="foodGroupLabel">Dummy Food Groups:</span>
-                  <select class="multiSelect" multiple data-actions-box="true" data-none-selected-text="All Food Groups">
-                    <option>test</option>
-                    <option>test2</option>
-                    <option>test3</option>
-                  </select>
-                </div>
-                <div class="mt-3">
-                  <span class="me-2" id="foodLabel">Dummy Foods:</span>
-                  <select class="multiSelect" multiple data-actions-box="true" data-none-selected-text="All Foods">
-                    <option>test</option>
-                    <option>test2</option>
-                    <option>test3</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="accordion mt-3" id="byMicroorganismSelectDataTypeFilterContainer">
           <div class="accordion-item">
             <h2 class="menuFilterHeading accordion-header" id="byMicroorganismSelectDataTypeFilterHeading">
@@ -84,12 +37,12 @@ What it contains:
                 
                 <label class="radioContainer">
                   <span>Dummy Presence/Absence</span>
-                  <input type="radio" checked="checked" name="ByMicroorganism_DataType">
+                  <input type="radio" checked="checked" name="DataType">
                   <span class="radioIcon"></span>
                 </label>
                 <label class="radioContainer">
                   <span>Dummy Concentration</span>
-                  <input type="radio" name="ByMicroorganism_DataType">
+                  <input type="radio" name="DataType">
                   <span class="radioIcon"></span>
                 </label> 
 
@@ -109,24 +62,73 @@ What it contains:
             <div id="byMicroorganismSelectSurveyTypeFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismSelectSurveyTypeFilterHeading" data-bs-parent="#byMicroorganismSelectSurveyTypeFilterContainer">
               <div class="accordion-body">
 
-                <label class="checkBoxContainer">
-                  <span>Dummy HC</span>
-                  <input type="checkbox" checked="checked">
-                  <span class="checkmarkIcon"></span>
-                </label>
-                
-                <label class="checkBoxContainer">
-                  <span>Dummy PHAC</span>
-                  <input type="checkbox">
-                  <span class="checkmarkIcon"></span>
-                </label>
-                
-                <label class="checkBoxContainer">
-                  <span>Dummy CFIA</span>
-                  <input type="checkbox">
-                  <span class="checkmarkIcon"></span>
-                </label>
+                <div id="SurveyType">
+                  <label class="checkBoxContainer">
+                    <span>Dummy HC</span>
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmarkIcon"></span>
+                  </label>
+                  
+                  <label class="checkBoxContainer">
+                    <span>Dummy PHAC</span>
+                    <input type="checkbox">
+                    <span class="checkmarkIcon"></span>
+                  </label>
+                  
+                  <label class="checkBoxContainer">
+                    <span>Dummy CFIA</span>
+                    <input type="checkbox">
+                    <span class="checkmarkIcon"></span>
+                  </label>
+                </div>
 
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion mt-3" id="byMicroorganismSelectMicroorganismFilterContainer">
+          <div class="accordion-item">
+            <h2 class="menuFilterHeading accordion-header" id="byMicroorganismSelectMicroorganismFilterHeading">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismSelectMicroorganismFilter" aria-controls="byMicroorganismSelectMicroorganismFilter">
+                <span value="microorganism">Dummy Name for the Microorganism Filter Name (This will be overwritten and you will not see me!)</span>
+                <i class="accordionIcon fas fa-chevron-down"></i>
+              </button>
+            </h2>
+            <div id="byMicroorganismSelectMicroorganismFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismSelectMicroorganismFilterHeading" data-bs-parent="#byMicroorganismSelectMicroorganismFilterContainer">
+              <div class="accordion-body">
+                <span id="microorganismLabel">Microorganism:</span><div class="treeSelect" id="Microorganism"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion mt-3" id="byMicroorganismSelectFoodFilterContainer">
+          <div class="accordion-item">
+            <h2 class="menuFilterHeading accordion-header" id="byMicroorganismSelectFoodFilterHeading">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismSelectFoodFilter" aria-controls="byMicroorganismSelectFoodFilter">
+                <span value="food">Dummy Name for the Food Filter Name (This will be overwritten and you will not see me!)</span>
+                <i class="accordionIcon fas fa-chevron-down"></i>
+              </button>
+            </h2>
+            <div id="byMicroorganismSelectFoodFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismSelectFoodFilterHeading" data-bs-parent="#byMicroorganismSelectFoodFilterContainer">
+              <div class="accordion-body">
+                <div>
+                  <span class="me-2" id="foodGroupLabel">Dummy Food Groups:</span>
+                  <select class="multiSelect" id="FoodGroup" multiple data-actions-box="true" data-none-selected-text="All Food Groups">
+                    <option>test</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                  </select>
+                </div>
+                <div class="mt-3">
+                  <span class="me-2" id="foodLabel">Dummy Foods:</span>
+                  <select class="multiSelect" id="Food" multiple data-actions-box="true" data-none-selected-text="All Foods">
+                    <option>test</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -152,55 +154,6 @@ What it contains:
 
       <!-- By Foods tab -->
       <div class="menuTab tab-pane fade" value="ByFood" id="nav-ByFood" role="tabpanel" aria-labelledby="nav-ByFood-tab">
-
-        <div class="accordion" id="byFoodSelectFoodFilterContainer">
-          <div class="accordion-item">
-            <h2 class="menuFilterHeading accordion-header" id="byFoodSelectFoodFilterHeading">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byFoodSelectFoodFilter" aria-controls="byFoodSelectFoodFilter">
-                <span value="food">Dummy Name for the Food Filter Name (This will be overwritten and you will not see me!)</span>
-                <i class="accordionIcon fas fa-chevron-down"></i>
-              </button>
-            </h2>
-            <div id="byFoodSelectFoodFilter" class="accordion-collapse collapse show" aria-labelledby="byFoodSelectFoodFilterHeading" data-bs-parent="#byFoodSelectFoodFilterContainer">
-              <div class="accordion-body">
-                
-                <div>
-                  <span class="me-2" id="foodGroupLabel">Dummy Food Groups:</span>
-                  <select class="multiSelect" multiple data-actions-box="true" data-none-selected-text="All Food Groups">
-                    <option>test</option>
-                    <option>test2</option>
-                    <option>test3</option>
-                  </select>
-                </div>
-                <div class="mt-3">
-                  <span class="me-2" id="foodLabel">Dummy Foods:</span>
-                  <select class="multiSelect" multiple data-actions-box="true" data-none-selected-text="All Foods">
-                    <option>test</option>
-                    <option>test2</option>
-                    <option>test3</option>
-                  </select>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="accordion mt-3" id="byFoodSelectMicroorganismFilterContainer">
-          <div class="accordion-item">
-            <h2 class="menuFilterHeading accordion-header" id="byFoodSelectMicroorganismFilterHeading">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byFoodSelectMicroorganismFilter" aria-controls="byFoodSelectMicroorganismFilter">
-                <span value="microorganism">Dummy Name for the Microorganism Filter Name (This will be overwritten and you will not see me!)</span>
-                <i class="accordionIcon fas fa-chevron-down"></i>
-              </button>
-            </h2>
-            <div id="byFoodSelectMicroorganismFilter" class="accordion-collapse collapse show" aria-labelledby="byFoodSelectMicroorganismFilterHeading" data-bs-parent="#byFoodSelectMicroorganismFilterContainer">
-              <div class="accordion-body">
-                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div class="accordion mt-3" id="byFoodSelectDataTypeFilterContainer">
           <div class="accordion-item">
@@ -239,7 +192,76 @@ What it contains:
             </h2>
             <div id="byFoodSelectSurveyTypeFilter" class="accordion-collapse collapse show" aria-labelledby="byFoodSelectSurveyTypeFilterHeading" data-bs-parent="#byFoodSelectSurveyTypeFilterContainer">
               <div class="accordion-body">
-                <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+
+                <div id="SurveyType">
+                  <label class="checkBoxContainer">
+                    <span>Dummy HC</span>
+                    <input type="checkbox" checked="checked">
+                    <span class="checkmarkIcon"></span>
+                  </label>
+                  
+                  <label class="checkBoxContainer">
+                    <span>Dummy PHAC</span>
+                    <input type="checkbox">
+                    <span class="checkmarkIcon"></span>
+                  </label>
+                  
+                  <label class="checkBoxContainer">
+                    <span>Dummy CFIA</span>
+                    <input type="checkbox">
+                    <span class="checkmarkIcon"></span>
+                  </label>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion mt-3" id="byFoodSelectFoodFilterContainer">
+          <div class="accordion-item">
+            <h2 class="menuFilterHeading accordion-header" id="byFoodSelectFoodFilterHeading">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byFoodSelectFoodFilter" aria-controls="byFoodSelectFoodFilter">
+                <span value="food">Dummy Name for the Food Filter Name (This will be overwritten and you will not see me!)</span>
+                <i class="accordionIcon fas fa-chevron-down"></i>
+              </button>
+            </h2>
+            <div id="byFoodSelectFoodFilter" class="accordion-collapse collapse show" aria-labelledby="byFoodSelectFoodFilterHeading" data-bs-parent="#byFoodSelectFoodFilterContainer">
+              <div class="accordion-body">
+                
+                <div>
+                  <span class="me-2" id="foodGroupLabel">Dummy Food Groups:</span>
+                  <select class="multiSelect" id="FoodGroup" multiple data-actions-box="true" data-none-selected-text="All Food Groups">
+                    <option>test</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                  </select>
+                </div>
+                <div class="mt-3">
+                  <span class="me-2" id="foodLabel">Dummy Foods:</span>
+                  <select class="multiSelect" id="Food" multiple data-actions-box="true" data-none-selected-text="All Foods">
+                    <option>test</option>
+                    <option>test2</option>
+                    <option>test3</option>
+                  </select>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion mt-3" id="byFoodSelectMicroorganismFilterContainer">
+          <div class="accordion-item">
+            <h2 class="menuFilterHeading accordion-header" id="byFoodSelectMicroorganismFilterHeading">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byFoodSelectMicroorganismFilter" aria-controls="byFoodSelectMicroorganismFilter">
+                <span value="microorganism">Dummy Name for the Microorganism Filter Name (This will be overwritten and you will not see me!)</span>
+                <i class="accordionIcon fas fa-chevron-down"></i>
+              </button>
+            </h2>
+            <div id="byFoodSelectMicroorganismFilter" class="accordion-collapse collapse show" aria-labelledby="byFoodSelectMicroorganismFilterHeading" data-bs-parent="#byFoodSelectMicroorganismFilterContainer">
+              <div class="accordion-body">
+                <span id="microorganismLabel">Microorganism:</span><div class="treeSelect" id="Microorganism"></div>
               </div>
             </div>
           </div>

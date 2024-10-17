@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, DefaultPage, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme, DefaultTabs, TrendsOverTimeTabs} from "./constants.js"
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim} from "./constants.js"
 import { Translation } from "./tools.js";
 import { Model } from "./backend.js";
 
@@ -205,6 +205,14 @@ class App {
     // =================================================================
     // ==================== MAIN PAGES =================================
 
+    getActiveTab(activeTab) { 
+        if (activeTab === undefined) {
+            activeTab = this.model.getActiveTab();
+        }
+
+        return d3.select(`.menu .tab-pane[value="${activeTab}"]`); 
+    }
+
     // Loads the selected main page for the app
     loadMainPage() {
         const self = this;
@@ -248,7 +256,7 @@ class App {
         });
 
         // show the corresponding container for the tab that is selected
-        d3.select(`.menu .tab-pane[value="${activeTab}"]`)
+        this.getActiveTab(activeTab)
             .classed("show", true)
             .classed("active", true);
 
@@ -257,11 +265,26 @@ class App {
             const tab = d3.select(event.target);
             const tabValue = tab.attr("value");
             this.model.activeTabs[this.model.pageName] = tabValue;
-            this.model.setupTab();
+            this.updateTab({updateFilters: false});
         });
 
+        
+
         // load the data for the tab
-        this.model.setupTab();
+        this.updateTab(); 
+    }
+
+    // readCheckmarkSelect(selectId): Reads the selected values from a checkmark select widget
+    readCheckmarkSelect(selectId) {
+        const result = new Set();
+        const tab = this.getActiveTab();
+        tab.selectAll(`#${selectId} input[checked="true"]`)
+            .each((_, ind, elements) => {
+                const input = d3.select(elements[ind]);
+                result.add(input.attr("value"));
+            });
+
+        return result;
     }
 
     // updateMenuFilterNames(): Updates the names for the filters
@@ -278,53 +301,113 @@ class App {
         });
     }
 
-    // updateTrendsOverTime(): Updates the "Trends Over Time" page
-    updateTrendsOverTime() {
-        this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
-        this.setupMenuTabs();
+    // updateRadioSelect(selectId)
+    updateRadioSelect({selectId, selections, inputs, on}) {
 
-        function getTree() {
-            // Some logic to retrieve, or generate tree structure
-            return [{
-                text: "All Microrganisms",
-                nodes: [
-                    {
-                        text: "Parent 1",
-                        nodes: [
-                          {
-                            text: "Child 1",
-                            nodes: [
-                              {
-                                text: "Grandchild 1"
-                              },
-                              {
-                                text: "Grandchild 2"
-                              }
-                            ]
-                          },
-                          {
-                            text: "Child 2"
-                          }
-                        ]
-                      },
-                      {
-                        text: "Parent 2"
-                      },
-                      {
-                        text: "Parent 3"
-                      },
-                      {
-                        text: "Parent 4"
-                      },
-                      {
-                        text: "Parent 5"
-                      }
-                ]
-            }];
-          }
-          
-        let treeData = getTree();
-        let tree = $('#tree');
+    }
+
+    // updateCheckmarkSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the checkmark select widget
+    updateCheckmarkSelect({selectId, selections, inputs, onChange = undefined, translations = undefined} = {}) {
+        let tab = this.getActiveTab();
+        let tabName = this.model.getActiveTab();
+        const chesckMarkSelections = tab.select(`.menuTab[value="${tabName}"] #${selectId}`)
+            .html("")
+            .selectAll("label")
+            .data(selections)
+            .enter()
+            .append("label")
+            .classed("checkBoxContainer", true)
+
+        chesckMarkSelections.append("span")
+            .text(d => { return translations === undefined ? d : translations[d]});
+
+        chesckMarkSelections.append("input")
+            .attr("type", "checkbox")
+            .attr("value", d => `${d}`)
+            .attr("checked", d => inputs.has(d) ? true : null)
+            .on("click", (event) => {
+                const checkInput = d3.select(event.target);
+                const checkValue = checkInput.attr("value"); 
+                let isChecked = checkInput.attr("checked");
+                let newIsChecked = (isChecked === null || !isChecked) ? true : null;
+                checkInput.attr("checked", newIsChecked);
+
+                if (onChange !== undefined) {
+                    onChange(checkValue, newIsChecked === null ? false : newIsChecked);
+                }
+            })
+
+        chesckMarkSelections.append("span")
+            .classed("checkmarkIcon", true);
+    }
+
+    // updateDropdownSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the dropdown select widget
+    updateDropdownSelect({selectId, selections, inputs, onChange = undefined} = {}) {
+        let tab = this.getActiveTab();
+        let tabName = this.model.getActiveTab();
+        const dropdownSelector = `.menuTab[value="${tabName}"] #${selectId}.multiSelect`;
+
+        // destroy the select picker, so that when adding the new selections
+        //  to the dropdown, the dropdown will not fire extra events
+        let dropdown = $(dropdownSelector);
+        dropdown.selectpicker('destroy');
+
+        tab.select(dropdownSelector)
+            .html("")
+            .selectAll("option")
+            .data(selections)
+            .enter()
+            .append("option")
+            .text((d) => d);
+
+        dropdown = $(dropdownSelector).selectpicker();
+        dropdown.selectpicker('val', Array.from(inputs));
+        dropdown.on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
+            if (onChange !== undefined) {
+                onChange(dropdown.val());
+            }
+        });
+    }
+
+    // selectSubTree(event, node, selectNodeFunc, checkNodeFunc): Selects/unselects a subtree in the tree select
+    selectSubTree(event, node, selectNodeFunc, checkNodeFunc) {
+        selectNodeFunc(node.nodeId, { silent: true });
+        checkNodeFunc(node.nodeId, { silent: true });
+        if (node.nodes === undefined) return;
+
+        for (const n of node.nodes) {
+            this.selectSubTree(event, n, selectNodeFunc, checkNodeFunc);
+        }
+    }
+
+    // selectParents(event, node, tree, selectNodeFunc, checkNodeFunc, isSelectedFunc, allChildrenSelectedFunc): Selects/unselects the parent
+    //  nodes of the selected node depending on whether the children of the parent are selected/unselected
+    selectParents(event, node, tree, selectNodeFunc, checkNodeFunc, isSelectedFunc, allChildrenSelectedFunc) {
+        let parent = tree.data("treeview").getParent(node.nodeId);
+        while (parent !== undefined) {
+            let children = parent.nodes;
+            let selectedChildren = children.filter((child) => isSelectedFunc(child));
+
+            if (allChildrenSelectedFunc(children, selectedChildren)) {
+                selectNodeFunc(parent.nodeId, { silent: true });
+                checkNodeFunc(parent.nodeId, { silent: true });
+            }
+
+            parent = tree.data("treeview").getParent(parent.nodeId);
+        }
+    }
+
+    // updateTreeSelect(selectId, selections, inputs, onChange, translations): 
+    updateTreeSelect({selectId, selections, inputs, onChange = undefined} = {}) {
+        const microorganismTree = this.model.getMicroOrganismTree();
+        const treeData = microorganismTree.toTreeSelectData();
+        let tabName = this.model.getActiveTab();
+
+        let tree = $(`.menuTab[value="${tabName}"] #${selectId}`);
+        if (!tree.is(':empty')) {
+            tree.treeview('remove');
+        }
+
         tree.treeview({data: treeData,
                        backColor: "var(--primaryBg)",
                        borderColor: "var(--secondaryBorderColour)",
@@ -342,21 +425,27 @@ class App {
                        levels: 1
         });
 
-        tree.on('nodeChecked', function(event, node) {
-            tree.data("treeview").selectNode(node.nodeId, { silent: true });
-            if (node.nodes === undefined) return;
+        tree.on('nodeChecked', (event, node) => {
+            this.selectSubTree(event, node,  tree.data("treeview").selectNode,  tree.data("treeview").checkNode);
+            this.selectParents(event, node, tree, tree.data("treeview").selectNode, tree.data("treeview").checkNode, 
+                              (child) => child.state !== undefined && child.state["checked"], 
+                              (children, selectedChildren) => children.length == selectedChildren.length);
 
-            for (const n of node.nodes) {
-                tree.data('treeview').checkNode(n.nodeId);
+            const selected = tree.data("treeview").getSelected();
+            if (onChange !== undefined) {
+                onChange(selected, tree);
             }
         });
 
-        tree.on('nodeUnchecked', function(event, node) {
-            tree.data("treeview").unselectNode(node.nodeId, { silent: true });
-            if (node.nodes === undefined) return;
+        tree.on('nodeUnchecked', (event, node) => {
+            this.selectSubTree(event, node,  tree.data("treeview").unselectNode,  tree.data("treeview").uncheckNode);
+            this.selectParents(event, node, tree, tree.data("treeview").unselectNode, tree.data("treeview").uncheckNode, 
+                              (child) => child.state === undefined || !child.state["checked"], 
+                              (children, selectedChildren) => children.length > selectedChildren.length);
 
-            for (const n of node.nodes) {
-                tree.data('treeview').uncheckNode(n.nodeId);
+            const selected = tree.data("treeview").getSelected();
+            if (onChange !== undefined) {
+                onChange(selected, tree);
             }
         });
 
@@ -367,6 +456,107 @@ class App {
         tree.on("nodeUnselected", function(event, node) {
             tree.data('treeview').uncheckNode(node.nodeId);
         });
+    }
+
+    // readMicroorganisms(selectedNodes, tree): Reads all the microorganisms at the leaves of the tree
+    readMicroorganisms(selectedNodes, tree) {
+        const result = new Set();
+        const nonSpeciatedStr = Translation.translate("nonSpeciated");
+
+        // get the full names of the microrganisms
+        for (const node of selectedNodes) {
+            if (node.nodes !== undefined && node.nodes.length > 0) continue;
+
+            let microorganism = node.text == nonSpeciatedStr ? "" : node.text;
+            let parent = tree.data("treeview").getParent(node.nodeId);
+
+            while (parent !== undefined) {
+                microorganism = microorganism != "" ? `${parent.text}${PhylogeneticDelim}${microorganism}` : parent.text;
+                parent = tree.data("treeview").getParent(parent.nodeId);
+            }
+
+            result.add(microorganism);
+        }
+
+        return result;
+    }
+
+    setupMenuFilters() {
+        const inputOrderInds = this.model.getInputOrderInds();
+    }
+
+    // updateMenuFilters(inputs): Updates the filters on the menu
+    updateMenuFilters(input = null) {
+        const inputOrderInds = this.model.getInputOrderInds();
+        const inputInd = input === null ? -1 : inputOrderInds[input];
+        const selections = this.model.getSelection();
+        const inputs = this.model.getInputs();
+
+        if (inputInd === undefined) return;
+
+        // survey type filter
+        if (inputOrderInds[Inputs.SurveyType] !== undefined && inputOrderInds[Inputs.SurveyType] > inputInd) {
+            this.updateCheckmarkSelect({selectId: Inputs.SurveyType, selections: selections[Inputs.SurveyType], inputs: inputs[Inputs.SurveyType], 
+                                        translations: Translation.translate("surveyTypes", { returnObjects: true }), 
+                                        onChange: (checkedVal, isChecked) => {
+                                            if (isChecked) {
+                                                inputs[Inputs.SurveyType].add(checkedVal);
+                                            } else {
+                                                inputs[Inputs.SurveyType].delete(checkedVal);
+                                            }
+
+                                            this.updateTab({input: Inputs.SurveyType});
+                                        }});
+        }
+
+        // microorganism filter
+        if (inputOrderInds[Inputs.MicroOrganism] !== undefined && inputOrderInds[Inputs.MicroOrganism] > inputInd) {
+            this.updateTreeSelect({selectId: Inputs.MicroOrganism, selections: selections[Inputs.MicroOrganism], inputs: inputs[Inputs.MicroOrganism], 
+                                   onChange: (selectedNodes, tree) => {
+                                        const newInputs = this.readMicroorganisms(selectedNodes, tree);
+                                        inputs[Inputs.MicroOrganism] = newInputs.size > 0 ? newInputs : structuredClone(selections[Inputs.MicroOrganism]);
+                                        this.updateTab({input: Inputs.MicroOrganism});
+                                   }});
+        }
+
+        // food group selection
+        if (inputOrderInds[Inputs.FoodGroup] !== undefined && inputOrderInds[Inputs.FoodGroup] > inputInd) {
+            this.updateDropdownSelect({selectId: Inputs.FoodGroup, selections: selections[Inputs.FoodGroup], inputs: inputs[Inputs.FoodGroup], 
+                                       onChange: (selectedOptions) => {
+                                            inputs[Inputs.FoodGroup] = selectedOptions.length > 0 ? new Set(selectedOptions) : structuredClone(selections[Inputs.FoodGroup]);
+                                            this.updateTab({input: Inputs.FoodGroup});
+                                       }});
+        }
+
+        // food selection
+        if (inputOrderInds[Inputs.Food] !== undefined && inputOrderInds[Inputs.Food] > inputInd) {
+            this.updateDropdownSelect({selectId: Inputs.Food, selections: selections[Inputs.Food], inputs: inputs[Inputs.Food], 
+                                       onChange: (selectedOptions) => {
+                                            inputs[Inputs.Food] = selectedOptions.length > 0 ? new Set(selectedOptions) : structuredClone(selections[Inputs.Food]);
+                                            this.updateTab({input: Inputs.Food});
+                                       }});
+        }
+    }
+
+    // updateTab(input): Updates visuals on a certain tab
+    updateTab({input = null, updateFilters = true} = {}) {
+        // update the filters
+        let justInitialized = this.model.setupTab();
+
+        if (!justInitialized && updateFilters) {
+            this.model.updateSelections({input});
+        }
+
+        if (updateFilters || justInitialized) {
+            this.updateMenuFilters(input);
+        }
+
+        // TODO: update the graphs + tables
+    }
+
+    // updateTrendsOverTime(): Updates the "Trends Over Time" page
+    updateTrendsOverTime() {
+        this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
 
         /* ------- update the text of the menu ------------ */
 
@@ -383,12 +573,13 @@ class App {
         d3.selectAll("#microorganismLabel").text(Translation.translate("microorganismLabel"));
 
         /* ------------------------------------------------ */
+
+        this.setupMenuTabs();
     }
 
     // updateOverview(): Updates the "overview" page
     updateOverview() {
         this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
-        this.setupMenuTabs();
 
         /* ------- update the text of the menu ------------ */
 
@@ -401,6 +592,8 @@ class App {
         this.updateMenuFilterNames();
 
         /* ------------------------------------------------ */
+
+        this.setupMenuTabs();
     }
 
     // =================================================================
