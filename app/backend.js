@@ -271,18 +271,26 @@ export class MicroorganismTree {
     _toTreeSelectData(nodeId, result) {
         const node = this.nodes[nodeId];
         const treeSelectNode = structuredClone(node);
+        let microorganismCount = 0;
 
         const children = this.getChildren(nodeId);
         if (children !== undefined) {
             const treeSelectNodeChildren = [];
             for (const childName in children) {
-                this._toTreeSelectData(children[childName], treeSelectNodeChildren);
+                microorganismCount += this._toTreeSelectData(children[childName], treeSelectNodeChildren);
             }
 
             treeSelectNode[MicroorganismNodeAtts.Nodes] = treeSelectNodeChildren;
+            treeSelectNode[MicroorganismNodeAtts.Tags] = [`${microorganismCount}`];
         }
 
         result.push(treeSelectNode);
+
+        if (children === undefined) {
+            return 1;
+        }
+
+        return microorganismCount;
     }
 
     // toTreeSelectData(): Transforms the tree into the structure needed by

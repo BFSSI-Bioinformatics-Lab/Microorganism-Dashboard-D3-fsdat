@@ -116,14 +116,19 @@ export const SurveyTypes = {
 export const PhylogeneticDelim = "==>"
 
 // Attributes in the node of the phylogenetic tree
+// Note: 
+//  Based of Bootstrap Treeview: https://github.com/jonmiles/bootstrap-treeview
 export const MicroorganismNodeAtts = {
     Nodes: "nodes",
     Name: "text",
     States: "state",
+    Tags: "tags"
 }
 
 
 // Attributes for the different states of the nodes in the phylogenetic tree
+// Note: 
+//  Based of Bootstrap Treeview: https://github.com/jonmiles/bootstrap-treeview
 export const MicroorganismNodeStates = {
     Checked: "checked",
     Selected: "selected"
@@ -318,6 +323,8 @@ const LangEN = {
     "allFoods": "All Foods",
     "allMicroorganisms": "All Microorganisms",
     "nonSpeciated": "Non Speciated",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
 
     "foodGroupLabel": "Food Groups:",
     "foodLabel": "Foods:",
@@ -420,6 +427,8 @@ const LangFR = {
     "allFoods": REMPLACER_MOI,
     "allMicroorganisms": REMPLACER_MOI,
     "nonSpeciated": REMPLACER_MOI,
+    "selectAll": REMPLACER_MOI,
+    "deselectAll": REMPLACER_MOI,
 
     "foodGroupLabel": REMPLACER_MOI,
     "foodLabel": REMPLACER_MOI,
