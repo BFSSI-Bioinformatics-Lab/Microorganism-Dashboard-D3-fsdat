@@ -88,6 +88,16 @@ export class MicroorganismTree {
         states[MicroorganismNodeStates.Selected] = true;
     }
 
+    // uncheckNode(nodeId): Unchecks a node
+    uncheckNode(nodeId) {
+        const node = this.nodes[nodeId];
+        let states = node[MicroorganismNodeAtts.States];
+        if (states !== undefined) {
+            states[MicroorganismNodeStates.Checked] = false;
+            states[MicroorganismNodeStates.Selected] = false;
+        }
+    }
+
     // isChecked(node): Determines whether a node is checked off
     isChecked(nodeId) {
         const node = this.nodes[nodeId];
@@ -96,15 +106,25 @@ export class MicroorganismTree {
                 node[MicroorganismNodeAtts.States][MicroorganismNodeStates.Checked]);
     }
 
-    // checkSubTree(nodeId): Checks off all the nodes in the subtree with the root being the current node
-    checkSubTree(nodeId) {
-        this.checkNode(nodeId);
+    // checkSubTree(nodeId): Checks/unchecks all the nodes in the subtree with the root being the current node
+    checkOffSubTree(nodeId, checkFunc) {
+        checkFunc(nodeId);
         const children = this.getChildren(nodeId);
         if (children == undefined) return;
 
         for (const childName in children) {
-            this.checkSubTree(children[childName]);
+            this.checkOffSubTree(children[childName], checkFunc);
         }
+    }
+
+    // checkSubTree(nodeId): Checks all the nodes in the subtree with the root being the current node
+    checkSubTree(nodeId) {
+        this.checkOffSubTree(nodeId, (nodeId) => this.checkNode(nodeId));
+    }
+
+    // uncheckSubTree(nodeId): Unchecks all the nodes in the subtree with the root being the current node
+    uncheckSubTree(nodeId) {
+        this.checkOffSubTree(nodeId, (nodeId) => this.uncheckNode(nodeId));
     }
 
     // getNodeId(microorganism): Retrieves the corresponding node id based off the name 'microorganism'
@@ -174,14 +194,15 @@ export class MicroorganismTree {
         return result;
     }
 
-    // checkMicroorganisms(microorganisms): Checks off all the corresponding nodes to the given microorganisms
-    checkMicroorganisms(microorganisms) {
+    // checkOffMicroorganisms(microorganisms, checkSubTreeFunc, checkNodeFunc, isCheckedFunc, allChildrenCheckedFunc):
+    //  Checks/unchecks all the corresponding nodes to the given microorganisms
+    checkOffMicroorganisms(microorganisms, checkSubTreeFunc, checkNodeFunc, isCheckedFunc, allChildrenCheckedFunc) {
         // check all microorganism nodes and their children
         const microorganismNodeIds = [];
         for (const microorganism of microorganisms) {
             const nodeId = this.getNodeId(microorganism);
             microorganismNodeIds.push(nodeId);
-            this.checkSubTree(nodeId);
+            checkSubTreeFunc(nodeId);
         }
 
         // check the parent nodes of the microorganism if all the children of the parent are checked
@@ -189,19 +210,41 @@ export class MicroorganismTree {
             let parentId = this.parents[nodeId];
             while(parentId !== undefined) {
                 let childrenIds = Object.values(this.getChildren(parentId));
+                let checkedChildrenIds = childrenIds.filter((childId) => isCheckedFunc(childId));
 
-                let checkedChildrenIds = childrenIds.filter((childId) => {
-                    let states = this.nodes[childId][MicroorganismNodeAtts.States];
-                    return (states !== undefined && states[MicroorganismNodeStates.Checked]);
-                });
-
-                if (checkedChildrenIds.length == childrenIds.length) {
-                    this.checkNode(parentId);
+                if (allChildrenCheckedFunc(childrenIds, checkedChildrenIds)) {
+                    checkNodeFunc(parentId);
                 }
 
                 parentId = this.parents[parentId];
             }
         }
+    }
+
+    // checkMicroorganisms(microorganisms): Checks off all the corresponding nodes to the given microorganisms
+    checkMicroorganisms(microorganisms) {
+        if (microorganisms === undefined) {
+            microorganisms = this.microorganisms;
+        }
+
+        this.checkOffMicroorganisms(microorganisms, 
+                                    (nodeId) => this.checkSubTree(nodeId), 
+                                    (nodeId) => this.checkNode(nodeId), 
+                                    (nodeId) => this.isChecked(nodeId), 
+                                    (childrenIds, checkedChildrenIds) => checkedChildrenIds.length == childrenIds.length);
+    }
+
+    // uncheckMicroorganisms(microorganisms): Unchecks all the corresponding nodes to the given microroganisms
+    uncheckMicroorganisms(microorganisms) {
+        if (microorganisms === undefined) {
+            microorganisms = this.microorganisms;
+        }
+
+        this.checkOffMicroorganisms(microorganisms, 
+                                    (nodeId) => this.uncheckSubTree(nodeId), 
+                                    (nodeId) => this.uncheckNode(nodeId), 
+                                    (nodeId) => !this.isChecked(nodeId),    
+                                    (childrenIds, checkedChildrenIds) => checkedChildrenIds.length > 0);
     }
 
     // addNonSpeciated(): Adds the non speciated nodes to phylogenetic tree
@@ -248,7 +291,10 @@ export class MicroorganismTree {
     // Reference: https://github.com/jonmiles/bootstrap-treeview
     toTreeSelectData() {
         const result = [];
-        this._toTreeSelectData(this.rootNodeId, result);
+        if (this.microorganisms.size > 0) {
+            this._toTreeSelectData(this.rootNodeId, result);
+        }
+
         return result;
     }
 }
@@ -388,12 +434,18 @@ export class Model {
 
         if (this.groupings[page] !== undefined && this.groupings[page][tab] === undefined) {
             this.setupGrouping(page, tab);
-            this.updateSelections({page, tab});
+            this.setupSelections(page, tab);
             this.setupInputs(page, tab);
             setupDone = true;
         }
 
         return setupDone;
+    }
+
+    // updateTab(input, page, tab): Updates the data for the tabs
+    updateTab({input = null, page = undefined, tab = undefined} = {}) {
+        this.updateSelections({input, page, tab});
+        this.updateInputs({input, page, tab});
     }
     
     // setupGrouping(page, tab): Setup the data structure of how to optimally group the data
@@ -442,16 +494,34 @@ export class Model {
         }
     }
 
+    // setupSelections(page, tab): Initializes the selections when a tab first loads
+    setupSelections(page, tab) {
+        this.updateSelections({page, tab});
+
+        // Trends Over Time ==> By Microorgansim
+        if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {
+            let selections = this.selections[page][tab];
+            selections[Inputs.FoodGroup] = new Set();
+            selections[Inputs.Food] = new Set();
+
+        // Overview ==> By Microorganism
+        } else if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
+            let selections = this.selections[page][tab];
+            selections[Inputs.SurveyType] = new Set();
+        }
+    }
+
     // updateSelections(input, page, tab): Updates the available selections in the filters on the menu
     updateSelections({input = null, page = undefined, tab = undefined} = {}) {
         page = page === undefined ? this.pageName : page;
         tab = tab === undefined ? this.activeTabs[page] : tab;
 
         const inputOrder = InputOrder[page][tab];
+        const inputOrderInds = InputOrderInds[page][tab];
         const grouping = this.groupings[page][tab];
         const selections = this.selections[page][tab];
         const inputs = this.inputs[page][tab];
-        const inputInd = input === null ? -1 : InputOrderInds[page][tab][input];
+        const inputInd = input === null ? -1 : inputOrderInds[input];
 
         if (inputInd == undefined) return;
 
@@ -462,15 +532,9 @@ export class Model {
         }
 
         this._updateSelections(0, inputInd, grouping, inputOrder, selections, inputs);
-
-        // update the inputs for the updated selections
-        for (let i = inputInd + 1; i < inputOrder.length; ++i) {
-            const currentInput = inputOrder[i];
-            inputs[currentInput] = structuredClone(selections[currentInput]);
-        }
         
         // update the microorganism tree
-        if (inputOrder.includes(Inputs.MicroOrganism) && InputOrderInds[page][tab][Inputs.MicroOrganism] > inputInd) {
+        if (inputOrder.includes(Inputs.MicroOrganism) && inputOrderInds[Inputs.MicroOrganism] > inputInd) {
             this.updateMicroorganismTree({page, tab});
         }
     }
@@ -485,54 +549,53 @@ export class Model {
 
         // retrieve the new selection
         for (const [childName, child] of grouping) {
-            if (!needsSelectionUpdate && !input.has(childName)) continue;
+            const hasChild = (input !== undefined && input.has(childName));
+            if (!needsSelectionUpdate && !hasChild) continue;
 
             if (needsSelectionUpdate) {
                 selection.add(childName);
             }
 
             // update the selections for filter inputs that comes after the current input
-            if (currentInd < inputOrder.length - 1) {
+            if (currentInd < inputOrder.length - 1 && (input === undefined || hasChild)) {
                 this._updateSelections(currentInd + 1, inputInd, grouping.get(childName), inputOrder, selections, inputs);
             }
         }
     }
 
-    // setupInputs(page, tab): Setup the inputs for a particular tab
+    // setupInputs(page, tab): setup the inputs for a particular tab
     setupInputs(page, tab) {
+        let inputs = {};
+
         // Trends Over Time ==> By Microorgansim
         if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {
-            let inputs = {};
             let selections = this.selections[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism];
             inputs[Inputs.DataType] = MicroBioDataTypes.PresenceAbsence;
-            inputs[Inputs.MicroOrganism] = structuredClone(selections[Inputs.MicroOrganism]);
-            inputs[Inputs.FoodGroup] = structuredClone(selections[Inputs.FoodGroup]);
-            inputs[Inputs.Food] = structuredClone(selections[Inputs.Food]);
+            inputs[Inputs.MicroOrganism] = new Set();
+            inputs[Inputs.FoodGroup] = new Set();
+            inputs[Inputs.Food] = new Set();
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
             this.inputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = inputs;
 
         // Trends Over Time ==> By Food
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
-            let inputs = {};
             let selections = this.selections[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood];
             inputs[Inputs.DataType] = MicroBioDataTypes.PresenceAbsence;
+            inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
             inputs[Inputs.FoodGroup] = structuredClone(selections[Inputs.FoodGroup]);
             inputs[Inputs.Food] = structuredClone(selections[Inputs.Food]);
-            inputs[Inputs.MicroOrganism] = structuredClone(selections[Inputs.MicroOrganism]);
-            inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
+            inputs[Inputs.MicroOrganism] = new Set();
             this.inputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = inputs;
 
         // Overview ==> By Microorganism
         } else if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
-            let inputs = {};
             let selections = this.selections[Pages.Overview][OverviewTabs.ByMicroorganism];
-            inputs[Inputs.MicroOrganism] = structuredClone(selections[Inputs.MicroOrganism]);
+            inputs[Inputs.MicroOrganism] = new Set();
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
             this.inputs[Pages.Overview][OverviewTabs.ByMicroorganism] = inputs;
 
         // Overview ==> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
-            let inputs = {};
             let selections = this.selections[Pages.Overview][OverviewTabs.ByFood];
             inputs[Inputs.FoodGroup] = structuredClone(selections[Inputs.FoodGroup]);
             inputs[Inputs.Food] = structuredClone(selections[Inputs.Food]);
@@ -541,13 +604,38 @@ export class Model {
 
         // Overview ==> By Org
         } else if (page == Pages.Overview && tab == OverviewTabs.ByOrg) {
-            let inputs = {};
             let selections = this.selections[Pages.Overview][OverviewTabs.ByOrg];
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
             this.inputs[Pages.Overview][OverviewTabs.ByOrg] = inputs;
         }
     }
 
+    // updateInputs(input, page, tab): Updates other inputs that depend on the inputs that the user has selected
+    updateInputs({input = null, page = undefined, tab = undefined} = {}) {
+        page = page === undefined ? this.pageName : page;
+        tab = tab === undefined ? this.activeTabs[page] : tab;
+
+        const inputOrder = InputOrder[page][tab];
+        const inputOrderInds = InputOrderInds[page][tab];
+        const selections = this.selections[page][tab];
+        const inputs = this.inputs[page][tab];
+        const inputInd = input === null ? -1 : inputOrderInds[input];
+        const microorganismInputInd = (inputOrderInds[Inputs.MicroOrganism] === undefined) ? -1 : inputOrderInds[Inputs.MicroOrganism];
+
+        if (inputInd == undefined) return;
+
+        // update the inputs where their corresponding selections have been updated
+        for (let i = inputInd + 1; i < inputOrder.length; ++i) {
+            const currentInput = inputOrder[i];
+            inputs[currentInput] = SetTools.intersection(inputs[currentInput], selections[currentInput]);
+
+            // update the microorganism tree
+            if (microorganismInputInd == i) {
+                const tree = this.getMicroOrganismTree({page, tab});
+                tree.checkMicroorganisms(inputs[currentInput]);
+            }
+        }
+    }
 
     updateMicroorganismTree({page = undefined, tab = undefined} = {}) {
         if (page === undefined) {
@@ -561,10 +649,9 @@ export class Model {
         let selections = this.selections[page][tab][Inputs.MicroOrganism];
         if (selections === undefined) return;
 
-        let inputs = this.inputs[page][tab][Inputs.MicroOrganism];
         const microorganismTree = this.microorganismTrees[page][tab];
         microorganismTree.clear();
-        
+
         // construct the new microorganism tree
         for (const microorganism of selections) {
             const microoranismParts = microorganism.split(PhylogeneticDelim);
@@ -573,8 +660,5 @@ export class Model {
 
         // add the non speciated microorganisms into the tree
         microorganismTree.addNonSpeciated();
-
-        // check off which microorganisms are selected in the tree
-        microorganismTree.checkMicroorganisms(inputs);
     }
 }

@@ -296,9 +296,9 @@ FilterNamesEN[Pages.Overview][OverviewTabs.ByOrg] = {
 
 // Survey Types
 const SurveyTypesEN = {};
-SurveyTypesEN[SurveyTypes.HC] = "HC";
-SurveyTypesEN[SurveyTypes.PHAC] = "PHAC";
-SurveyTypesEN[SurveyTypes.CFIA] = "CFIA";
+SurveyTypesEN[SurveyTypes.HC] = "HC Targeted Surveys";
+SurveyTypesEN[SurveyTypes.PHAC] = "PHAC FoodNet";
+SurveyTypesEN[SurveyTypes.CFIA] = "CFIA Surveys";
 SurveyTypesEN[SurveyTypes.CFSIN] = "CFSIN";
 
 const LangEN = {
