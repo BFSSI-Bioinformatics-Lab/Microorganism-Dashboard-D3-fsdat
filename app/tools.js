@@ -72,4 +72,16 @@ export class SetTools {
 
         return result;
     }
+
+    // intersection(set1, set2): Computes the set intersection of set1 ∩ set2
+    static intersection(set1, set2) { 
+        const result = new Set(); 
+        for (let element of set2) { 
+            if (set1.has(element)) { 
+                result.add(element); 
+            } 
+        } 
+
+        return result; 
+    } 
 }

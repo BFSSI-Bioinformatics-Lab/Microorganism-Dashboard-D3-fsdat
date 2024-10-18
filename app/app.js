@@ -514,7 +514,7 @@ class App {
             this.updateTreeSelect({selectId: Inputs.MicroOrganism, selections: selections[Inputs.MicroOrganism], inputs: inputs[Inputs.MicroOrganism], 
                                    onChange: (selectedNodes, tree) => {
                                         const newInputs = this.readMicroorganisms(selectedNodes, tree);
-                                        inputs[Inputs.MicroOrganism] = newInputs.size > 0 ? newInputs : structuredClone(selections[Inputs.MicroOrganism]);
+                                        inputs[Inputs.MicroOrganism] = newInputs;
                                         this.updateTab({input: Inputs.MicroOrganism});
                                    }});
         }
@@ -523,7 +523,7 @@ class App {
         if (inputOrderInds[Inputs.FoodGroup] !== undefined && inputOrderInds[Inputs.FoodGroup] > inputInd) {
             this.updateDropdownSelect({selectId: Inputs.FoodGroup, selections: selections[Inputs.FoodGroup], inputs: inputs[Inputs.FoodGroup], 
                                        onChange: (selectedOptions) => {
-                                            inputs[Inputs.FoodGroup] = selectedOptions.length > 0 ? new Set(selectedOptions) : structuredClone(selections[Inputs.FoodGroup]);
+                                            inputs[Inputs.FoodGroup] = new Set(selectedOptions);
                                             this.updateTab({input: Inputs.FoodGroup});
                                        }});
         }
@@ -532,7 +532,7 @@ class App {
         if (inputOrderInds[Inputs.Food] !== undefined && inputOrderInds[Inputs.Food] > inputInd) {
             this.updateDropdownSelect({selectId: Inputs.Food, selections: selections[Inputs.Food], inputs: inputs[Inputs.Food], 
                                        onChange: (selectedOptions) => {
-                                            inputs[Inputs.Food] = selectedOptions.length > 0 ? new Set(selectedOptions) : structuredClone(selections[Inputs.Food]);
+                                            inputs[Inputs.Food] = new Set(selectedOptions);
                                             this.updateTab({input: Inputs.Food});
                                        }});
         }
@@ -544,7 +544,7 @@ class App {
         let justInitialized = this.model.setupTab();
 
         if (!justInitialized && updateFilters) {
-            this.model.updateSelections({input});
+            this.model.updateTab({input});
         }
 
         if (updateFilters || justInitialized) {
