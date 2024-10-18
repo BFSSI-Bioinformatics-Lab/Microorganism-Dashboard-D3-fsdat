@@ -234,7 +234,9 @@ class App {
         //  the multiselect is dynamically added into the HTML (we dynamically add the multiselect by calling the .load function using JQuery)
         //
         // https://github.com/snapappointments/bootstrap-select/issues/2606
-        $(".multiSelect").selectpicker();
+        $(".multiSelect").selectpicker({
+            deselectAllText: Translation.translate("deselectAll"), 
+            selectAllText: Translation.translate("selectAll")});
     }
 
     // setupMenuTabs(): Initial setup needed for the menu tabs
@@ -360,7 +362,9 @@ class App {
             .append("option")
             .text((d) => d);
 
-        dropdown = $(dropdownSelector).selectpicker();
+        dropdown = $(dropdownSelector).selectpicker({
+            deselectAllText: Translation.translate("deselectAll"), 
+            selectAllText: Translation.translate("selectAll")});
         dropdown.selectpicker('val', Array.from(inputs));
         dropdown.on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
             if (onChange !== undefined) {
@@ -419,6 +423,7 @@ class App {
                        expandIcon: 'fas fa-chevron-right',
                        checkedIcon: 'far fa-check-square',
                        uncheckedIcon: 'far fa-square',
+                       showTags: true,
                        showCheckbox: true,
                        showIcon: true,
                        multiSelect: true,

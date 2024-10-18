@@ -243,6 +243,20 @@ body {
   }
 
 /* =================================================== */
+/* ======== Text Input =============================== */
+
+.form-control {
+    background-color: var(--primaryBg);
+    color: var(--fontColour);
+    transition: var(--fastTransition);
+}
+
+.form-control:focus {
+    background-color: var(--primaryBg);
+    box-shadow: 0 0 0 .25rem var(--secondary);
+    color: var(--fontColour);
+}
+
 /* ======== Multiselect ============================== */
 
 .bootstrap-select > .dropdown-toggle.bs-placeholder {
@@ -268,6 +282,10 @@ body {
     color: var(--secondaryHover);
 }
 
+.bootstrap-select .form-control {
+    margin-bottom: 15px;
+}
+
 /* =================================================== */
 /* ======== Tree Select ============================== */
 
@@ -277,6 +295,25 @@ body {
 
 .node-tree:not(.node-disabled):hover {
     color: var(--primaryBgHover);
+}
+
+.treeview li {
+    transition: var(--fastTransition);
+}
+
+.treeview li:hover {
+    color: var(--primaryBgHover);
+}
+
+.treeview .badge {
+    color: var(--primaryBgHover);
+    background-color: var(--primary);
+    float: right;
+}
+
+.treeview li:hover .badge, .treeview .node-selected .badge {
+    color: var(--primary);
+    background-color: var(--primaryBgHover);
 }
 
 /* =================================================== */
