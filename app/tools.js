@@ -34,7 +34,7 @@ export class Translation {
         return he.decode(result);
     }
 
-    // translateNumStr(numStr, decimalPlaces): Translate a number to its correct
+    // translateNum(numStr, decimalPlaces): Translate a number to its correct
     //  numeric represented string for different languages
     // eg. '1.2' -> '1,2' in French
     //

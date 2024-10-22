@@ -56,12 +56,17 @@ export const Inputs = {
     SurveyType: "SurveyType"
 };
 
+// Further groups the data for each tab apart from the grouping based on the tabs inputs
+export const GroupNames = {
+    SampleCode: "SampleCode"
+}
+
 // order for the filter inputs for each tab
 export const InputOrder = {};
 InputOrder[Pages.TrendsOverTime] = {};
 InputOrder[Pages.Overview] = {};
-InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = [Inputs.SurveyType, Inputs.MicroOrganism, Inputs.FoodGroup, Inputs.Food];
-InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = [Inputs.SurveyType, Inputs.FoodGroup, Inputs.Food, Inputs.MicroOrganism];
+InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = [Inputs.DataType, Inputs.SurveyType, Inputs.MicroOrganism, Inputs.FoodGroup, Inputs.Food];
+InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = [Inputs.DataType, Inputs.SurveyType, Inputs.FoodGroup, Inputs.Food, Inputs.MicroOrganism];
 InputOrder[Pages.Overview][OverviewTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.SurveyType];
 InputOrder[Pages.Overview][OverviewTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
 InputOrder[Pages.Overview][OverviewTabs.ByOrg] = [Inputs.SurveyType];
@@ -115,25 +120,6 @@ export const SurveyTypes = {
 // Delimeter for joining each node in the Phylogentic tree
 export const PhylogeneticDelim = "==>"
 
-// Attributes in the node of the phylogenetic tree
-// Note: 
-//  Based of Bootstrap Treeview: https://github.com/jonmiles/bootstrap-treeview
-export const MicroorganismNodeAtts = {
-    Nodes: "nodes",
-    Name: "text",
-    States: "state",
-    Tags: "tags"
-}
-
-
-// Attributes for the different states of the nodes in the phylogenetic tree
-// Note: 
-//  Based of Bootstrap Treeview: https://github.com/jonmiles/bootstrap-treeview
-export const MicroorganismNodeStates = {
-    Checked: "checked",
-    Selected: "selected"
-}
-
 // Columns in the Health Canada Data
 // Note: Copy the exact column names from "CANLINE Micro -no... .csv" except for the Columns with 3 stars (***)
 export const HCDataCols = {
@@ -148,7 +134,22 @@ export const HCDataCols = {
     FoodGroup: "Food Group",
     FoodName: "Food Name",
     ProjectCode: "Project Code",
-    SurveyType: "Survey Type" // ***
+    SampleCode: "Sample Code",
+    QualitativeResult: "Qualitative Result",
+    QuantitativeOperator: "Quantitative Result Operator",
+    QuantitativeResult: "Quantitative Result",
+    QuantitativeUnit: "Quantitative Result Unit",
+    SurveyType: "Survey Type", // ***
+}
+
+// Different types of operators for the quantitative results
+export const QuantitativeOps = {
+    Eq: "=",
+    Lt: "<",
+    Gt: ">",
+    Le: "<=",
+    Ge: ">=",
+    Approx: "~"
 }
 
 // ############################################################
@@ -306,6 +307,11 @@ SurveyTypesEN[SurveyTypes.PHAC] = "PHAC FoodNet";
 SurveyTypesEN[SurveyTypes.CFIA] = "CFIA Surveys";
 SurveyTypesEN[SurveyTypes.CFSIN] = "CFSIN";
 
+// names for the Data Types
+const DataTypeNamesEN = {};
+DataTypeNamesEN[MicroBioDataTypes.PresenceAbsence] = "Presence/Absence"
+DataTypeNamesEN[MicroBioDataTypes.Concentration] = "Concentration"
+
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
     "websiteTabTitle": "FSDAT -Microbiology",
@@ -330,7 +336,17 @@ const LangEN = {
     "foodLabel": "Foods:",
     "microorganismLabel": "Microorganisms:",
 
-    surveyTypes: SurveyTypesEN
+    surveyTypes: SurveyTypesEN,
+    dataTypes: DataTypeNamesEN,
+
+    // Different options for the qualitative results
+    // Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
+    qualitativeResults: {
+        "Detected": "detected",
+        "NotDetected": "not detected",
+        "NotTested": "not tested",
+        "Inconclusive": "inconclusive"
+    }
 }
 
 // ==============================================
@@ -410,6 +426,11 @@ SurveyTypesFR[SurveyTypes.PHAC] = REMPLACER_MOI;
 SurveyTypesFR[SurveyTypes.CFIA] = REMPLACER_MOI;
 SurveyTypesFR[SurveyTypes.CFSIN] = REMPLACER_MOI;
 
+// names for the Data Types
+const DataTypeNamesFR = {};
+DataTypeNamesFR[MicroBioDataTypes.PresenceAbsence] = REMPLACER_MOI;
+DataTypeNamesFR[MicroBioDataTypes.Concentration] = REMPLACER_MOI;
+
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,
     "websiteTabTitle": REMPLACER_MOI,
@@ -434,7 +455,17 @@ const LangFR = {
     "foodLabel": REMPLACER_MOI,
     "microorganismLabel": REMPLACER_MOI,
 
-    surveyTypes: SurveyTypesFR
+    surveyTypes: SurveyTypesFR,
+    dataTypes: DataTypeNamesFR,
+
+    // Different options for the qualitative results
+    // Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
+    qualitativeResults: {
+        "Detected": REMPLACER_MOI,
+        "NotDetected": REMPLACER_MOI,
+        "NotTested": REMPLACER_MOI,
+        "Inconclusive": REMPLACER_MOI
+    }
 }
 
 // ==============================================
