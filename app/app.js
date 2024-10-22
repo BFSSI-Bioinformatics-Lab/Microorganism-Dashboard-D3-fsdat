@@ -68,13 +68,7 @@ class App {
         this.headerLink = d3.select(".headerOption:last-child");
         this.headerLink.attr("value", Translation.translate("changeLanguageValue"));
 
-        this.headerLink.on("click", (event) => { 
-            const newLanguage = this.headerLink.attr("value");
-            self.changeLanguage(newLanguage);
-
-            self.updateHeaderText();
-            self.updateMainPage();
-        });
+        this.headerLink.on("click", (event) => this.onLanguageChange());
 
         this.themeDropdown = d3.select("#themeDropdownMenu");
 
@@ -172,6 +166,19 @@ class App {
         website.attr("lang", newLanguage);
         i18next.changeLanguage(newLanguage);
         this.lang = newLanguage;
+    }
+
+    // onLanguageChange(): Listener when the language of the website changes
+    async onLanguageChange() {
+        const newLanguage = this.headerLink.attr("value");
+        this.changeLanguage(newLanguage);
+
+        this.model.clear();
+
+        Promise.all([this.model.load()]).then(() => {
+            this.updateHeaderText();
+            this.updateMainPage();
+        });
     }
 
     // updateHeaderText(): Changes the text in the header based off the language
@@ -303,9 +310,37 @@ class App {
         });
     }
 
-    // updateRadioSelect(selectId)
-    updateRadioSelect({selectId, selections, inputs, on}) {
+    // updateRadioSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the radio select widget
+    updateRadioSelect({selectId, selections, inputs, onChange = undefined, translations = undefined} = {}) {
+        let tab = this.getActiveTab();
+        let tabName = this.model.getActiveTab();
+        const radioSelections = tab.select(`.menuTab[value="${tabName}"] #${selectId}`)
+            .html("")
+            .selectAll("label")
+            .data(selections)
+            .enter()
+            .append("label")
+            .classed("radioContainer", true);
 
+        radioSelections.append("span")
+            .text(d => { return translations === undefined ? d : translations[d]});
+
+        radioSelections.append("input")
+            .attr("type", "radio")
+            .attr("name", `${tabName}_${selectId}`)
+            .attr("value", d => `${d}`)
+            .attr("checked", d => inputs.has(d) ? true : null)
+            .on("click", (event) => {
+                const radioInput = d3.select(event.target);
+                const radioValue = radioInput.attr("value");
+
+                if (onChange !== undefined) {
+                    onChange(radioValue);
+                }
+            });
+
+        radioSelections.append("span")
+            .classed("radioIcon", true);
     }
 
     // updateCheckmarkSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the checkmark select widget
@@ -318,7 +353,7 @@ class App {
             .data(selections)
             .enter()
             .append("label")
-            .classed("checkBoxContainer", true)
+            .classed("checkBoxContainer", true);
 
         chesckMarkSelections.append("span")
             .text(d => { return translations === undefined ? d : translations[d]});
@@ -344,7 +379,7 @@ class App {
     }
 
     // updateDropdownSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the dropdown select widget
-    updateDropdownSelect({selectId, selections, inputs, onChange = undefined} = {}) {
+    updateDropdownSelect({selectId, selections, inputs, onChange = undefined, noneSelectedText = ""} = {}) {
         let tab = this.getActiveTab();
         let tabName = this.model.getActiveTab();
         const dropdownSelector = `.menuTab[value="${tabName}"] #${selectId}.multiSelect`;
@@ -498,6 +533,16 @@ class App {
         const inputs = this.model.getInputs();
 
         if (inputInd === undefined) return;
+
+        // data type filter
+        if (inputOrderInds[Inputs.DataType] !== undefined && inputOrderInds[Inputs.DataType] > inputInd) {
+            this.updateRadioSelect({selectId: Inputs.DataType, selections: selections[Inputs.DataType], inputs: inputs[Inputs.DataType],
+                                    translations: Translation.translate("dataTypes", { returnObjects: true }),
+                                    onChange: (checkedVal) => {
+                                        inputs[Inputs.DataType] = new Set([checkedVal]);
+                                        this.updateTab({input: Inputs.DataType});
+                                    }});
+        }
 
         // survey type filter
         if (inputOrderInds[Inputs.SurveyType] !== undefined && inputOrderInds[Inputs.SurveyType] > inputInd) {
