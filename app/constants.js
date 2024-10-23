@@ -182,7 +182,8 @@ Themes[ThemeNames.Light] = {
     secondaryHover: "#753350",
     tertiary: "#af3c43",
     link: "#284162",
-    headerTitleColor: "#000000"
+    headerTitleColor: "#000000",
+    error: "#ff0000"
 };
 
 Themes[ThemeNames.Dark] = {
@@ -200,7 +201,8 @@ Themes[ThemeNames.Dark] = {
     secondaryHover: "#aa4a74",
     tertiary: "#af3c43",
     link: "#6e93c4",
-    headerTitleColor: "#ffffff"
+    headerTitleColor: "#ffffff",
+    error: "#ff0000"
 };
 
 // Primary ---> Mountain Haze Theme: https://www.canva.com/colors/color-palettes/mountain-haze/
@@ -220,7 +222,8 @@ Themes[ThemeNames.Blue] = {
     secondaryHover: "#2e8bc0",
     tertiary: "purple",
     link: "#0c4160",
-    headerTitleColor: "#333333"
+    headerTitleColor: "#333333",
+    error: "#ff0000"
 };
 
 // ############################################################
@@ -331,6 +334,7 @@ const LangEN = {
     "nonSpeciated": "Non Speciated",
     "selectAll": "Select All",
     "deselectAll": "Deselect All",
+    "noResultsFound": "No results matched {0}",
 
     "foodGroupLabel": "Food Groups:",
     "foodLabel": "Foods:",
@@ -450,6 +454,7 @@ const LangFR = {
     "nonSpeciated": REMPLACER_MOI,
     "selectAll": REMPLACER_MOI,
     "deselectAll": REMPLACER_MOI,
+    "noResultsFound": `${REMPLACER_MOI_AVEC_ARGUMENTS} {0}`,
 
     "foodGroupLabel": REMPLACER_MOI,
     "foodLabel": REMPLACER_MOI,

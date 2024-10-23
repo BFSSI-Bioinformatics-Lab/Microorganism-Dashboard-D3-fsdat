@@ -26,6 +26,7 @@
     --tertiary: #af3c43;
     --link: #284162;
     --headerTitleColor: #000000;
+    --error: #ff0000;
 
     --smBorderRadius: 5px;
     --borderRadius: 10px;
@@ -284,6 +285,11 @@ body {
 
 .bootstrap-select .form-control {
     margin-bottom: 15px;
+}
+
+.bootstrap-select .no-results {
+    background-color: var(--primaryBg);
+    color: var(--error);
 }
 
 /* =================================================== */

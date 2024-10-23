@@ -399,7 +399,10 @@ class App {
 
         dropdown = $(dropdownSelector).selectpicker({
             deselectAllText: Translation.translate("deselectAll"), 
-            selectAllText: Translation.translate("selectAll")});
+            selectAllText: Translation.translate("selectAll"),
+            noneSelectedText,
+            noneResultsText: Translation.translate("noResultsFound")});
+
         dropdown.selectpicker('val', Array.from(inputs));
         dropdown.on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
             if (onChange !== undefined) {
@@ -480,7 +483,7 @@ class App {
         tree.on('nodeUnchecked', (event, node) => {
             this.selectSubTree(event, node,  tree.data("treeview").unselectNode,  tree.data("treeview").uncheckNode);
             this.selectParents(event, node, tree, tree.data("treeview").unselectNode, tree.data("treeview").uncheckNode, 
-                              (child) => child.state === undefined || !child.state["checked"], 
+                              (child) => child.state !== undefined && child.state["checked"], 
                               (children, selectedChildren) => children.length > selectedChildren.length);
 
             const selected = tree.data("treeview").getSelected();
@@ -572,6 +575,7 @@ class App {
         // food group selection
         if (inputOrderInds[Inputs.FoodGroup] !== undefined && inputOrderInds[Inputs.FoodGroup] > inputInd) {
             this.updateDropdownSelect({selectId: Inputs.FoodGroup, selections: selections[Inputs.FoodGroup], inputs: inputs[Inputs.FoodGroup], 
+                                       noneSelectedText: Translation.translate("allFoodGroups"),
                                        onChange: (selectedOptions) => {
                                             inputs[Inputs.FoodGroup] = new Set(selectedOptions);
                                             this.updateTab({input: Inputs.FoodGroup});
@@ -581,6 +585,7 @@ class App {
         // food selection
         if (inputOrderInds[Inputs.Food] !== undefined && inputOrderInds[Inputs.Food] > inputInd) {
             this.updateDropdownSelect({selectId: Inputs.Food, selections: selections[Inputs.Food], inputs: inputs[Inputs.Food], 
+                                       noneSelectedText: Translation.translate("allFoods"),
                                        onChange: (selectedOptions) => {
                                             inputs[Inputs.Food] = new Set(selectedOptions);
                                             this.updateTab({input: Inputs.Food});
