@@ -13,6 +13,9 @@ import { Translation, SetTools } from "./tools.js";
 
 
 // MicroorganismTree: Class for the phylogenetic tree used in the microorganism's naming
+//
+// Note: The naming the node attributes and states of the nodes are based off Bootstrap's treeview library
+//  https://github.com/jonmiles/bootstrap-treeview
 export class MicroorganismTree {
     constructor() {
         this.nodeId = -1;
@@ -106,6 +109,18 @@ export class MicroorganismTree {
             states.checked = false;
             states.selected = false;
         }
+    }
+
+    // expandNode(nodeId): Displays the children nodes of the node
+    expandNode(nodeId) {
+        const node = this.nodes[nodeId];
+        let states = node.state;
+        if (states === undefined) {
+            states = {};
+            node.state = states;
+        }
+
+        states.expanded = true;
     }
 
     // isChecked(node): Determines whether a node is checked off
@@ -210,7 +225,13 @@ export class MicroorganismTree {
         // check all microorganism nodes and their children
         const microorganismNodeIds = [];
         for (const microorganism of microorganisms) {
-            const nodeId = this.getNodeId(microorganism);
+            let nodeId = this.getNodeId(microorganism);
+            const children = this.getChildren(nodeId);
+
+            if (children !== undefined) {
+                nodeId = children[Translation.translate("nonSpeciated")];
+            }
+
             microorganismNodeIds.push(nodeId);
             checkSubTreeFunc(nodeId);
         }
@@ -255,6 +276,57 @@ export class MicroorganismTree {
                                     (nodeId) => this.uncheckNode(nodeId), 
                                     (nodeId) => !this.isChecked(nodeId),    
                                     (childrenIds, checkedChildrenIds) => checkedChildrenIds.length > 0);
+    }
+
+    // _minimalExpand(nodeId): internal function for the 'minimalExpand' method
+    _minimalExpand(nodeId) {
+        const children = this.getChildren(nodeId);
+        if (children === undefined) {
+            return this.isChecked(nodeId);
+        }
+
+        const directChildrenIds = Object.values(this.getChildren(nodeId));
+        const checkedDirectChildrenIds = directChildrenIds.filter((childId) => this.isChecked(childId));
+        let hasCheckedChildren = false;
+
+        // check if the node has any children checked
+        for (const childId of directChildrenIds) {
+            const subTreeHasChildren = this._minimalExpand(childId);
+            if (!hasCheckedChildren && subTreeHasChildren) {
+                hasCheckedChildren = true;
+            }
+        }
+
+        // expand the node if it has a checked children in its subtree and not all its direct children are checked
+        if (hasCheckedChildren && directChildrenIds.length > checkedDirectChildrenIds.length) {
+            this.expandNode(nodeId);
+        }
+
+        return hasCheckedChildren;
+    }
+
+    // minimalExpand(): Shows the nodes in the tree such that only the deepest node with all its children selected and the
+    //  ancestors of this node will be shown
+    //
+    // eg. For the tree below:
+    //
+    // root --+--> child1
+    //        |
+    //        +--> child2 --+--> grandchild1 --> greatgrandchild1
+    //                      |
+    //                      +--> grandchild2  
+    //
+    // - if all nodes are checked, 
+    //      then only the node 'root' is shown
+    // - if the all nodes except for 'root' and 'child1' are checked, 
+    //      then 'root', 'child1' AND 'child2' are shown
+    // - if 'grandchild1' and 'greatgrandchild1' are checked, 
+    //      then 'root', 'child1', 'child2', 'grandchild1' are shown
+    //
+    // assume: - if a parent node is checked, all its children are checked
+    //         - if all children nodes are checked, then the parent node is also checked
+    minimalExpand() {
+        this._minimalExpand(this.rootNodeId);
     }
 
     // addNonSpeciated(): Adds the non speciated nodes to phylogenetic tree
@@ -595,6 +667,8 @@ export class Model {
             grouping.set(MicroBioDataTypes.Concentration, concentrationGrouping);
             this.groupings[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = grouping;
 
+            this.createSampleObjs({page, tab});
+
         // Trends Over Time ==> By Food
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
             let presenceGrouping = d3.group(this.dataInds,
@@ -616,6 +690,8 @@ export class Model {
             grouping.set(MicroBioDataTypes.Concentration, concentrationGrouping);
             this.groupings[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = grouping;
 
+            this.createSampleObjs({page, tab});
+
         // Overview ==> By Microorganism
         } else if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
             grouping = d3.group(this.dataInds,
@@ -636,11 +712,6 @@ export class Model {
             grouping = d3.group(this.dataInds,
                 ind => this.data[ind][HCDataCols.SurveyType]);
             this.groupings[Pages.Overview][OverviewTabs.ByOrg] = grouping;
-        }
-
-
-        if (grouping !== null) {
-            this.createSampleObjs({page, tab});
         }
     }
 
@@ -783,6 +854,7 @@ export class Model {
             if (microorganismInputInd == i) {
                 const tree = this.getMicroOrganismTree({page, tab});
                 tree.checkMicroorganisms(inputs[currentInput]);
+                tree.minimalExpand();
             }
         }
     }
