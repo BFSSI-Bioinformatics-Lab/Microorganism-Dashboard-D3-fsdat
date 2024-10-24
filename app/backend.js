@@ -8,14 +8,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, InputOrder, InputOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames } from "./constants.js"
+import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, InputOrder, InputOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState } from "./constants.js"
 import { Translation, SetTools, MapTools } from "./tools.js";
 
 
 // MicroorganismTree: Class for the phylogenetic tree used in the microorganism's naming
-//
-// Note: The naming the node attributes and states of the nodes are based off Bootstrap's treeview library
-//  https://github.com/jonmiles/bootstrap-treeview
 export class MicroorganismTree {
     constructor() {
         this.nodeId = -1;
@@ -52,6 +49,9 @@ export class MicroorganismTree {
     //         selected: bool
     //   }
     // }
+    //
+    // The naming the node attributes and states of the nodes above are based off Bootstrap's treeview library
+    //  https://github.com/jonmiles/bootstrap-treeviesw
     createNode(nodeName) {
         const result = {};
         result.text = nodeName;
@@ -500,8 +500,21 @@ export class Model {
         return txt.trim().toLowerCase();
     }
 
-    // isDetected(sampleRows): Determines if the data is detected/not-detected
-    isDetected(sampleRowInds) {
+    // getSampleState(sampleRowInds): Retrieves the state of the sample
+    //
+    // Note:
+    //  'Detected' is determined by: 
+    //      - if a single row in the sample has its [Qualitative Result] column saying "Detected" OR
+    //      - a single row in the sample has the [Qualitative Result] column is empty AND the [Quantitative Result] column 
+    //            is a positive number AND [Quantitative Operator] is one of {>, =, ~, >=}
+    //
+    // 'Not Tested' is determined by:
+    //      - if all the rows in the sample have the [Qualitative Result] column saying "Not Tested"
+    //
+    // For everything else, a sample is considered 'Not Detected'
+    getSampleState(sampleRowInds) {
+        let result = SampleState.NotTested;
+
         for (const ind of sampleRowInds) {
             const row = this.data[ind];
             const qualitative = Model.cleanTxt(row[HCDataCols.QualitativeResult]);
@@ -510,7 +523,9 @@ export class Model {
             const quantitativeIsEmpty = isNaN(quantitative);
 
             if (!qualitativeIsEmpty && qualitative == Translation.translate("qualitativeResults.Detected")) {
-                return true;
+                return SampleState.Detected;
+            } else if (!qualitativeIsEmpty && result == SampleState.NotTested && qualitative != Translation.translate("qualitativeResults.NotTested")) {
+                result = SampleState.NotDetected;
             }
 
             const quantitativeOp = Model.cleanTxt(row[HCDataCols.QuantitativeOperator]);
@@ -518,11 +533,14 @@ export class Model {
             if (qualitativeIsEmpty && !quantitativeIsEmpty && 
                 (quantitative > 0 || quantitativeOp == QuantitativeOps.Gt || quantitativeOp == QuantitativeOps.Eq || 
                  quantitativeOp == QuantitativeOps.Approx || quantitativeOp == QuantitativeOps.Ge)) {
-                return true;
+                return SampleState.Detected;
+
+            } else if (qualitativeIsEmpty && result == SampleState.NotTested) {
+                result = SampleState.NotDetected;
             }
         }
 
-        return false;
+        return result;
     }
 
     // isGraphed(sampleRows): Determines whether the data should be displayed on the graph
@@ -889,14 +907,14 @@ export class Model {
     // Note: The object contains the following structure:
     //
     // {
-    //   detected: bool,
+    //   state: SampleState
     //   graphed: bool,
     //   data: List[int]
     // }
     createSampleObj(sampleRowInds) {
         const result = {};
         result.data = sampleRowInds
-        result.detected = this.isDetected(sampleRowInds);
+        result.state = this.getSampleState(sampleRowInds);
         result.graphed = this.isGraphed(sampleRowInds);
 
         return result;
