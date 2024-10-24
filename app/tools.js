@@ -85,3 +85,13 @@ export class SetTools {
         return result; 
     } 
 }
+
+
+// MapTools: Class for handling with Maps
+export class MapTools {
+
+    // toDict(map1): Converts a map to a dictionary
+    static toDict(map1) {
+        return Object.fromEntries(map1.entries());
+    }
+}

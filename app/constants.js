@@ -58,7 +58,7 @@ export const Inputs = {
 
 // Further groups the data for each tab apart from the grouping based on the tabs inputs
 export const GroupNames = {
-    SampleCode: "SampleCode"
+    SampleCode: "Sample Code"
 }
 
 // order for the filter inputs for each tab
