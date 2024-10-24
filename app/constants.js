@@ -152,6 +152,13 @@ export const QuantitativeOps = {
     Approx: "~"
 }
 
+// Different states for a sample
+export const SampleState = {
+    Detected: "detected",
+    NotDetected: "not detected",
+    NotTested: "not tested"
+}
+
 // ############################################################
 // ################## THEMES ##################################
 
