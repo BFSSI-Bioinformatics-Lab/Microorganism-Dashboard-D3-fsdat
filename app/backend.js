@@ -9,7 +9,7 @@
 
 
 import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, InputOrder, InputOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState } from "./constants.js"
-import { Translation, SetTools, MapTools } from "./tools.js";
+import { Translation, SetTools, MapTools, TableTools } from "./tools.js";
 
 
 // MicroorganismTree: Class for the phylogenetic tree used in the microorganism's naming
@@ -192,6 +192,26 @@ export class MicroorganismTree {
 
         this.microorganisms.add(namePath.join(PhylogeneticDelim));
     }
+    
+    // getFullName(nodeId): Retrieves the full name of a microorganism
+    getFullName(nodeId) {
+        let node = this.nodes[nodeId];
+        if (node === undefined) return undefined;
+
+        let result = node.text;
+        let parentId = this.parents[nodeId];
+
+        while (parentId !== undefined) {
+            const parent = this.nodes[parentId];
+            result = `${parent.text}${PhylogeneticDelim}${result}`;
+            
+            node = parent;
+            nodeId = parentId;
+            parentId = this.parents[nodeId];
+        }
+
+        return result;
+    }
 
     // _getLeaves(node, currentName, result): Internal function to get all the names of the microorganisms that are located at the leaves of the phylogenetic tree
     _getLeaves(nodeId, currentName, result) {
@@ -213,9 +233,19 @@ export class MicroorganismTree {
     }
 
     // getLeaves(): Retrieves the names of all the micororganisms that are located at the leaves of the phylogenetic tree
-    getLeaves() {
+    getLeaves(nodeId = undefined) {
         const result = new Set();
-        this._getLeaves(this.rootNodeId, "", result);    
+        let namePrefix = "";
+
+        if (nodeId === undefined) {
+            nodeId = this.rootNodeId;
+        } else {
+            const node = this.nodes[nodeId];
+            if (node === undefined) return result;
+            namePrefix = this.getFullName(nodeId);
+        }
+
+        this._getLeaves(this.rootNodeId, namePrefix, result);
         return result;
     }
 
@@ -405,17 +435,20 @@ export class Model {
     initInputs() {
         this.inputs = {};
         this.microorganismTrees = {};
-        this.dataResults = {};
+        this.summaryData = {};
+        this.visualData = {};
 
         for (const page in InputOrder) {
             this.inputs[page] = {};
             this.microorganismTrees[page] = {};
-            this.dataResults[page] = {};
+            this.summaryData = {};
+            this.visualData[page] = {};
 
             for (const tab in InputOrder[page]) {
                 this.inputs[page][tab] = {};
                 this.microorganismTrees[page][tab] = new MicroorganismTree();
-                this.dataResults[page][tab] = {};
+                this.summaryData[page][tab] = {};
+                this.visualData[page][tab] = {};
             }
         }   
     }
@@ -477,7 +510,7 @@ export class Model {
 
     getGrouping({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.groupings, page, tab); }
     getSelection({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.selections, page, tab); }
-    getDatResults({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.dataResults, page, tab); }
+    getDatResults({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.visualData, page, tab); }
     getInputs({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.inputs, page, tab); }
     getInputOrderInds({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(InputOrderInds, page, tab); }
     getInputOrder({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(InputOrder, page, tab); }
@@ -567,16 +600,16 @@ export class Model {
 
     async load() {
         this.data = [];
+        this.samples = {};
+
         await Promise.all([this.loadHealthCanada(), this.loadCFIA()]).then(() => {
             this.dataInds = [];
-            this.concentrationInds = [];
 
             this.data.forEach((row, ind) => {
                 this.dataInds.push(ind);
-                if (!isNaN(row[HCDataCols.QuantitativeResult])) {
-                    this.concentrationInds.push(ind);
-                }
             });
+
+            this.samples = this.createSampleObjs(this.dataInds);
         });
     }
 
@@ -586,6 +619,7 @@ export class Model {
         for (const row of data) {
             row[HCDataCols.SurveyType] = this.getSurveyType(row);
             row[HCDataCols.QuantitativeResult] = parseFloat(row[HCDataCols.QuantitativeResult]);
+            row[HCDataCols.Microorganism] = this.getMicroorganism(row);
             this.data.push(row);
         }
     }
@@ -610,9 +644,13 @@ export class Model {
             this.setupGrouping(page, tab);
             this.setupSelections(page, tab);
             this.setupInputs(page, tab);
-            this.updateDataResults({page, tab});
+            this.updateVisualData({page, tab});
             setupDone = true;
         }
+
+        console.log("GROUPING: ", this.groupings);
+        console.log("INPUTS: ", this.inputs);
+        console.log("SELECTIONS: ", this.selections);
 
         return setupDone;
     }
@@ -621,7 +659,7 @@ export class Model {
     updateTab({input = null, page = undefined, tab = undefined} = {}) {
         this.updateSelections({input, page, tab});
         this.updateInputs({input, page, tab});
-        this.updateDataResults({page, tab});
+        this.updateVisualData({page, tab});
     }
     
     // setupGrouping(page, tab): Setup the data structure of how to optimally group the data
@@ -631,62 +669,63 @@ export class Model {
         
         // Trends Over Time ==> By Microorganism
         if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {
-            let presenceGrouping = d3.group(this.dataInds, 
+            let presenceGrouping = TableTools.groupAggregates(this.samples, (aggregate) => aggregate.data, [
                 ind => this.data[ind][HCDataCols.SurveyType],
-                ind => this.getMicroorganism(this.data[ind]),
-                ind => this.data[ind][HCDataCols.FoodGroup],
-                ind => this.data[ind][HCDataCols.FoodName]);
-
-            let concentrationGrouping = d3.group(this.concentrationInds,
-                ind => this.data[ind][HCDataCols.SurveyType],
-                ind => this.getMicroorganism(this.data[ind]),
+                ind => this.data[ind][HCDataCols.Microorganism],
                 ind => this.data[ind][HCDataCols.FoodGroup],
                 ind => this.data[ind][HCDataCols.FoodName]
-            );
+            ]);
+            
+            // TODO: complete logic for grouping concentration
+            let concentrationGrouping = {};
 
-            grouping = new Map();
-            grouping.set(MicroBioDataTypes.PresenceAbsence, presenceGrouping);
-            grouping.set(MicroBioDataTypes.Concentration, concentrationGrouping);
+            grouping = {};
+            grouping[MicroBioDataTypes.PresenceAbsence] = presenceGrouping;
+            grouping[MicroBioDataTypes.Concentration] = concentrationGrouping;
             this.groupings[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = grouping;
 
         // Trends Over Time ==> By Food
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
-            let presenceGrouping = d3.group(this.dataInds,
+            let presenceGrouping = TableTools.groupAggregates(this.samples, (aggregate) => aggregate.data, [
                 ind => this.data[ind][HCDataCols.SurveyType],
                 ind => this.data[ind][HCDataCols.FoodGroup],
                 ind => this.data[ind][HCDataCols.FoodName],
-                ind => this.getMicroorganism(this.data[ind]));
+                ind => this.data[ind][HCDataCols.Microorganism]
+            ]);
+            
+            // TODO: complete logic for grouping concentration
+            let concentrationGrouping = {};
 
-            let concentrationGrouping = d3.group(this.concentrationInds,
-                ind => this.data[ind][HCDataCols.SurveyType],
-                ind => this.data[ind][HCDataCols.FoodGroup],
-                ind => this.data[ind][HCDataCols.FoodName],
-                ind => this.getMicroorganism(this.data[ind]));
-
-            grouping = new Map();
-            grouping.set(MicroBioDataTypes.PresenceAbsence, presenceGrouping);
-            grouping.set(MicroBioDataTypes.Concentration, concentrationGrouping);
+            grouping = {};
+            grouping[MicroBioDataTypes.PresenceAbsence] = presenceGrouping;
+            grouping[MicroBioDataTypes.Concentration] = concentrationGrouping;
             this.groupings[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = grouping;
 
         // Overview ==> By Microorganism
         } else if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
-            grouping = d3.group(this.dataInds,
-                ind => this.getMicroorganism(this.data[ind]),
-                ind => this.data[ind][HCDataCols.SurveyType]);
+            grouping = TableTools.groupAggregates(this.samples, (aggregate) => aggregate.data, [
+                ind => this.data[ind][HCDataCols.Microorganism],
+                ind => this.data[ind][HCDataCols.SurveyType] 
+            ]);
+
             this.groupings[Pages.Overview][OverviewTabs.ByMicroorganism] = grouping;
 
         // Overview ==> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
-            grouping = d3.group(this.dataInds,
+            grouping = TableTools.groupAggregates(this.samples, (aggregate) => aggregate.data, [
                 ind => this.data[ind][HCDataCols.FoodGroup],
                 ind => this.data[ind][HCDataCols.FoodName],
-                ind => this.data[ind][HCDataCols.SurveyType]);
+                ind => this.data[ind][HCDataCols.SurveyType]
+            ]);
+
             this.groupings[Pages.Overview][OverviewTabs.ByFood] = grouping;
 
         // Overview ==> By Org
         } else if (page == Pages.Overview && tab == OverviewTabs.ByOrg) {
-            grouping = d3.group(this.dataInds,
-                ind => this.data[ind][HCDataCols.SurveyType]);
+            grouping = TableTools.groupAggregates(this.samples, (aggregate) => aggregate.data, [
+                ind => this.data[ind][HCDataCols.SurveyType]
+            ]);
+
             this.groupings[Pages.Overview][OverviewTabs.ByOrg] = grouping;
         }
     }
@@ -745,7 +784,7 @@ export class Model {
         const input = inputs[currentInput];
 
         // retrieve the new selection
-        for (const [childName, child] of grouping) {
+        for (const childName in grouping) {
             const hasChild = (input !== undefined && input.has(childName));
             if (!needsSelectionUpdate && !hasChild) continue;
 
@@ -755,7 +794,7 @@ export class Model {
 
             // update the selections for filter inputs that comes after the current input
             if (currentInd < inputOrder.length - 1 && (input === undefined || hasChild)) {
-                this._updateSelections(currentInd + 1, inputInd, grouping.get(childName), inputOrder, selections, inputs);
+                this._updateSelections(currentInd + 1, inputInd, grouping[childName], inputOrder, selections, inputs);
             }
         }
     }
@@ -863,9 +902,11 @@ export class Model {
     // _getFilteredData(inputOrderInd, inputOrder, inputs, result, grouping): Internal function
     //  to get all the rows based off the selected filters
     _getFilteredData(inputOrderInd, inputOrder, inputs, result, grouping) {
+        // get the sample from the grouping
         if (inputOrderInd >= inputOrder.length) {
-            for (const ind of grouping) {
-                result.push(ind);
+            for (const sampleId in grouping) {
+                if (result[sampleId !== undefined]) continue;
+                result[sampleId] = grouping[sampleId];
             }
             return
         }
@@ -874,12 +915,12 @@ export class Model {
         const currentInputs = inputs[input];
 
         for (const currentInput of currentInputs) {
-            const newGrouping = grouping.get(currentInput);
+            const newGrouping = grouping[currentInput];
             if (newGrouping === undefined) {
                 continue;
             }
 
-            this._getFilteredData(inputOrderInd + 1, inputOrder, inputs, result, grouping.get(currentInput));
+            this._getFilteredData(inputOrderInd + 1, inputOrder, inputs, result, newGrouping);
         }
     }
 
@@ -893,7 +934,7 @@ export class Model {
             tab = this.activeTabs[page];
         }
 
-        const result = [];
+        const result = {};
         const inputOrder = InputOrder[page][tab];
         const inputs = this.inputs[page][tab];
         const grouping = this.groupings[page][tab];
@@ -907,16 +948,36 @@ export class Model {
     // Note: The object contains the following structure:
     //
     // {
-    //   state: SampleState
-    //   graphed: bool,
+    //   states: Dict[str, SampleState]  --> by microorganism
+    //   detected: Set[str] --> of microorganisms
+    //   notTested: Set[str] --> of microorganisms
     //   data: List[int]
     // }
     createSampleObj(sampleRowInds) {
         const result = {};
         result.data = sampleRowInds
-        result.state = this.getSampleState(sampleRowInds);
-        result.graphed = this.isGraphed(sampleRowInds);
+        result.states = {};
+        result.detected = new Set();
+        result.notTested = new Set();
 
+        const ByMicroorganism = MapTools.toDict(d3.group(sampleRowInds, ind => this.data[ind][HCDataCols.Microorganism]));
+
+        // retrieve the states (detected, not detected, not tested) of each microorganism
+        for (const microorganism in ByMicroorganism) {
+            const sampleMicroorganismRowInds = ByMicroorganism[microorganism];
+            const sampleMicroorganismState = this.getSampleState(sampleMicroorganismRowInds);
+
+            result.states[microorganism] = sampleMicroorganismState;
+            if (sampleMicroorganismState == SampleState.Detected) {
+                result.detected.add(microorganism);
+            }
+
+            if (sampleMicroorganismState == SampleState.NotTested) {
+                result.notTested.add(microorganism);
+            }
+        }
+
+        //result.graphed = this.isGraphed(sampleRowInds);
         return result;
     }
 
@@ -931,7 +992,12 @@ export class Model {
         return samples;
     }
 
-    updateDataResults({page = undefined, tab = undefined} = {}) {
+    getSummaryData() {
+        
+    }
+
+    // updateVisualData(page, tab): Gets the updated data needed for the graphs/tables
+    updateVisualData({page = undefined, tab = undefined} = {}) {
         if (page === undefined) {
             page = this.pageName;
         }
@@ -941,8 +1007,20 @@ export class Model {
         }
 
         let samples = this.getFilteredData({page, tab});
+
+        console.log("FILTERED SAMPLES: ", samples);
+
+        /*
         samples = this.createSampleObjs(samples);
-        this.dataResults[page][tab] = samples;
+        samples = TableTools.groupAggregates(samples, (aggregate) => aggregate.data, [
+            (ind) => this.data[ind][HCDataCols.SurveyType],
+            (ind) => this.data[ind][HCDataCols.FoodName],
+            (ind) => this.data[ind][HCDataCols.Microorganism]
+        ]);
+
+        console.log("SAMPLES: ", samples);
+
+        this.visualData[page][tab] = {data: samples};*/
     }
 
     // clear(): Clears all the saved data in the backend

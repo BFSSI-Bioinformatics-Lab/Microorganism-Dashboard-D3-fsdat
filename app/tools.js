@@ -95,3 +95,45 @@ export class MapTools {
         return Object.fromEntries(map1.entries());
     }
 }
+
+
+// TableTools: Class for handling any table-like data ex. list of lists/matrices, list of dictionaries
+//    dictionaries of dictionaries, dictionaries of lists, etc...
+export class TableTools {
+
+    // _groupAggregates(ind, aggregates, getAggregateDataFunc, keyFuncs): Interal function for grouping
+    //  aggregates into different sets
+    static _groupAggregates(ind, aggregates, getAggregateDataFunc, keyFuncs) {
+        const result = {};
+        const foundKeys = new Set();
+
+        for (const aggregateKey in aggregates) {
+            const aggregate = aggregates[aggregateKey];
+            const aggregateData = getAggregateDataFunc(aggregate);
+
+            for (const row of aggregateData) {
+                const key = keyFuncs[ind](row);
+                if (result[key] === undefined) {
+                    result[key] = {};
+                    foundKeys.add(key);
+                }
+
+                result[key][aggregateKey] = aggregate;
+            }
+        }
+
+        if (ind >= keyFuncs.length - 1) return result;
+ 
+        for (const key of foundKeys) {
+            result[key] = TableTools._groupAggregates(ind + 1, result[key], getAggregateDataFunc, keyFuncs);
+        }
+
+        return result;
+    }
+
+    // groupAggregates(aggregates, getAggregateDataFunc, keyFuncs): Groups out the aggregates
+    //  into different sets (that may have intersections / that may be non-disjoint)
+    static groupAggregates(aggregates, getAggregateDataFunc, keyFuncs) {
+        return TableTools._groupAggregates(0, aggregates, getAggregateDataFunc, keyFuncs)
+    }
+}
