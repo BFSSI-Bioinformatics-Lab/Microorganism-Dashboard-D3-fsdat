@@ -140,6 +140,7 @@ export const HCDataCols = {
     QuantitativeResult: "Quantitative Result",
     QuantitativeUnit: "Quantitative Result Unit",
     SurveyType: "Survey Type", // ***
+    Microorganism: "Microorganism", // ***
 }
 
 // Different types of operators for the quantitative results
@@ -157,6 +158,16 @@ export const SampleState = {
     Detected: "detected",
     NotDetected: "not detected",
     NotTested: "not tested"
+}
+
+// Attributes names for the summary data
+export const SummaryAtts = {
+    FoodName: "foodName",
+    Microorganism: "microorganism",
+    Samples: "samples",
+    Detected: "detected",
+    NotTested: "notTested",
+    NotDetected: "notDetected",
 }
 
 // ############################################################
@@ -322,6 +333,20 @@ const DataTypeNamesEN = {};
 DataTypeNamesEN[MicroBioDataTypes.PresenceAbsence] = "Presence/Absence"
 DataTypeNamesEN[MicroBioDataTypes.Concentration] = "Concentration"
 
+// name of the group for 'All Microorganisms' on the microroganism tree
+const allMicroorganismsEN = "All Microorganisms";
+
+// Genuses used in the Denominator calculations
+// Note: Copy the exact values from the [Agent] and [Genus] column in "CANLINE Micro -no... .csv"
+const denomGenusesEN = [[allMicroorganismsEN, "Bacteria", "Vibrio"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Bacteria", "Salmonella"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Bacteria", "Escherichia"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Bacteria", "Listeria"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Virus", "Hepatovirus"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Virus", "Norovirus"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Virus", "Orthohepevirus"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Virus", "Rotavirus"].join(PhylogeneticDelim)];
+
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
     "websiteTabTitle": "FSDAT -Microbiology",
@@ -337,7 +362,7 @@ const LangEN = {
 
     "allFoodGroups": "All Food Groups",
     "allFoods": "All Foods",
-    "allMicroorganisms": "All Microorganisms",
+    "allMicroorganisms": allMicroorganismsEN,
     "nonSpeciated": "Non Speciated",
     "selectAll": "Select All",
     "deselectAll": "Deselect All",
@@ -357,7 +382,9 @@ const LangEN = {
         "NotDetected": "not detected",
         "NotTested": "not tested",
         "Inconclusive": "inconclusive"
-    }
+    },
+
+    denomGenuses: denomGenusesEN
 }
 
 // ==============================================
@@ -442,6 +469,20 @@ const DataTypeNamesFR = {};
 DataTypeNamesFR[MicroBioDataTypes.PresenceAbsence] = REMPLACER_MOI;
 DataTypeNamesFR[MicroBioDataTypes.Concentration] = REMPLACER_MOI;
 
+// name of the group for 'All Microorganisms' on the microroganism tree
+const allMicroorganismsFR = REMPLACER_MOI;
+
+// Genuses used in the Denominator calculations
+// Note: Copy the exact values from the [Agent] and [Genus] column in "CANLINE Micro -no... .csv"
+const denomGenusesFR = [[allMicroorganismsFR, "Bacteria", "Vibrio"].join(PhylogeneticDelim),
+                         [allMicroorganismsFR, "Bacteria", "Salmonella"].join(PhylogeneticDelim),
+                         [allMicroorganismsFR, "Bacteria", "Escherichia"].join(PhylogeneticDelim),
+                         [allMicroorganismsFR, "Bacteria", "Listeria"].join(PhylogeneticDelim),
+                         [allMicroorganismsFR, "Virus", "Hepatovirus"].join(PhylogeneticDelim),
+                         [allMicroorganismsFR, "Virus", "Norovirus"].join(PhylogeneticDelim),
+                         [allMicroorganismsFR, "Virus", "Orthohepevirus"].join(PhylogeneticDelim),
+                         [allMicroorganismsFR, "Virus", "Rotavirus"].join(PhylogeneticDelim)];
+
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,
     "websiteTabTitle": REMPLACER_MOI,
@@ -457,7 +498,7 @@ const LangFR = {
 
     "allFoodGroups": REMPLACER_MOI,
     "allFoods": REMPLACER_MOI,
-    "allMicroorganisms": REMPLACER_MOI,
+    "allMicroorganisms": allMicroorganismsFR,
     "nonSpeciated": REMPLACER_MOI,
     "selectAll": REMPLACER_MOI,
     "deselectAll": REMPLACER_MOI,
@@ -477,7 +518,9 @@ const LangFR = {
         "NotDetected": REMPLACER_MOI,
         "NotTested": REMPLACER_MOI,
         "Inconclusive": REMPLACER_MOI
-    }
+    },
+
+    denomGenuses: denomGenusesFR
 }
 
 // ==============================================

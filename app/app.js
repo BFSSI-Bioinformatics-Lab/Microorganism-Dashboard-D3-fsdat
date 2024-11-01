@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim} from "./constants.js"
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, OverviewTabs} from "./constants.js"
 import { Translation } from "./tools.js";
 import { Model } from "./backend.js";
 
@@ -593,6 +593,23 @@ class App {
         }
     }
 
+    
+    // updateTable(data, selector): Updates the data in the table
+    // Note:
+    // - based off Jquery's Datatables: https://datatables.net/
+    updateTable(selector, columnInfo, data) {
+        let dataTable = DataTable.isDataTable(selector) ? $(selector).DataTable() : $(selector).DataTable({
+            columns: columnInfo,
+            scrollCollapse: true,
+            scrollX: true,
+            scrollY: '300px'
+        });
+
+        dataTable.clear();
+        dataTable.rows.add(data);
+        dataTable.draw();
+    }
+
     // updateTab(input): Updates visuals on a certain tab
     updateTab({input = null, updateFilters = true} = {}) {
         // update the filters
@@ -606,7 +623,33 @@ class App {
             this.updateMenuFilters(input);
         }
 
-        // TODO: update the graphs + tables
+        // update the tables
+        const tableData = this.model.getTableData();
+        if (tableData !== undefined) {
+            const tableColInfo = [
+                {title: "Food Name", data: "foodName"},
+                {title: "Microorganism", data: "microorganism"},
+                {title: "# of Samples", data: "samples"},
+                {title: "# of Detected", data: "detected"},
+                {title: "# of Not Detected", data: "notDetected"},
+                {title: "# of Not Tested", data: "notTested"}
+            ];
+
+            this.updateTable("#visualTable", tableColInfo, tableData);
+        }
+
+        const graphData = this.model.getGraphData();
+        if (graphData !== undefined) {
+            const tableColInfo = [
+                {title: "Food Name", data: "foodName"},
+                {title: "# of Samples", data: "samples"},
+                {title: "# of Detected", data: "detected"},
+                {title: "# of Not Detected", data: "notDetected"},
+                {title: "# of Not Tested", data: "notTested"}
+            ];
+
+            this.updateTable("#tempGraphTable", tableColInfo, graphData);
+        }
     }
 
     // updateTrendsOverTime(): Updates the "Trends Over Time" page
