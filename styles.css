@@ -14,11 +14,13 @@
     --fontColour: #333333;
     --primary: #26374a;
     --primaryBg: #ffffff;
+    --onPrimary: #ffffff;
     --primaryFontColour: #333333;
     --primaryBorderColour: #7D828B;
     --primaryHover: #444444;
     --primaryBgHover: #ffffff;
     --secondary: #335075;
+    --onSecondary: #ffffff;
     --secondaryBg: #cfd1d5;
     --secondaryHover: #753350;
     --secondaryBgHover: #d8dadd;
@@ -227,7 +229,7 @@ body {
     width: 0.5em;
     height: 0.5em;
     border-radius: 50%;
-    background: var(--primaryBgHover);
+    background: var(--onSecondary);
 }
 
 /* Style the checkmark/indicator */
@@ -320,6 +322,110 @@ body {
 .treeview li:hover .badge, .treeview .node-selected .badge {
     color: var(--primary);
     background-color: var(--primaryBgHover);
+}
+
+/* =================================================== */
+/* ======== Pagination =============================== */
+
+.pagination {
+    --bs-pagination-color: var(--primary);
+    --bs-pagination-bg: var(--primaryBgHover);
+    --bs-pagination-border-color: var(--primaryBorderColour);
+    --bs-pagination-hover-color: var(--primaryBgHover);
+    --bs-pagination-hover-bg: var(--primary);
+    --bs-pagination-hover-border-color: var(--primaryBgHover);
+    --bs-pagination-active-bg: var(--primaryHover);
+    --bs-pagination-active-color: var(--primaryBgHover);
+    --bs-pagination-active-border-color: var(--primaryBgHover);
+    --bs-pagination-focus-color: var(--primaryHover);
+    --bs-pagination-focus-bg: var(--primaryBgHover);
+    --bs-pagination-disabled-bg: var(--secondaryBg);
+    --bs-pagination-disabled-border-color: var(--secondaryBorderColour);
+    --bs-pagination-disabled-color: var(--secondary);
+}
+
+/* =================================================== */
+/* ======== Datatables =============================== */
+
+/* ----- sort icons ----- */
+
+/* Previously displayed two separate icons, hide first one */
+.dt-column-order {
+    top: 0.18em !important;
+    right: 0.2em !important;
+    font-family: 'Font Awesome 6 Free' !important;
+    font-size: 1.3em !important;
+}
+ 
+.dt-column-order:before, .dt-column-order:after {
+    content: "" !important;
+}
+
+
+/* font-family and font-weight needed for Font Awesome icons to display by CSS */
+.dt-column-order::before {
+    font-family: 'Font Awesome\ 5 Free';
+    font-weight: 900;
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+ 
+/* Only display in after */
+.dt-orderable-asc .dt-column-order::before
+{
+    /*right:    0 !important;*/
+    content: "\f0dc" !important;
+    color: var(--primary) !important;
+    opacity: 1 !important;
+    top: unset !important;
+    bottom: 0.3em !important;
+    line-height: unset !important;
+    padding-left: 5px;
+}
+
+/* sort ascending */
+.dt-ordering-asc span.dt-column-order::before {
+    content: "\f161" !important;
+    color: var(--primary) !important;
+    opacity: 1 !important;
+    top: unset !important;
+    bottom: 0.3em !important;
+    line-height: unset !important; /* DataTable 1.12 set to 9px */
+    padding-left: inherit;
+}
+
+/* sort descending */
+.dt-ordering-desc span.dt-column-order::before {
+    content: "\f160" !important;
+    color: var(--primary) !important;
+    opacity: 1 !important;
+    top: unset !important;
+    bottom: 0.3em !important;
+    line-height: unset !important; /* DataTable 1.12 set to 9px */
+    padding-left: inherit;
+}
+
+/* ---------------------- */
+
+.dataTable th {
+    background-color: var(--primaryBgHover) !important;
+    color: var(--primary);
+}
+
+.dataTable td {
+    color: var(--primary);
+}
+
+.dataTable tr:nth-child(even) td {
+    background-color: var(--secondaryBg) !important;
+}
+
+.dataTable tr:nth-child(odd) td {
+    background-color: var(--primaryBgHover) !important;
+    opacity: 0.95;
 }
 
 /* =================================================== */
@@ -556,6 +662,7 @@ body {
 /* ================================= */
 
 /* ########################################################## */
+/* ################### Main Pages ########################### */
 
 #mainPage {
     min-height: 70vh;
@@ -613,4 +720,11 @@ body {
 
 /* *********************** */
 
+/* container for all the graphs */
+.graphContainer {
+    min-height: 50vh;
+}
+
 /* =================================================== */
+
+/* ########################################################## */
