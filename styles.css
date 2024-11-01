@@ -620,7 +620,7 @@ body {
 }
 
 .footerLandscape {
-    background: white url("../../assets/landscape.png") no-repeat right bottom;
+    background: white url("assets/landscape.png") no-repeat right bottom;
     z-index: 0;
 }
 
