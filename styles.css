@@ -10,25 +10,37 @@
 
 
 :root {
-    /* colour theme */
+    /** colour theme **
+
+    Note: 
+      - The colours below are just placeholders, see app/constants.js for the actual colours
+      - The colours are based off Android's Material colour theme:
+         https://m2.material.io/develop/android/theming/color
+         https://m2.material.io/design/color/the-color-system.html
+
+    *******************/
     --fontColour: #333333;
+    --background: #ffffff;
+    --surface: #ffffff;
+    --secondarySurface: #fbfcf8;
+    --error: #ff0000;
+    --onBackground: #000000;
+    --onSurface: #000000;
+    --onSecondarySurface: #000000;
+    --onError: #ffffff;
     --primary: #26374a;
-    --primaryBg: #ffffff;
+    --primaryVariant: #3B4B5C;
     --onPrimary: #ffffff;
-    --primaryFontColour: #333333;
     --primaryBorderColour: #7D828B;
     --primaryHover: #444444;
-    --primaryBgHover: #ffffff;
     --secondary: #335075;
     --onSecondary: #ffffff;
-    --secondaryBg: #cfd1d5;
     --secondaryHover: #753350;
-    --secondaryBgHover: #d8dadd;
+    --onSecondaryHover: #d8dadd;
     --secondaryBorderColour: #bbbfc5;
     --tertiary: #af3c43;
     --link: #284162;
     --headerTitleColor: #000000;
-    --error: #ff0000;
 
     --smBorderRadius: 5px;
     --borderRadius: 10px;
@@ -52,7 +64,7 @@ body {
     font-optical-sizing: auto;
     font-style: normal;
     font-variation-settings: "wdth" 100;
-    background-color: var(--primaryBg);
+    background-color: var(--background);
     color: var(--fontColour);
 }
 
@@ -95,11 +107,12 @@ body {
 /* =========== Collapsibles/Accordions================= */
 .accordion {
     --bs-accordion-color: var(--fontColour);
-    --bs-accordion-bg: var(--primaryBg);
+    --bs-accordion-bg: var(--secondarySurface);
     --bs-accordion-btn-color: var(--secondary);
+    --bs-accordion-btn-bg: var(--surface);
     --bs-accordion-active-color: var(--secondary);
     --bs-accordion-border-color: var(--secondaryBorderColour);
-    --bs-accordion-active-bg: var(--primaryBg);
+    --bs-accordion-active-bg: var(--surface);
     --bs-accordion-btn-icon: none;
     --bs-accordion-btn-active-icon: none;
     --bs-accordion-btn-focus-box-shadow: none;
@@ -133,8 +146,8 @@ body {
 /* =========== Dropdowns on the app ================== */
 
 .dropdown-menu {
-    background-color: var(--primaryBg);
-    color: var(--primaryFontColour);
+    background-color: var(--background);
+    color: var(--onPrimary);
     border-color: var(--primaryBorderColour);
 }
 
@@ -152,7 +165,7 @@ body {
 
 .dropdown-item:hover {
     background-color: var(--primaryHover);
-    color: var(--primaryFontColour);
+    color: var(--onPrimary);
 }
 
 /* =================================================== */
@@ -187,7 +200,7 @@ body {
     left: 0;
     height: 1em;
     width: 1em;
-    background-color: var(--primaryBg);
+    background-color: var(--background);
     border: 1px solid var(--primaryBorderColour);
     transition: var(--fastTransition);
 }
@@ -249,13 +262,13 @@ body {
 /* ======== Text Input =============================== */
 
 .form-control {
-    background-color: var(--primaryBg);
+    background-color: var(--background);
     color: var(--fontColour);
     transition: var(--fastTransition);
 }
 
 .form-control:focus {
-    background-color: var(--primaryBg);
+    background-color: var(--background);
     box-shadow: 0 0 0 .25rem var(--secondary);
     color: var(--fontColour);
 }
@@ -264,7 +277,7 @@ body {
 
 .bootstrap-select > .dropdown-toggle.bs-placeholder {
     color: var(--secondary);
-    background-color: var(--primaryBg);
+    background-color: var(--surface);
     transition: var(--defaultTransition);
 }
 
@@ -273,12 +286,12 @@ body {
 }
 
 .btn-light {
-    --bs-btn-bg: var(--secondaryBg);
+    --bs-btn-bg: var(--onSecondary);
     --bs-btn-color: var(--secondary);
     --bs-btn-border-color: var(--secondaryBorderColour);
-    --bs-btn-active-bg: var(--primaryBg);
+    --bs-btn-active-bg: var(--surface);
     --bs-btn-hover-color: var(--secondaryHover);
-    --bs-btn-hover-bg: var(--secondaryBgHover);
+    --bs-btn-hover-bg: var(--onSecondaryHover);
 }
 
 .btn.show {
@@ -290,7 +303,7 @@ body {
 }
 
 .bootstrap-select .no-results {
-    background-color: var(--primaryBg);
+    background-color: var(--surface);
     color: var(--error);
 }
 
@@ -302,7 +315,7 @@ body {
 }
 
 .node-tree:not(.node-disabled):hover {
-    color: var(--primaryBgHover);
+    color: var(--onPrimaryHover);
 }
 
 .treeview li {
@@ -310,18 +323,18 @@ body {
 }
 
 .treeview li:hover {
-    color: var(--primaryBgHover);
+    color: var(--onPrimaryHover);
 }
 
 .treeview .badge {
-    color: var(--primaryBgHover);
+    color: var(--onPrimary);
     background-color: var(--primary);
     float: right;
 }
 
 .treeview li:hover .badge, .treeview .node-selected .badge {
     color: var(--primary);
-    background-color: var(--primaryBgHover);
+    background-color: var(--onPrimary);
 }
 
 /* =================================================== */
@@ -329,16 +342,16 @@ body {
 
 .pagination {
     --bs-pagination-color: var(--primary);
-    --bs-pagination-bg: var(--primaryBgHover);
+    --bs-pagination-bg: var(--onPrimary);
     --bs-pagination-border-color: var(--primaryBorderColour);
-    --bs-pagination-hover-color: var(--primaryBgHover);
+    --bs-pagination-hover-color: var(--onPrimaryHover);
     --bs-pagination-hover-bg: var(--primary);
-    --bs-pagination-hover-border-color: var(--primaryBgHover);
+    --bs-pagination-hover-border-color: var(--onPrimaryHover);
     --bs-pagination-active-bg: var(--primaryHover);
-    --bs-pagination-active-color: var(--primaryBgHover);
-    --bs-pagination-active-border-color: var(--primaryBgHover);
+    --bs-pagination-active-color: var(--onPrimaryHover);
+    --bs-pagination-active-border-color: var(--onPrimaryHover);
     --bs-pagination-focus-color: var(--primaryHover);
-    --bs-pagination-focus-bg: var(--primaryBgHover);
+    --bs-pagination-focus-bg: var(--onPrimaryHover);
     --bs-pagination-disabled-bg: var(--secondaryBg);
     --bs-pagination-disabled-border-color: var(--secondaryBorderColour);
     --bs-pagination-disabled-color: var(--secondary);
@@ -346,6 +359,12 @@ body {
 
 /* =================================================== */
 /* ======== Datatables =============================== */
+
+.tableContainer {
+    background-color: var(--surface);
+    padding: 10px;
+    border-radius: var(--smBorderRadius);
+}
 
 /* ----- sort icons ----- */
 
@@ -411,21 +430,32 @@ body {
 /* ---------------------- */
 
 .dataTable th {
-    background-color: var(--primaryBgHover) !important;
-    color: var(--primary);
+    background-color: var(--primary) !important;
+    color: var(--onPrimary);
+}
+
+
+.dataTable th:first-child {
+    border-radius: var(--smBorderRadius) 0 0 0;
+}
+
+.dataTable th:last-child {
+    border-radius: 0 var(--smBorderRadius) 0 0;
 }
 
 .dataTable td {
-    color: var(--primary);
+    color: var(--fontColour);
 }
 
 .dataTable tr:nth-child(even) td {
-    background-color: var(--secondaryBg) !important;
+    background-color: var(--secondarySurface) !important;
+    opacity: 0.95;
 }
 
 .dataTable tr:nth-child(odd) td {
-    background-color: var(--primaryBgHover) !important;
+    background-color: var(--surface) !important;
     opacity: 0.95;
+    box-shadow: none !important;
 }
 
 /* =================================================== */
@@ -443,7 +473,7 @@ body {
 
 
 .headerTitleSection {
-    background-color: var(--primaryBg);
+    background-color: var(--background);
     border-bottom: var(--headerTitleWidth) solid var(--primary);
     padding: 15px 0 20px 0;
 }
@@ -479,13 +509,13 @@ body {
 /* ===== Menu options on the navigation bar ===== */
 
 .navBarContainer .nav-link {
-    color: var(--primaryFontColour);
+    color: var(--onPrimary);
     padding: 1px !important;
 }
 
 .navBarContainer .nav-link.active {
     background-color: var(--primaryHover) !important;
-    color: var(--primaryFontColour) !important;
+    color: var(--onPrimary) !important;
     border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
 }
 
@@ -504,15 +534,15 @@ body {
 
 /* hovering on the navigation bar option */
 .navBarContainer .nav-link:hover,  .navBarContainer .nav-link.active:hover {
-    background-color: var(--primaryBgHover) !important;
+    background-color: var(--onPrimary) !important;
     color: var(--primaryHover) !important;
     border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
-    border-top: 1px solid var(--primaryBgHover);
+    border-top: 1px solid var(--onPrimary);
     transition: var(--defaultTransition);
 }
 
 .navBarContainer .nav-link:hover div, .navBarContainer .nav-link.active:hover div {
-    border-color: var(--primaryBgHover);
+    border-color: var(--onPrimary);
     transition: var(--defaultTransition);
 }
 
@@ -522,7 +552,7 @@ body {
 }
 
 .navBarContainer .nav-link:visited, .navBarContainer .nav-link.active:visited {
-    color: var(--primaryFontColour) !important;
+    color: var(--onPrimary) !important;
 }
 
 /* ============================================== */
@@ -542,12 +572,12 @@ body {
     width: 30px;
     margin: 4px;
     border-radius: var(--smBorderRadius);
-    background-color: var(--primaryFontColour);
+    background-color: var(--onPrimary);
 }
 
 /* hovering over the icon */
 .navBarContainer .navbar-toggler:hover, .themeDropdown:hover {
-    background-color: var(--primaryBgHover) !important;
+    background-color: var(--onPrimary) !important;
     color: var(--primaryHover);
     transition: all 0.5s ease-out;
 }
@@ -578,7 +608,7 @@ body {
 }
 
 #themeIconPath {
-    fill: var(--primaryFontColour);
+    fill: var(--onPrimary);
 }
 
 /* hovering over the theme icon */
@@ -589,7 +619,7 @@ body {
 /* theme dropdown */
 .themeDropdown {
     background-color: var(--primary);
-    color: var(--primaryBg);
+    color: var(--surface);
     border: none;
     padding: 11px var(--headerNavItemHorPadding);
     border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
@@ -685,7 +715,7 @@ body {
 
 .menu {
     min-height: 70vh;
-    background-color: var(--primaryBg);
+    background-color: var(--surface);
     border: 1px solid var(--primaryBorderColour);
     border-radius: 0 var(--borderRadius) var(--borderRadius) var(--borderRadius);
 }
@@ -706,7 +736,7 @@ body {
 /* selected menu tab */
 .mainMenuContainer .nav-link.active {
     border-color: var(--primaryBorderColour);
-    background-color: var(--primaryBg);
+    background-color: var(--surface);
     border-bottom: none;
 }
 

@@ -184,64 +184,89 @@ export const DefaultTheme = ThemeNames.Light;
 export const Themes = {};
 
 
+// Note: we base the colour theme from Android's Material UI
+// https://m2.material.io/develop/android/theming/color
+// https://m2.material.io/design/color/the-color-system.html
+
 // See here for Infobase's colour scheme: https://design-system.alpha.canada.ca/en/styles/colour/
 Themes[ThemeNames.Light] = {
     fontColour: "#333333",
+    background: "#ffffff",
+    surface: "#ffffff",
+    secondarySurface: "#fbfcf8",
+    error: "#ff0000",
+    onBackground: "#000000",
+    onSurface: "#000000",
+    onSecondarySurface: "#000000",
+    onError: "#ffffff",
     primary: "#26374a",
-    primaryBg: "#ffffff",
-    primaryBgHover: "#ffffff",
-    primaryHover: "#444444",
-    primaryFontColour: "#ffffff",
+    primaryVariant: "#3B4B5C",
+    onPrimary: "#ffffff",
     primaryBorderColour: "#7D828B",
+    primaryHover: "#444444",
+    onPrimaryHover: "#ffffff",
     secondary: "#335075",
-    secondaryBg: "#cfd1d5",
-    secondaryBgHover: "#d8dadd",
-    secondaryBorderColour: "#bbbfc5",
+    onSecondary: "#ffffff",
     secondaryHover: "#753350",
+    onSecondaryHover: "#d8dadd",
+    secondaryBorderColour: "#bbbfc5",
     tertiary: "#af3c43",
     link: "#284162",
-    headerTitleColor: "#000000",
-    error: "#ff0000"
+    headerTitleColor: "#000000"
 };
 
 Themes[ThemeNames.Dark] = {
     fontColour: "#ffffff",
-    primary: "#26374a",
-    primaryBg: "#191919",
-    primaryHover: "#444444",
-    primaryBgHover: "#ffffff",
-    primaryFontColour: "#ffffff",
+    background: "#120E0B",
+    surface: "#191919",
+    secondarySurface: "#252525",
+    error: "#ff0000",
+    onBackground: "#ffffff",
+    onSurface: "#ffffff",
+    onSecondarySurface: "#ffffff",
+    onError: "#ffffff",
+    primary: "#515F6E",
+    primaryVariant: "#626f7c",
+    onPrimary: "#ffffff",
     primaryBorderColour: "#d6d8db",
-    secondary: "#4a74aa",
-    secondaryBg: "#cfd1d5", 
-    secondaryBgHover: "#d8dadd",
+    primaryHover: "#7c7c7c",
+    onPrimaryHover: "#ffffff",
+    secondary: "#5781b6",
+    onSecondary: "#ffffff",
+    secondaryHover: "#b65781",
+    onSecondaryHover: "#d8dadd",
     secondaryBorderColour: "#d6d8db",
-    secondaryHover: "#aa4a74",
     tertiary: "#af3c43",
-    link: "#6e93c4",
+    link: "#3e6598",
     headerTitleColor: "#ffffff",
-    error: "#ff0000"
 };
 
 // Primary ---> Mountain Haze Theme: https://www.canva.com/colors/color-palettes/mountain-haze/
 // Secondary --> Mermaid Lagoon Theme: https://www.canva.com/colors/color-palettes/mermaid-lagoon/
 Themes[ThemeNames.Blue] = {
     fontColour: "#333333",
+    background: "#ffffff",
+    surface: "#ffffff",
+    secondarySurface: "#fbfcf8",
+    error: "#ff0000",
+    onBackground: "#000000",
+    onSurface: "#000000",
+    onSecondarySurface: "#000000",
+    onError: "#ffffff",
     primary: "#738fa7",
-    primaryBg: "#ffffff",
-    primaryHover: "#0c4160",
-    primaryBgHover: "#ffffff",
-    primaryFontColour: "#ffffff",
+    primaryVariant: "#678096",
+    onPrimary: "#ffffff",
     primaryBorderColour: "#7D828B",
+    primaryHover: "#0c4160",
+    onPrimaryHover: "#ffffff",
     secondary: "#0c2d48",
-    secondaryBg: "#b1d4e0",
-    secondaryBgHover: "#c0dce6",
-    secondaryBorderColour: "#145da0",
+    onSecondary: "#b1d4e0",
     secondaryHover: "#2e8bc0",
+    onSecondaryHover: "#c0dce6",
+    secondaryBorderColour: "#145da0",
     tertiary: "purple",
-    link: "#0c4160",
-    headerTitleColor: "#333333",
-    error: "#ff0000"
+    link: "#284162",
+    headerTitleColor: "#333333"
 };
 
 // ############################################################
