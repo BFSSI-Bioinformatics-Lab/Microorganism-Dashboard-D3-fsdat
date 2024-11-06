@@ -451,12 +451,12 @@ class App {
         }
 
         tree.treeview({data: treeData,
-                       backColor: "var(--primaryBg)",
+                       backColor: "var(--background)",
                        borderColor: "var(--secondaryBorderColour)",
                        color: "var(--fontColour)",
                        onhoverColor: "var(--primaryHover)",
-                       selectedBackColor: "var(--primary)",
-                       selectedColor: "var(--primaryBgHover)",
+                       selectedBackColor: "var(--primaryVariant)",
+                       selectedColor: "var(--onPrimaryHover)",
                        collapseIcon: 'fas fa-chevron-down',
                        expandIcon: 'fas fa-chevron-right',
                        checkedIcon: 'far fa-check-square',

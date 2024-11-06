@@ -1103,10 +1103,10 @@ export class Model {
         result[SummaryAtts.Samples] = SetTools.union(srcSummaryData[SummaryAtts.Samples], newSummaryData[SummaryAtts.Samples], true);
         result[SummaryAtts.Detected] = SetTools.union(srcSummaryData[SummaryAtts.Detected], newSummaryData[SummaryAtts.Detected], true);
 
-        result[SummaryAtts.NotDetected] = SetTools.union(srcSummaryData[SummaryAtts.NotDetected], newSummaryData[SummaryAtts.NotDetected], true);
-        SetTools.difference([result[SummaryAtts.NotDetected], result[SummaryAtts.Detected]]);
+        result[SummaryAtts.NotTested] = SetTools.union(srcSummaryData[SummaryAtts.NotTested], newSummaryData[SummaryAtts.NotTested], true);
+        SetTools.difference([result[SummaryAtts.NotTested], result[SummaryAtts.Detected]]);
 
-        result[SummaryAtts.NotTested] = SetTools.difference([result[SummaryAtts.Samples], result[SummaryAtts.Detected], result[SummaryAtts.NotDetected]], true);
+        result[SummaryAtts.NotDetected] = SetTools.difference([result[SummaryAtts.Samples], result[SummaryAtts.Detected], result[SummaryAtts.NotTested]], true);
         return result;
     }
 
