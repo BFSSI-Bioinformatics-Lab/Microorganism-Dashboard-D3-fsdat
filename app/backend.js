@@ -458,7 +458,7 @@ export class Model {
                 this.microorganismTrees[page][tab] = new MicroorganismTree();
                 this.summaryData[page][tab] = {};
                 this.tableData[page][tab] = [];
-                this.graphData[page][tab] = {};
+                this.graphData[page][tab] = [];
             }
         }   
     }
@@ -575,9 +575,9 @@ export class Model {
             const qualitativeIsEmpty = qualitative === "";
             const quantitativeIsEmpty = isNaN(quantitative);
 
-            if (!qualitativeIsEmpty && qualitative == Translation.translate("qualitativeResults.Detected")) {
+            if (!qualitativeIsEmpty && qualitative == Translation.translate(`qualitativeResults.${SampleState.Detected}`)) {
                 return SampleState.Detected;
-            } else if (!qualitativeIsEmpty && result == SampleState.NotTested && qualitative != Translation.translate("qualitativeResults.NotTested")) {
+            } else if (!qualitativeIsEmpty && result == SampleState.NotTested && qualitative != Translation.translate(`qualitativeResults.${SampleState.NotTested}`)) {
                 result = SampleState.NotDetected;
             }
 
@@ -606,7 +606,7 @@ export class Model {
             const qualitative = Model.cleanTxt(row[HCDataCols.QualitativeResult]);
 
             // check if one of the rows have the "inconclusive" qualitative result
-            if (qualitative == Translation.translate("qualitativeResults.Inconclusive")) {
+            if (qualitative == Translation.translate(`qualitativeResults.${SampleState.InConclusives}`)) {
                 return false;
             }
 

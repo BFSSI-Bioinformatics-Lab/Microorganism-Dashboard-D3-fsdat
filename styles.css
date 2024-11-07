@@ -41,6 +41,11 @@
     --tertiary: #af3c43;
     --link: #284162;
     --headerTitleColor: #000000;
+    
+    --detected: #C5705D;
+    --notDetected: #41B3A2;
+    --notTested: #cc9900;
+    --unknown: #cccccc;
 
     --smBorderRadius: 5px;
     --borderRadius: 10px;

@@ -11,9 +11,10 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, OverviewTabs} from "./constants.js"
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts} from "./constants.js"
 import { Translation } from "./tools.js";
 import { Model } from "./backend.js";
+import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
 
 
 // App: The class for the overall application
@@ -627,12 +628,12 @@ class App {
         const tableData = this.model.getTableData();
         if (tableData !== undefined) {
             const tableColInfo = [
-                {title: "Food Name", data: "foodName"},
-                {title: "Microorganism", data: "microorganism"},
-                {title: "# of Samples", data: "samples"},
-                {title: "# of Detected", data: "detected"},
-                {title: "# of Not Detected", data: "notDetected"},
-                {title: "# of Not Tested", data: "notTested"}
+                {title: "Food Name", data: SummaryAtts.FoodName},
+                {title: "Microorganism", data: SummaryAtts.Microorganism},
+                {title: "# of Samples", data: SummaryAtts.Samples},
+                {title: "# of Detected", data: SummaryAtts.Detected},
+                {title: "# of Not Detected", data: SummaryAtts.NotDetected},
+                {title: "# of Not Tested", data: SummaryAtts.NotTested}
             ];
 
             this.updateTable("#visualTable", tableColInfo, tableData);
@@ -641,15 +642,18 @@ class App {
         const graphData = this.model.getGraphData();
         if (graphData !== undefined) {
             const tableColInfo = [
-                {title: "Food Name", data: "foodName"},
-                {title: "# of Samples", data: "samples"},
-                {title: "# of Detected", data: "detected"},
-                {title: "# of Not Detected", data: "notDetected"},
-                {title: "# of Not Tested", data: "notTested"}
+                {title: "Food Name", data: SummaryAtts.FoodName},
+                {title: "# of Samples", data: SummaryAtts.Samples},
+                {title: "# of Detected", data: SummaryAtts.Detected},
+                {title: "# of Not Detected", data: SummaryAtts.NotDetected},
+                {title: "# of Not Tested", data: SummaryAtts.NotTested}
             ];
 
             this.updateTable("#tempGraphTable", tableColInfo, graphData);
         }
+
+        let overviewGraph = new OverviewBarGraph(this.model);
+        overviewGraph.update();
     }
 
     // updateTrendsOverTime(): Updates the "Trends Over Time" page
