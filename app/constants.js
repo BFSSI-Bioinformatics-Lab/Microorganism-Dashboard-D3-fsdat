@@ -157,18 +157,70 @@ export const QuantitativeOps = {
 export const SampleState = {
     Detected: "detected",
     NotDetected: "not detected",
-    NotTested: "not tested"
+    NotTested: "not tested",
+    InConclusive: "inconclusive"
 }
+
+// order to display the states of the samples in the graph
+export const SampleStateOrdering = {};
+SampleStateOrdering[SampleState.Detected] = 0;
+SampleStateOrdering[SampleState.NotDetected] = 1;
+SampleStateOrdering[SampleState.NotTested] = 2;
+
+export const SampleStateOrder = Object.values(SampleState).sort((state1, state2) => SampleStateOrdering[state1] - SampleStateOrdering[state2]);
+
+// colour variables for the states
+export const SampleStateColours = {};
+SampleStateColours[SampleState.Detected] = "var(--detected)";
+SampleStateColours[SampleState.NotDetected] = "var(--notDetected)";
+SampleStateColours[SampleState.NotTested] = "var(--notTested)";
 
 // Attributes names for the summary data
 export const SummaryAtts = {
     FoodName: "foodName",
     Microorganism: "microorganism",
     Samples: "samples",
-    Detected: "detected",
-    NotTested: "notTested",
-    NotDetected: "notDetected",
+    Detected: SampleState.Detected,
+    NotTested: SampleState.NotTested,
+    NotDetected: SampleState.NotDetected,
+    State: "state",
+    StateVal: "stateVal"
 }
+
+// DefaultDims: Default dimensions used for certain dimension attributes
+export const DefaultDims = {
+    fontSize: 12,
+    paddingSize: 5,
+    pos: 0,
+    length: 0,
+    borderWidth: 3,
+    lineSpacing: 1
+};
+
+// Dims: Dimensions used in the visuals
+export const Dims = {
+    overviewBarGraph: {
+        HeadingFontSize: 26,
+        AxesFontSize: 18,
+        TickFontSize: 12,
+        GraphWidth: 900,
+        GraphTop: 100,
+        GraphBottom: 60,
+        GraphLeft: 180,
+        GraphRight: 200,
+        BarHeight: 50,
+        FoodNameWidth: 120,
+        LegendSquareSize: 12,
+        LegendLeftMargin: 50,
+        LegendFontSize: 12
+    }
+}
+
+// text wrap attributes
+export const TextWrap  = {
+    NoWrap: "No Wrap",
+    Wrap: "Wrap"
+};
 
 // ############################################################
 // ################## THEMES ##################################
@@ -212,7 +264,12 @@ Themes[ThemeNames.Light] = {
     secondaryBorderColour: "#bbbfc5",
     tertiary: "#af3c43",
     link: "#284162",
-    headerTitleColor: "#000000"
+    headerTitleColor: "#000000",
+
+    detected: "#C5705D",
+    notDetected: "#41B3A2",
+    notTested: "#cc9900",
+    unknown: "#cccccc"
 };
 
 Themes[ThemeNames.Dark] = {
@@ -239,6 +296,11 @@ Themes[ThemeNames.Dark] = {
     tertiary: "#af3c43",
     link: "#3e6598",
     headerTitleColor: "#ffffff",
+
+    detected: "#C5705D",
+    notDetected: "#41B3A2",
+    notTested: "#cc9900",
+    unknown: "#cccccc"
 };
 
 // Primary ---> Mountain Haze Theme: https://www.canva.com/colors/color-palettes/mountain-haze/
@@ -266,7 +328,12 @@ Themes[ThemeNames.Blue] = {
     secondaryBorderColour: "#145da0",
     tertiary: "purple",
     link: "#284162",
-    headerTitleColor: "#333333"
+    headerTitleColor: "#333333",
+
+    detected: "#cc6600",
+    notDetected: "#009999",
+    notTested: "#666699",
+    unknown: "#cccccc"
 };
 
 // ############################################################
@@ -372,6 +439,14 @@ const denomGenusesEN = [[allMicroorganismsEN, "Bacteria", "Vibrio"].join(Phyloge
                          [allMicroorganismsEN, "Virus", "Orthohepevirus"].join(PhylogeneticDelim),
                          [allMicroorganismsEN, "Virus", "Rotavirus"].join(PhylogeneticDelim)];
 
+// Different options for the qualitative results
+// Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
+const QualitaiveResultsEN = {};
+QualitaiveResultsEN[SampleState.Detected] = "detected";
+QualitaiveResultsEN[SampleState.NotDetected] = "not detected";
+QualitaiveResultsEN[SampleState.NotTested] = "not tested";
+QualitaiveResultsEN[SampleState.InConclusive] = "inconclusive";
+
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
     "websiteTabTitle": "FSDAT -Microbiology",
@@ -392,6 +467,7 @@ const LangEN = {
     "selectAll": "Select All",
     "deselectAll": "Deselect All",
     "noResultsFound": "No results matched {0}",
+    "noData": "No Data",
 
     "foodGroupLabel": "Food Groups:",
     "foodLabel": "Foods:",
@@ -399,17 +475,15 @@ const LangEN = {
 
     surveyTypes: SurveyTypesEN,
     dataTypes: DataTypeNamesEN,
+    qualitativeResults: QualitaiveResultsEN,
 
-    // Different options for the qualitative results
-    // Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
-    qualitativeResults: {
-        "Detected": "detected",
-        "NotDetected": "not detected",
-        "NotTested": "not tested",
-        "Inconclusive": "inconclusive"
-    },
+    denomGenuses: denomGenusesEN,
 
-    denomGenuses: denomGenusesEN
+    overviewByMicroorganism: {
+        "graphTitle": "Selected Qualitative Result by Microorganisms",
+        "xAxis": "Count",
+        "yAxis": "Food Name"
+    }
 }
 
 // ==============================================
@@ -508,6 +582,14 @@ const denomGenusesFR = [[allMicroorganismsFR, "Bacteria", "Vibrio"].join(Phyloge
                          [allMicroorganismsFR, "Virus", "Orthohepevirus"].join(PhylogeneticDelim),
                          [allMicroorganismsFR, "Virus", "Rotavirus"].join(PhylogeneticDelim)];
 
+// Different options for the qualitative results
+// Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
+const QualitaiveResultsFR = {};
+QualitaiveResultsFR[SampleState.Detected] = REMPLACER_MOI;
+QualitaiveResultsFR[SampleState.NotDetected] = REMPLACER_MOI;
+QualitaiveResultsFR[SampleState.NotTested] = REMPLACER_MOI;
+QualitaiveResultsFR[SampleState.InConclusive] = REMPLACER_MOI;
+
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,
     "websiteTabTitle": REMPLACER_MOI,
@@ -528,6 +610,7 @@ const LangFR = {
     "selectAll": REMPLACER_MOI,
     "deselectAll": REMPLACER_MOI,
     "noResultsFound": `${REMPLACER_MOI_AVEC_ARGUMENTS} {0}`,
+    "noData": "No Data",
 
     "foodGroupLabel": REMPLACER_MOI,
     "foodLabel": REMPLACER_MOI,
@@ -535,17 +618,14 @@ const LangFR = {
 
     surveyTypes: SurveyTypesFR,
     dataTypes: DataTypeNamesFR,
+    qualitativeResults: QualitaiveResultsFR,
+    denomGenuses: denomGenusesFR,
 
-    // Different options for the qualitative results
-    // Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
-    qualitativeResults: {
-        "Detected": REMPLACER_MOI,
-        "NotDetected": REMPLACER_MOI,
-        "NotTested": REMPLACER_MOI,
-        "Inconclusive": REMPLACER_MOI
-    },
-
-    denomGenuses: denomGenusesFR
+    overviewByMicroorganism: {
+        "graphTitle": REMPLACER_MOI,
+        "xAxis": REMPLACER_MOI,
+        "yAxis": REMPLACER_MOI
+    }
 }
 
 // ==============================================
