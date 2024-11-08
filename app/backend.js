@@ -549,8 +549,9 @@ export class Model {
     }
 
     // cleanTxt(txt): Normalizes the text
-    static cleanTxt(txt) {
-        return txt.trim().toLowerCase();
+    static cleanTxt(txt, caseSensitve = true) {
+        let result = txt.trim();
+        return caseSensitve ? result.toLowerCase() : result;
     }
 
     // getSampleState(sampleRowInds): Retrieves the state of the sample
@@ -558,39 +559,60 @@ export class Model {
     // Note:
     //  'Detected' is determined by: 
     //      - if a single row in the sample has its [Qualitative Result] column saying "Detected" OR
-    //      - a single row in the sample has the [Qualitative Result] column is empty AND the [Quantitative Result] column 
-    //            is a positive number AND [Quantitative Operator] is one of {>, =, ~, >=}
+    //      - a single row in the sample has the [Qualitative Result] column is empty
+    //           the [Quantitative Result] column is a positive number AND [Quantitative Operator] is one of {>, =, ~, >=}
+    //      - if none of the rows have any [Qualitative Result], but their exist a row where [Isolate Code] is not empty
     //
     // 'Not Tested' is determined by:
     //      - if all the rows in the sample have the [Qualitative Result] column saying "Not Tested"
     //
     // For everything else, a sample is considered 'Not Detected'
     getSampleState(sampleRowInds) {
-        let result = SampleState.NotTested;
+        let result = "";
+        let foundIsolate = false;
+        let isAllNotTested = true;
 
         for (const ind of sampleRowInds) {
             const row = this.data[ind];
             const qualitative = Model.cleanTxt(row[HCDataCols.QualitativeResult]);
-            const quantitative = row[HCDataCols.QualitativeResult];
+            const quantitative = row[HCDataCols.QuantitativeResult];
             const qualitativeIsEmpty = qualitative === "";
             const quantitativeIsEmpty = isNaN(quantitative);
 
             if (!qualitativeIsEmpty && qualitative == Translation.translate(`qualitativeResults.${SampleState.Detected}`)) {
                 return SampleState.Detected;
-            } else if (!qualitativeIsEmpty && result == SampleState.NotTested && qualitative != Translation.translate(`qualitativeResults.${SampleState.NotTested}`)) {
+            } else if (!qualitativeIsEmpty && qualitative == Translation.translate(`qualitativeResults.${SampleState.NotDetected}`)) {
                 result = SampleState.NotDetected;
+                isAllNotTested = false;
             }
 
             const quantitativeOp = Model.cleanTxt(row[HCDataCols.QuantitativeOperator]);
+            const isolateCode = Model.cleanTxt(row[HCDataCols.IsolateCode]);
+            const isolateCodeIsEmpty = isolateCode === "";
 
             if (qualitativeIsEmpty && !quantitativeIsEmpty && 
                 (quantitative > 0 || quantitativeOp == QuantitativeOps.Gt || quantitativeOp == QuantitativeOps.Eq || 
                  quantitativeOp == QuantitativeOps.Approx || quantitativeOp == QuantitativeOps.Ge)) {
                 return SampleState.Detected;
 
-            } else if (qualitativeIsEmpty && result == SampleState.NotTested) {
+            } else if (qualitativeIsEmpty && !quantitativeIsEmpty) {
                 result = SampleState.NotDetected;
+                isAllNotTested = false;
+            } else if (qualitativeIsEmpty && quantitativeIsEmpty && !isolateCodeIsEmpty) {
+                foundIsolate = true;
+                isAllNotTested = false;
+            } else if (qualitativeIsEmpty && quantitativeIsEmpty && isAllNotTested) {
+                isAllNotTested = false;
             }
+        }
+
+        let resultIsBlank = result == "";
+        if (resultIsBlank && isAllNotTested) {
+            result = SampleState.NotTested;
+        } else if (resultIsBlank && foundIsolate) {
+            result = SampleState.Detected;
+        } else if (resultIsBlank) {
+            result = SampleState.NotDetected;
         }
 
         return result;

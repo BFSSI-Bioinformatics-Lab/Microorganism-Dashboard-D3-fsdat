@@ -139,6 +139,7 @@ export const HCDataCols = {
     QuantitativeOperator: "Quantitative Result Operator",
     QuantitativeResult: "Quantitative Result",
     QuantitativeUnit: "Quantitative Result Unit",
+    IsolateCode: "Isolate Code",
     SurveyType: "Survey Type", // ***
     Microorganism: "Microorganism", // ***
 }
