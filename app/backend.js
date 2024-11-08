@@ -559,9 +559,9 @@ export class Model {
     // Note:
     //  'Detected' is determined by: 
     //      - if a single row in the sample has its [Qualitative Result] column saying "Detected" OR
-    //      - a single row in the sample has the [Qualitative Result] column is empty AND (
-    //           the [Quantitative Result] column is a positive number AND [Quantitative Operator] is one of {>, =, ~, >=} OR
-    //           the [Isolate Code] column is not empty
+    //      - a single row in the sample has the [Qualitative Result] column is empty
+    //           the [Quantitative Result] column is a positive number AND [Quantitative Operator] is one of {>, =, ~, >=}
+    //      - if none of the rows have any [Qualitative Result], but their exist a row where [Isolate Code] is not empty
     //
     // 'Not Tested' is determined by:
     //      - if all the rows in the sample have the [Qualitative Result] column saying "Not Tested"
