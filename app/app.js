@@ -225,6 +225,14 @@ class App {
     loadMainPage() {
         const self = this;
         $("#mainPage").load(PageSrc[self.model.pageName], function() { self.updateMainPage(); });
+
+        // flag all the tabs on the page to require a refresh in their UI
+        const tabsToRerender = this.model.needsRerender[self.model.pageName];
+        if (tabsToRerender === undefined) return;
+
+        for (const tab in tabsToRerender) {
+            tabsToRerender[tab] = true;
+        }
     }
 
     // updateMainPage(): Updates the entire main page without loading its corresponding HTML
@@ -309,6 +317,18 @@ class App {
                 return Translation.translate(`filterNames.${this.model.pageName}.${tabValue}.${filterValue}`);
             });
         });
+
+        // translate the labels in the filters
+        const labelTranslations = {
+            "#foodGroupLabel": "foodGroupLabel",
+            "#foodLabel": "foodLabel",
+            "#microorganismLabel": "microorganismLabel",
+            "#showResultAsLabel": "showResultAsLabel"
+        };
+
+        for (const selector in labelTranslations) {
+            d3.selectAll(selector).text(Translation.translate(labelTranslations[selector]));
+        }
     }
 
     // updateRadioSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the radio select widget
@@ -529,6 +549,22 @@ class App {
         const inputOrderInds = this.model.getInputOrderInds();
     }
 
+    // updateGraphOptions(): Updates the options for the graph
+    updateGraphOptions() {
+        const selections = this.model.getSelection();
+        const inputs = this.model.getInputs();
+
+        if (inputs[Inputs.NumberView] !== undefined) {
+            this.updateRadioSelect({selectId: Inputs.NumberView, selections: selections[Inputs.NumberView], inputs: new Set([inputs[Inputs.NumberView]]),
+                                    translations: Translation.translate("numberview", { returnObjects: true }),
+                                    onChange: (radioValue) => {
+                                        inputs[Inputs.NumberView] = radioValue;
+                                        this.updateVisuals();
+                                    }
+            })
+        }
+    }
+
     // updateMenuFilters(inputs): Updates the filters on the menu
     updateMenuFilters(input = null) {
         const inputOrderInds = this.model.getInputOrderInds();
@@ -611,19 +647,8 @@ class App {
         dataTable.draw();
     }
 
-    // updateTab(input): Updates visuals on a certain tab
-    updateTab({input = null, updateFilters = true} = {}) {
-        // update the filters
-        let justInitialized = this.model.setupTab();
-
-        if (!justInitialized && updateFilters) {
-            this.model.updateTab({input});
-        }
-
-        if (updateFilters || justInitialized) {
-            this.updateMenuFilters(input);
-        }
-
+    // updateVisuals(): Updates the visuals in the app
+    updateVisuals() {
         // update the tables
         const tableData = this.model.getTableData();
         if (tableData !== undefined) {
@@ -656,6 +681,29 @@ class App {
         overviewGraph.update();
     }
 
+    // updateTab(input): Updates visuals on a certain tab
+    updateTab({input = null, updateFilters = true} = {}) {
+        this.updateMenuFilterNames();
+        const page = this.model.pageName;
+        const tab = this.model.activeTabs[page];
+
+        // update the filters
+        let justInitialized = this.model.setupTab();
+        let needsRerender = this.model.getNeedsRerender();
+
+        if (!justInitialized && updateFilters) {
+            this.model.updateTab({input});
+        }
+
+        if (needsRerender || updateFilters || justInitialized) {
+            this.updateMenuFilters(input);
+            this.updateGraphOptions();
+            this.model.needsRerender[page][tab] = false;
+        }
+
+        this.updateVisuals();
+    }
+
     // updateTrendsOverTime(): Updates the "Trends Over Time" page
     updateTrendsOverTime() {
         this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
@@ -670,9 +718,6 @@ class App {
         });
 
         this.updateMenuFilterNames();
-        d3.selectAll("#foodGroupLabel").text(Translation.translate("foodGroupLabel"));
-        d3.selectAll("#foodLabel").text(Translation.translate("foodLabel"));
-        d3.selectAll("#microorganismLabel").text(Translation.translate("microorganismLabel"));
 
         /* ------------------------------------------------ */
 

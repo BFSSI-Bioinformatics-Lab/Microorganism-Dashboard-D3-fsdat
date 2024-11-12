@@ -8,8 +8,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, InputOrder, InputOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, SummaryAtts } from "./constants.js"
-import { Translation, SetTools, MapTools, TableTools } from "./tools.js";
+import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, InputOrder, InputOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, SummaryAtts, NumberView } from "./constants.js"
+import { Translation, SetTools, MapTools, TableTools, NumberTools } from "./tools.js";
 
 
 // MicroorganismTree: Class for the phylogenetic tree used in the microorganism's naming
@@ -445,6 +445,7 @@ export class Model {
         this.summaryData = {};
         this.tableData = {};
         this.graphData = {};
+        this.needsRerender = {};
 
         for (const page in InputOrder) {
             this.inputs[page] = {};
@@ -452,6 +453,7 @@ export class Model {
             this.summaryData[page] = {};
             this.tableData[page] = {};
             this.graphData[page] = {};
+            this.needsRerender[page] = {};
 
             for (const tab in InputOrder[page]) {
                 this.inputs[page][tab] = {};
@@ -459,6 +461,7 @@ export class Model {
                 this.summaryData[page][tab] = {};
                 this.tableData[page][tab] = [];
                 this.graphData[page][tab] = [];
+                this.needsRerender[page][tab] = false;
             }
         }   
     }
@@ -535,6 +538,7 @@ export class Model {
     getInputOrderInds({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(InputOrderInds, page, tab); }
     getInputOrder({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(InputOrder, page, tab); }
     getMicroOrganismTree({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.microorganismTrees, page, tab); }
+    getNeedsRerender({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.needsRerender, page, tab); }
     getActiveTab(page) { return this.activeTabs[page === undefined ? this.pageName : page]; };
 
     // getSurveyType(dataRow): Determines where the data has been surveyed
@@ -782,6 +786,7 @@ export class Model {
         } else if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
             let selections = this.selections[page][tab];
             selections[Inputs.SurveyType] = new Set();
+            selections[Inputs.NumberView] = new Set([NumberView.Number, NumberView.Percentage]);
         }
     }
 
@@ -866,6 +871,7 @@ export class Model {
             let selections = this.selections[Pages.Overview][OverviewTabs.ByMicroorganism];
             inputs[Inputs.MicroOrganism] = new Set();
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
+            inputs[Inputs.NumberView] = NumberView.Number;
             this.inputs[Pages.Overview][OverviewTabs.ByMicroorganism] = inputs;
 
         // Overview ==> By Food
@@ -1089,7 +1095,8 @@ export class Model {
 
         const summary = {};
         TableTools.forGroup(groupedSamples, ["surveyType", "foodName", "microorganism"], (keys, values) => {
-            if (!inputs[Inputs.MicroOrganism].has(keys.microorganism)) return;
+            const microorganismInput = inputs[Inputs.MicroOrganism];
+            if (microorganismInput !== undefined && !microorganismInput.has(keys.microorganism)) return;
 
             const microorganismSamples = values.microorganism;
             const genus = microorganismTree.genuses[keys.microorganism];
@@ -1171,6 +1178,7 @@ export class Model {
                 currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
                 currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
                 currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
+                currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Samples]);
             });
             graphData = Object.values(graphData);
 

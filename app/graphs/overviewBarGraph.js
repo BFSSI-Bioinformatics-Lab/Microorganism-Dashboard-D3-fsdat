@@ -1,10 +1,22 @@
-import {  SummaryAtts, SampleStateColours, SampleStateOrder, Dims, SampleState, TextWrap } from "../constants.js";
-import { SetTools, Translation, Visuals } from "../tools.js";
+import {  SummaryAtts, SampleStateColours, SampleStateOrder, Dims, SampleState, TextWrap, Inputs, NumberView } from "../constants.js";
+import { SetTools, Translation, Visuals, NumberTools } from "../tools.js";
 
 export class OverviewBarGraph {
     constructor(model) {
         this.model = model;
         this.isDrawn = false;
+    }
+
+    // getPercentageData(data): Converts the data to be used for the percentage view of the graph
+    getPercentageData(data) {
+        for (const row of data) {
+            const numOfSamples = row[SummaryAtts.Samples];
+            row[SummaryAtts.Detected] = NumberTools.toPercent(row[SummaryAtts.Detected], numOfSamples);
+            row[SummaryAtts.NotDetected] = NumberTools.toPercent(row[SummaryAtts.NotDetected], numOfSamples);
+            row[SummaryAtts.NotTested] = NumberTools.toPercent(row[SummaryAtts.NotTested], numOfSamples);
+        }
+
+        return data;
     }
 
     getGroupedData(data) {
@@ -167,7 +179,9 @@ export class OverviewBarGraph {
 
     // reference: https://observablehq.com/@d3/stacked-horizontal-bar-chart/2
     update() {
-        let data = this.model.getGraphData();
+        let data = structuredClone(this.model.getGraphData());
+        const inputs = this.model.getInputs();
+
         if (data.length == 0) {
             d3.select(".visualGraph")
             .html("")
@@ -176,6 +190,12 @@ export class OverviewBarGraph {
 
             this.isDrawn = false;
             return
+        }
+
+        // update the data to percentage view
+        const numberView = inputs[Inputs.NumberView];
+        if (numberView !== undefined && numberView == NumberView.Percentage) {
+            data = this.getPercentageData(data, numberView);
         }
 
         data = this.getGroupedData(data);
@@ -206,7 +226,38 @@ export class OverviewBarGraph {
             .attr("font-size", Dims.overviewBarGraph.TickFontSize);
 
         // food names in the y-axis
-        this.yAxisScale.domain(d3.groupSort(data, D => -d3.sum(D, d => d[SummaryAtts.StateVal]), d => d[SummaryAtts.FoodName]));
+        // sort by "risk" defined by the sorting order below:
+        // 1. Sort by % detected (descending)
+        // 2. Sort by # samples (descending)
+        // 3. Sort by Name (alphabetical order)
+        this.yAxisScale.domain(d3.groupSort(data, (group1, group2) => {
+            const percentDetected1 = group1[0][SummaryAtts.PercentDetected];
+            const percentDetected2 = group2[0][SummaryAtts.PercentDetected];
+            if (percentDetected1 > percentDetected2) {
+                return -1;
+            } else if (percentDetected1 < percentDetected2) {
+                return 1;
+            }
+
+            const samples1 = group1[0][SummaryAtts.Samples];
+            const samples2 = group2[0][SummaryAtts.Samples];
+            if (samples1 > samples2) {
+                return -1
+            } else if (samples1 < samples2) {
+                return 1;
+            }
+
+            const name1 = group1[0][SummaryAtts.FoodName];
+            const name2 = group2[0][SummaryAtts.FoodName];
+            if (name1 > name2) {
+                return 1;
+            } else if (name1 < name2) {
+                return -1;
+            }
+
+            return 0;
+        }, d => d[SummaryAtts.FoodName]));
+
         this.yAxisLine
             .call(d3.axisLeft(this.yAxisScale).tickSizeOuter(0))
             .call(g => g.selectAll(".domain").remove())
@@ -237,7 +288,7 @@ export class OverviewBarGraph {
 
         // text for the heading and axis labels
         this.heading.text(Translation.translate("overviewByMicroorganism.graphTitle"));
-        this.xAxisLabel.text(Translation.translate("overviewByMicroorganism.xAxis"));
+        this.xAxisLabel.text(Translation.translate(`overviewByMicroorganism.xAxis.${numberView}`));
         this.yAxisLabel.text(Translation.translate("overviewByMicroorganism.yAxis"));
 
         // Append a group for each series, and a rect for each element in the series.

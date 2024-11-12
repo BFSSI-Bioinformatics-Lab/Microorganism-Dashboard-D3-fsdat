@@ -57,6 +57,14 @@ export class Translation {
 }
 
 
+export class NumberTools {
+    // toPercent(count, total): Retrieves the percentage from 'count'
+    static toPercent(count, total) {
+        return count / total * 100;
+    }
+}
+
+
 // SetTools: Class for handling with Sets
 //     This class is mostly used to deal with compatibility issues with older browsers
 //     since some of Javascript's Set functions are only recently implemented in 2023-2024
@@ -224,7 +232,6 @@ export class Visuals {
             textNode.text(line.join(" "));
             if (textNode.node().getComputedTextLength() > width) {
                 line.pop();
-                console.log("ARR_L: ", arr.length);
                 currentTextY = Visuals.getNextTextY(textY, arr.length, fontSize, lineSpacing);
 
                 textNode.text(line.join(" "));
