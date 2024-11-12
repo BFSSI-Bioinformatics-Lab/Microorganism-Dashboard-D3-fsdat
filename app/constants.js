@@ -53,7 +53,8 @@ export const Inputs = {
     FoodGroup: "FoodGroup",
     Food: "Food",
     MicroOrganism: "Microorganism",
-    SurveyType: "SurveyType"
+    SurveyType: "SurveyType",
+    NumberView: "NumberView"
 };
 
 // Further groups the data for each tab apart from the grouping based on the tabs inputs
@@ -87,7 +88,7 @@ for (const page in InputOrder) {
 }
 
 // Default selected pages and tabs
-export const DefaultPage = Pages.TrendsOverTime;
+export const DefaultPage = Pages.Overview;
 export const DefaultTrendsOverTimeSection = TrendsOverTimeTabs.ByMicroorganism;
 export const DefaultOverviewSection = OverviewTabs.ByMicroorganism;
 
@@ -184,6 +185,7 @@ export const SummaryAtts = {
     Detected: SampleState.Detected,
     NotTested: SampleState.NotTested,
     NotDetected: SampleState.NotDetected,
+    PercentDetected: "percentDetected",
     State: "state",
     StateVal: "stateVal"
 }
@@ -221,6 +223,12 @@ export const Dims = {
 export const TextWrap  = {
     NoWrap: "No Wrap",
     Wrap: "Wrap"
+};
+
+// Overall display of the data
+export const NumberView = {
+    Number: "number",
+    Percentage: "percentage"
 };
 
 // ############################################################
@@ -426,6 +434,11 @@ const DataTypeNamesEN = {};
 DataTypeNamesEN[MicroBioDataTypes.PresenceAbsence] = "Presence/Absence"
 DataTypeNamesEN[MicroBioDataTypes.Concentration] = "Concentration"
 
+// names for the percentage/number views
+const NumberViewEn = {};
+NumberViewEn[NumberView.Number] = "# positive";
+NumberViewEn[NumberView.Percentage] = "% positive";
+
 // name of the group for 'All Microorganisms' on the microroganism tree
 const allMicroorganismsEN = "All Microorganisms";
 
@@ -447,6 +460,11 @@ QualitaiveResultsEN[SampleState.Detected] = "detected";
 QualitaiveResultsEN[SampleState.NotDetected] = "not detected";
 QualitaiveResultsEN[SampleState.NotTested] = "not tested";
 QualitaiveResultsEN[SampleState.InConclusive] = "inconclusive";
+
+// labels for the x-axis of the overview bar graph
+const overviewBarGraphXAxisEN = {};
+overviewBarGraphXAxisEN[NumberView.Number] = "Count";
+overviewBarGraphXAxisEN[NumberView.Percentage] = "Percentage";
 
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
@@ -474,15 +492,18 @@ const LangEN = {
     "foodLabel": "Foods:",
     "microorganismLabel": "Microorganisms:",
 
+    "showResultAsLabel": "Show Result As:",
+
     surveyTypes: SurveyTypesEN,
     dataTypes: DataTypeNamesEN,
     qualitativeResults: QualitaiveResultsEN,
+    numberview: NumberViewEn,
 
     denomGenuses: denomGenusesEN,
 
     overviewByMicroorganism: {
         "graphTitle": "Selected Qualitative Result by Microorganisms",
-        "xAxis": "Count",
+        "xAxis": overviewBarGraphXAxisEN,
         "yAxis": "Food Name"
     }
 }
@@ -569,6 +590,11 @@ const DataTypeNamesFR = {};
 DataTypeNamesFR[MicroBioDataTypes.PresenceAbsence] = REMPLACER_MOI;
 DataTypeNamesFR[MicroBioDataTypes.Concentration] = REMPLACER_MOI;
 
+// names for the percentage/number views
+const NumberViewFR = {};
+NumberViewFR[NumberView.Number] = REMPLACER_MOI;
+NumberViewFR[NumberView.Percentage] = REMPLACER_MOI;
+
 // name of the group for 'All Microorganisms' on the microroganism tree
 const allMicroorganismsFR = REMPLACER_MOI;
 
@@ -590,6 +616,11 @@ QualitaiveResultsFR[SampleState.Detected] = REMPLACER_MOI;
 QualitaiveResultsFR[SampleState.NotDetected] = REMPLACER_MOI;
 QualitaiveResultsFR[SampleState.NotTested] = REMPLACER_MOI;
 QualitaiveResultsFR[SampleState.InConclusive] = REMPLACER_MOI;
+
+// labels for the x-axis of the overview bar graph
+const overviewBarGraphXAxisFR = {};
+overviewBarGraphXAxisFR[NumberView.Number] = REMPLACER_MOI;
+overviewBarGraphXAxisFR[NumberView.Percentage] = REMPLACER_MOI;
 
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,
@@ -617,14 +648,17 @@ const LangFR = {
     "foodLabel": REMPLACER_MOI,
     "microorganismLabel": REMPLACER_MOI,
 
+    "showResultAsLabel": REMPLACER_MOI,
+
     surveyTypes: SurveyTypesFR,
     dataTypes: DataTypeNamesFR,
     qualitativeResults: QualitaiveResultsFR,
     denomGenuses: denomGenusesFR,
+    numberview: NumberViewFR,
 
     overviewByMicroorganism: {
         "graphTitle": REMPLACER_MOI,
-        "xAxis": REMPLACER_MOI,
+        "xAxis": overviewBarGraphXAxisFR,
         "yAxis": REMPLACER_MOI
     }
 }
