@@ -59,8 +59,19 @@ export class Translation {
 
 export class NumberTools {
     // toPercent(count, total): Retrieves the percentage from 'count'
-    static toPercent(count, total) {
-        return count / total * 100;
+    static toPercent(count, total, decimalPlaces = undefined) {
+        let result = count / total * 100;
+        if (decimalPlaces !== undefined) {
+            result = NumberTools.round(result, decimalPlaces);
+        }
+
+        return result;
+    }
+
+    // round(num, decimalPlaces): Rounds a number to a certain number of decimal places
+    static round(num, decimalPlaces = 2) {
+        const factor = Math.pow(10, decimalPlaces);
+        return Math.round(num * factor) / factor;
     }
 }
 

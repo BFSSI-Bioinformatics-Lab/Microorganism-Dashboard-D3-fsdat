@@ -187,7 +187,8 @@ export const SummaryAtts = {
     NotDetected: SampleState.NotDetected,
     PercentDetected: "percentDetected",
     State: "state",
-    StateVal: "stateVal"
+    StateVal: "stateVal",
+    SamplesWithConcentration: "samplesWithConcentrations"
 }
 
 // DefaultDims: Default dimensions used for certain dimension attributes
@@ -466,6 +467,15 @@ const overviewBarGraphXAxisEN = {};
 overviewBarGraphXAxisEN[NumberView.Number] = "Count";
 overviewBarGraphXAxisEN[NumberView.Percentage] = "Percentage";
 
+// names for the columns on the table
+const tableColsEN = {};
+tableColsEN[SummaryAtts.FoodName] = "Food Name";
+tableColsEN[SummaryAtts.Microorganism] = "Microorganisms";
+tableColsEN[SummaryAtts.PercentDetected] = "% Detected";
+tableColsEN[SummaryAtts.Detected] = "# Detected";
+tableColsEN[SummaryAtts.Samples] = "# Samples";
+tableColsEN[SummaryAtts.SamplesWithConcentration] = "# Samples with Concentration Data"
+
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
     "websiteTabTitle": "FSDAT -Microbiology",
@@ -501,6 +511,7 @@ const LangEN = {
 
     denomGenuses: denomGenusesEN,
 
+    tableCols: tableColsEN,
     overviewByMicroorganism: {
         "graphTitle": "Selected Qualitative Result by Microorganisms",
         "xAxis": overviewBarGraphXAxisEN,
@@ -622,6 +633,15 @@ const overviewBarGraphXAxisFR = {};
 overviewBarGraphXAxisFR[NumberView.Number] = REMPLACER_MOI;
 overviewBarGraphXAxisFR[NumberView.Percentage] = REMPLACER_MOI;
 
+// names for the columns on the table
+const tableColsFR = {};
+tableColsFR[SummaryAtts.FoodName] = REMPLACER_MOI;
+tableColsFR[SummaryAtts.Microorganism] = REMPLACER_MOI;
+tableColsFR[SummaryAtts.PercentDetected] = REMPLACER_MOI;
+tableColsFR[SummaryAtts.Detected] = REMPLACER_MOI;
+tableColsFR[SummaryAtts.Samples] = REMPLACER_MOI;
+tableColsFR[SummaryAtts.SamplesWithConcentration] = REMPLACER_MOI;
+
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,
     "websiteTabTitle": REMPLACER_MOI,
@@ -656,6 +676,7 @@ const LangFR = {
     denomGenuses: denomGenusesFR,
     numberview: NumberViewFR,
 
+    tableCols: tableColsFR,
     overviewByMicroorganism: {
         "graphTitle": REMPLACER_MOI,
         "xAxis": overviewBarGraphXAxisFR,
