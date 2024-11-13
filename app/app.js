@@ -652,13 +652,14 @@ class App {
         // update the tables
         const tableData = this.model.getTableData();
         if (tableData !== undefined) {
+            const translations = Translation.translate("tableCols",{ returnObjects: true });
             const tableColInfo = [
-                {title: "Food Name", data: SummaryAtts.FoodName},
-                {title: "Microorganism", data: SummaryAtts.Microorganism},
-                {title: "# of Samples", data: SummaryAtts.Samples},
-                {title: "# of Detected", data: SummaryAtts.Detected},
-                {title: "# of Not Detected", data: SummaryAtts.NotDetected},
-                {title: "# of Not Tested", data: SummaryAtts.NotTested}
+                {title: translations[SummaryAtts.FoodName], data: SummaryAtts.FoodName},
+                {title: translations[SummaryAtts.Microorganism], data: SummaryAtts.Microorganism},
+                {title: translations[SummaryAtts.PercentDetected], data: SummaryAtts.PercentDetected},
+                {title: translations[SummaryAtts.Detected], data: SummaryAtts.Detected},
+                {title: translations[SummaryAtts.Samples], data: SummaryAtts.Samples},
+                {title: translations[SummaryAtts.SamplesWithConcentration], data: SummaryAtts.SamplesWithConcentration},
             ];
 
             this.updateTable("#visualTable", tableColInfo, tableData);
