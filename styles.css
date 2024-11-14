@@ -38,7 +38,9 @@
     --secondaryHover: #753350;
     --onSecondaryHover: #d8dadd;
     --secondaryBorderColour: #bbbfc5;
-    --tertiary: #af3c43;
+    --tertiary: #d7faff;
+    --tertiaryBorderColour: #269abc;
+    --onTertiary: #333333;
     --link: #284162;
     --headerTitleColor: #000000;
     
@@ -343,6 +345,102 @@ body {
 }
 
 /* =================================================== */
+/* ======== Tooltip ================================== */
+
+.tooltip.show {
+    --bs-tooltip-opacity: 1;
+}
+
+.tooltip-inner {
+    z-index: 1;
+    background: var(--tertiary);
+    border-color: var(--tertiaryBorderColour);
+    border-width: 1px 1px 1px 5px;
+    border-style: solid;
+    color: var(--onTertiary)
+}
+
+.tooltip .arrow {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    rotate: 45deg;
+    background: var(--tertiary);
+    left: -5px;
+    bottom: -5px;
+    z-index: 2;
+    border-style: solid;
+    border-color: var(--tertiaryBorderColour);
+}
+
+.tooltip.bs-tooltip-top .arrow {
+    bottom: -5px;
+    border-width: 0 1px 1px 0;
+}
+
+.tooltip.bs-tooltip-bottom .arrow {
+    top: -5px;
+    border-width: 1px 0 0 1px;
+}
+
+
+/* =================================================== */
+/* ======== Slider =================================== */
+
+.sliderContainer {
+    padding: 10px 0;
+}
+
+.slider.slider-horizontal .slider-track {
+    height: 7px;
+    border: 1px var(--primaryBorderColour) solid;
+}
+
+.slider-handle.round {
+    border-radius: 50%;
+}
+
+.slider .slider-selection {
+    background: var(--primaryVariant);
+}
+
+.slider .slider-track-low, .slider .slider-track-high {
+    background: var(--surface);
+}
+
+.slider-handle {
+    background: var(--primary);
+    width: 15px;
+    height: 15px;
+}
+
+.slider .tooltip {
+    position: absolute;
+    width: 75px;
+    opacity: 1;
+}
+
+.slider .tooltip-inner {
+    padding: 2px;
+}
+
+.slider .tooltip.bs-tooltip-top {
+    margin-top: -30px;
+}
+
+/* don't show the main tooltip */
+. rangeSlider.tooltip-main {
+    display: none !important;
+    opacity: 0;
+}
+
+.tooltip-min, .tooltip-max {
+    display: block !important;
+    opacity: 1;
+}
+
+
+/* =================================================== */
 /* ======== Pagination =============================== */
 
 .pagination {
@@ -376,7 +474,6 @@ body {
 /* Previously displayed two separate icons, hide first one */
 .dt-column-order {
     top: 0.18em !important;
-    right: 0.2em !important;
     font-family: 'Font Awesome 6 Free' !important;
     font-size: 1.3em !important;
 }
@@ -402,7 +499,7 @@ body {
 {
     /*right:    0 !important;*/
     content: "\f0dc" !important;
-    color: var(--primary) !important;
+    color: var(--onPrimary) !important;
     opacity: 1 !important;
     top: unset !important;
     bottom: 0.3em !important;
@@ -413,7 +510,7 @@ body {
 /* sort ascending */
 .dt-ordering-asc span.dt-column-order::before {
     content: "\f161" !important;
-    color: var(--primary) !important;
+    color: var(--onPrimary) !important;
     opacity: 1 !important;
     top: unset !important;
     bottom: 0.3em !important;
@@ -424,7 +521,7 @@ body {
 /* sort descending */
 .dt-ordering-desc span.dt-column-order::before {
     content: "\f160" !important;
-    color: var(--primary) !important;
+    color: var(--onPrimary) !important;
     opacity: 1 !important;
     top: unset !important;
     bottom: 0.3em !important;

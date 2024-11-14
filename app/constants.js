@@ -272,7 +272,9 @@ Themes[ThemeNames.Light] = {
     secondaryHover: "#753350",
     onSecondaryHover: "#d8dadd",
     secondaryBorderColour: "#bbbfc5",
-    tertiary: "#af3c43",
+    tertiary: "#d7faff",
+    tertiaryBorderColour: "#269abc",
+    onTertiary: "#333333",
     link: "#284162",
     headerTitleColor: "#000000",
 
@@ -303,7 +305,9 @@ Themes[ThemeNames.Dark] = {
     secondaryHover: "#b65781",
     onSecondaryHover: "#d8dadd",
     secondaryBorderColour: "#d6d8db",
-    tertiary: "#af3c43",
+    tertiary: "#d7faff",
+    tertiaryBorderColour: "#269abc",
+    onTertiary: "#333333",
     link: "#3e6598",
     headerTitleColor: "#ffffff",
 
@@ -336,7 +340,9 @@ Themes[ThemeNames.Blue] = {
     secondaryHover: "#2e8bc0",
     onSecondaryHover: "#c0dce6",
     secondaryBorderColour: "#145da0",
-    tertiary: "purple",
+    tertiary: "#abacca",
+    tertiaryBorderColour: "#7375a7",
+    onTertiary: "#ffffff",
     link: "#284162",
     headerTitleColor: "#333333",
 

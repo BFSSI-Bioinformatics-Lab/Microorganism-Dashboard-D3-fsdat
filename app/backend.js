@@ -1061,13 +1061,18 @@ export class Model {
                 if (foodDenoms[genus] === undefined) {
                     foodDenoms[genus] =  microorganismSamples;
                 } else {
-                    SetTools.union(foodDenoms[genus], microorganismSamples);
+                    foodDenoms[genus] = SetTools.union(foodDenoms[genus], microorganismSamples, false);
+                }
+
+                if (keys.foodName == "Clam") {
+                    console.log("NEW SAMPLY --> ", foodDenoms[genus]);
                 }
             } else if (isHealthCanada) {
                 foodDenoms[keys.microorganism] = microorganismSamples;
             }
         });
 
+        console.log("DENOMS: ", result);
         return result;   
     }
 
@@ -1139,6 +1144,7 @@ export class Model {
         return result;
     }
 
+    // computeTableData(summaryData): Retrieves the table data needed to be displayed on the website
     computeTableData(summaryData) {
         let tableData = {};
         const microorganismTree = this.getMicroOrganismTree();

@@ -698,6 +698,7 @@ class App {
 
         if (needsRerender || updateFilters || justInitialized) {
             this.updateMenuFilters(input);
+            $("#ex12c").slider({ id: "slider12c", min: 1960, max: 2024, range: true, value: [1960, 2024] });
             this.updateGraphOptions();
             this.model.needsRerender[page][tab] = false;
         }
