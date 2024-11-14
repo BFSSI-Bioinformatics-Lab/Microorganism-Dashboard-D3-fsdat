@@ -1229,9 +1229,12 @@ export class Model {
             currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
             currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
             currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
+            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
             currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
-            currentData[SummaryAtts.PercentDetected] = `${NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Samples], 2)}%`;
+            currentData[SummaryAtts.PercentDetected] = `${NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested], 2)}%`;
             currentData[SummaryAtts.SamplesWithConcentration] = "";
+            currentData[SummaryAtts.ConcentrationMean] = "";
+            currentData[SummaryAtts.ConcentrationRange] = "";
         });
 
         tableData = Object.values(tableData).map((microorganismRows) => Object.values(microorganismRows));
@@ -1277,8 +1280,9 @@ export class Model {
                 currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
                 currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
                 currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
+                currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
                 currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
-                currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Samples]);
+                currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested]);
             });
             graphData = Object.values(graphData);
 
