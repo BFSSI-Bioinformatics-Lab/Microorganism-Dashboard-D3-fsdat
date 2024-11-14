@@ -111,11 +111,26 @@ export class SetTools {
         return result; 
     }
 
-    // union(set1, set2, neweCopy): Computes the 
+    // union(set1, set2, neweCopy): Computes the union of set1 U set2
     static union(set1, set2, newCopy = false) {
         const result = newCopy ? new Set(set1) : set1;
         for (const element of set2) {
             result.add(element);
+        }
+
+        return result;
+    }
+
+    // filter(set, predicate, newCopy): filters a set
+    static filter(set, predicate, newCopy = false) {
+        const result = newCopy ? new Set() : set;
+        for (const element of set) {
+            const inFilter = predicate(element);
+            if (newCopy && inFilter) {
+                result.add(element);
+            } else if (!newCopy && !inFilter) {
+                result.delete(element);
+            }
         }
 
         return result;
