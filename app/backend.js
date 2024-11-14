@@ -943,9 +943,9 @@ export class Model {
         microorganismTree.addNonSpeciated();
     }
 
-    // _getFilteredData(inputOrderInd, inputOrder, inputs, result, grouping): Internal function
+    // _getFilteredData(inputOrderInd, inputOrder, inputs, result, grouping, forDenom): Internal function
     //  to get all the rows based off the selected filters
-    _getFilteredData(inputOrderInd, inputOrder, inputs, result, grouping) {
+    _getFilteredData(inputOrderInd, inputOrder, inputs, result, grouping, forDenom) {
         // get the sample from the grouping
         if (inputOrderInd >= inputOrder.length) {
             for (const sampleId in grouping) {
@@ -964,12 +964,12 @@ export class Model {
                 continue;
             }
 
-            this._getFilteredData(inputOrderInd + 1, inputOrder, inputs, result, newGrouping);
+            this._getFilteredData(inputOrderInd + 1, inputOrder, inputs, result, newGrouping, forDenom);
         }
     }
 
-    // getFilteredData(page, tab): Retrieves the filtered data rows based off the user selected filters
-    getFilteredData({page = undefined, tab = undefined} = {}) {
+    // getFilteredData(page, tab, forDenom): Retrieves the filtered data rows based off the user selected filters
+    getFilteredData({page = undefined, tab = undefined, forDenom = false} = {}) {
         if (page === undefined) {
             page = this.pageName;
         }
@@ -980,10 +980,49 @@ export class Model {
 
         const result = {};
         const inputOrder = InputOrder[page][tab];
-        const inputs = this.inputs[page][tab];
+
+        let inputs = this.inputs[page][tab];
+        let denomGenuses, microorganismTree;
+
+        // add in the other microrganisms for the genuses in Health Canada data
+        const microorganismInputs = inputs[Inputs.MicroOrganism];
+        forDenom = forDenom && microorganismInputs !== undefined;
+        if (forDenom) {
+            denomGenuses = new Set(Translation.translate("denomGenuses", { returnObjects: true }));
+            microorganismTree = this.microorganismTrees[page][tab];
+            inputs = structuredClone(inputs);
+            
+            for (const microorganism of microorganismTree.microorganisms) {
+                const genus = microorganismTree.genuses[microorganism];
+                if (denomGenuses.has(genus)) {
+                    inputs[Inputs.MicroOrganism].add(microorganism);
+                }
+            }
+        }
+
+        // get the filtered data
         const grouping = this.groupings[page][tab];
-        this._getFilteredData(0, inputOrder, inputs, result, grouping);
-        
+        this._getFilteredData(0, inputOrder, inputs, result, grouping, forDenom);
+
+        if (!forDenom) {
+            return result;
+        }
+
+        let healthCanadaSurveyTypes = new Set([SurveyTypes.HC, SurveyTypes.PHAC]);
+        inputs = this.inputs[page][tab];
+
+        // remove samples of not Health Canada data that the user did not select from the denominator calculations
+        for (let i = 0; i < result.length; ++i) {
+            const sample = result[i];
+            const notHealthCanadaSurveyTypes = SetTools.difference([sample.surveyTypes, healthCanadaSurveyTypes], true);
+            if (notHealthCanadaSurveyTypes.size == 0) continue;
+
+            const sampleUserMicroorganisms = SetTools.intersection(microorganismInputs, new Set(Object.keys(sample.states)));
+            if (sampleUserMicroorganisms.size > 0) continue;
+
+            result.splice(i, 1);
+        }
+
         return result;
     }
 
@@ -996,6 +1035,7 @@ export class Model {
     //   detected: Set[str] --> of microorganisms
     //   notTested: Set[str] --> of microorganisms
     //   data: List[int]
+    //   surveyTypes: Set[str]
     // }
     createSampleObj(sampleRowInds) {
         const result = {};
@@ -1003,6 +1043,9 @@ export class Model {
         result.states = {};
         result.detected = new Set();
         result.notTested = new Set();
+
+        const BySurveyType = MapTools.toDict(d3.group(sampleRowInds, ind => this.data[ind][HCDataCols.SurveyType]));
+        result.surveyTypes = new Set(Object.keys(BySurveyType));
 
         const ByMicroorganism = MapTools.toDict(d3.group(sampleRowInds, ind => this.data[ind][HCDataCols.Microorganism]));
 
@@ -1087,15 +1130,21 @@ export class Model {
     //      notDetected: int,
     //      notTested: int
     //   }
-    getSummary({samples, page = undefined, tab = undefined} = {}) {
+    getSummary({samples, denomSamples, page = undefined, tab = undefined} = {}) {
         let groupedSamples = TableTools.groupAggregates(samples, (aggregate) => aggregate.data, [
             ind => this.data[ind][HCDataCols.SurveyType],
             ind => this.data[ind][HCDataCols.FoodName],
             ind => this.data[ind][HCDataCols.Microorganism],
         ]);
 
+        let denomGroupedSamples = TableTools.groupAggregates(denomSamples, (aggregate) => aggregate.data, [
+            ind => this.data[ind][HCDataCols.SurveyType],
+            ind => this.data[ind][HCDataCols.FoodName],
+            ind => this.data[ind][HCDataCols.Microorganism],
+        ]);
+
         const microorganismTree = this.getMicroOrganismTree({page, tab});
-        const denomSamples = this.getDenomSamples(groupedSamples, microorganismTree);
+        denomSamples = this.getDenomSamples(denomGroupedSamples, microorganismTree);
         const inputs = this.getInputs({page, tab});
 
         const summary = {};
@@ -1186,9 +1235,12 @@ export class Model {
             currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
             currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
             currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
+            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
             currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
-            currentData[SummaryAtts.PercentDetected] = `${NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Samples], 2)}%`;
+            currentData[SummaryAtts.PercentDetected] = `${NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested], 2)}%`;
             currentData[SummaryAtts.SamplesWithConcentration] = "";
+            currentData[SummaryAtts.ConcentrationMean] = "";
+            currentData[SummaryAtts.ConcentrationRange] = "";
         });
 
         tableData = Object.values(tableData).map((microorganismRows) => Object.values(microorganismRows));
@@ -1207,8 +1259,9 @@ export class Model {
         }
 
         let samples = this.getFilteredData({page, tab});
+        let denomSamples = this.getFilteredData({page, tab, forDenom: true});
 
-        const summaryData = this.getSummary({samples, page, tab});
+        const summaryData = this.getSummary({samples, denomSamples, page, tab});
         this.summaryData[page][tab] = summaryData;
 
         // get the data needed for the graphs and tables
@@ -1233,8 +1286,9 @@ export class Model {
                 currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
                 currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
                 currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
+                currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
                 currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
-                currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Samples]);
+                currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested]);
             });
             graphData = Object.values(graphData);
 

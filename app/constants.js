@@ -185,10 +185,13 @@ export const SummaryAtts = {
     Detected: SampleState.Detected,
     NotTested: SampleState.NotTested,
     NotDetected: SampleState.NotDetected,
+    Tested: "tested",
     PercentDetected: "percentDetected",
     State: "state",
     StateVal: "stateVal",
-    SamplesWithConcentration: "samplesWithConcentrations"
+    SamplesWithConcentration: "samplesWithConcentrations",
+    ConcentrationMean: "concentrationMean",
+    ConcentrationRange: "concentrationRange"
 }
 
 // DefaultDims: Default dimensions used for certain dimension attributes
@@ -476,11 +479,13 @@ overviewBarGraphXAxisEN[NumberView.Percentage] = "Percentage";
 // names for the columns on the table
 const tableColsEN = {};
 tableColsEN[SummaryAtts.FoodName] = "Food Name";
-tableColsEN[SummaryAtts.Microorganism] = "Microorganisms";
+tableColsEN[SummaryAtts.Microorganism] = "Pathogen Branch";
 tableColsEN[SummaryAtts.PercentDetected] = "% Detected";
 tableColsEN[SummaryAtts.Detected] = "# Detected";
 tableColsEN[SummaryAtts.Samples] = "# Samples";
-tableColsEN[SummaryAtts.SamplesWithConcentration] = "# Samples with Concentration Data"
+tableColsEN[SummaryAtts.SamplesWithConcentration] = "# Samples with Conc. Data"
+tableColsEN[SummaryAtts.ConcentrationMean] = "Conc. Mean (cfu/g)"
+tableColsEN[SummaryAtts.ConcentrationRange] = "Conc. Range (cfu/g)"
 
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
@@ -647,6 +652,8 @@ tableColsFR[SummaryAtts.PercentDetected] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.Detected] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.Samples] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.SamplesWithConcentration] = REMPLACER_MOI;
+tableColsFR[SummaryAtts.ConcentrationMean] = "Conc. Mean (cfu/g)"
+tableColsFR[SummaryAtts.ConcentrationRange] = "Conc. Range (cfu/g)"
 
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,

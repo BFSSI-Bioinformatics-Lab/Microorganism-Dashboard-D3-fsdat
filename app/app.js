@@ -659,7 +659,9 @@ class App {
                 {title: translations[SummaryAtts.PercentDetected], data: SummaryAtts.PercentDetected},
                 {title: translations[SummaryAtts.Detected], data: SummaryAtts.Detected},
                 {title: translations[SummaryAtts.Samples], data: SummaryAtts.Samples},
-                {title: translations[SummaryAtts.SamplesWithConcentration], data: SummaryAtts.SamplesWithConcentration},
+                {title: translations[SummaryAtts.ConcentrationMean], data: SummaryAtts.ConcentrationMean},
+                {title: translations[SummaryAtts.ConcentrationRange], data: SummaryAtts.ConcentrationRange},
+                {title: translations[SummaryAtts.SamplesWithConcentration], data: SummaryAtts.SamplesWithConcentration}
             ];
 
             this.updateTable("#visualTable", tableColInfo, tableData);
