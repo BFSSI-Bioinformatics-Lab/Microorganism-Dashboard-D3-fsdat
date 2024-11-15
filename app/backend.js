@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, InputOrder, InputOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, SummaryAtts, NumberView } from "./constants.js"
+import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, InputOrder, InputOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, SummaryAtts, NumberView, TablePhylogenticDelim } from "./constants.js"
 import { Translation, SetTools, MapTools, TableTools, NumberTools } from "./tools.js";
 
 
@@ -519,7 +519,7 @@ export class Model {
     static getDisplayMicroorganism(microorganism) {
         const allMicroorganismsPrefix = Translation.translate("allMicroorganisms") + PhylogeneticDelim;
         let result = microorganism.substring(allMicroorganismsPrefix.length);
-        result = result.replaceAll(PhylogeneticDelim, " ");
+        result = result.replaceAll(PhylogeneticDelim, TablePhylogenticDelim);
         return result;
     }
 
