@@ -429,12 +429,12 @@ body {
 }
 
 /* don't show the main tooltip */
-. rangeSlider.tooltip-main {
+.rangeSlider .tooltip-main {
     display: none !important;
     opacity: 0;
 }
 
-.tooltip-min, .tooltip-max {
+.rangeSlider .tooltip-min, .rangeSlider .tooltip-max {
     display: block !important;
     opacity: 1;
 }

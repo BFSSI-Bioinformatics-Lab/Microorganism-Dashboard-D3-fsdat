@@ -8,11 +8,32 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, InputOrder, InputOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, SummaryAtts, NumberView } from "./constants.js"
-import { Translation, SetTools, MapTools, TableTools, NumberTools } from "./tools.js";
+import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, SummaryAtts, NumberView, TimeZone, TabInputs } from "./constants.js"
+import { Translation, SetTools, MapTools, TableTools, NumberTools, Range } from "./tools.js";
 
 
 // MicroorganismTree: Class for the phylogenetic tree used in the microorganism's naming
+//
+// Attributes
+// ----------
+// nodeId: int
+//    The current id used for a new node
+//
+// children: Dict[int, Dict[str, int]]
+//    The adjacency list for all the children in the tree. 
+//    Outer key is id of node, inner key is name of  child, inner value is id of child.
+//
+// parents: Dict[int, int]
+//    The parents of a node. Key is id of node, value is id of parent.
+//
+// microorganisms: Set[str]
+//    Name of all the microorganisms found in the tree
+//
+// genuses: Dict[str, str]
+//    Names of the genuses for a microrganism. Key are microorganisms and values are genuses
+//
+// rootNodeId: int
+//    id of the root node
 export class MicroorganismTree {
     constructor() {
         this.nodeId = -1;
@@ -426,6 +447,93 @@ export class MicroorganismTree {
     }
 }
 
+// Sample: Class for a unique sample
+//
+// Attributes
+// ----------
+// states: Dict[str, SampleState]
+//    The state of each microorganism for the sample
+//
+// detected: Set[str]
+//    The microorganisms for the sample that are considered as detected
+//
+// notTested: Set[str]
+//    The microorganisms for the sample that are considered as not tested
+//
+// data: List[int]
+//    The rows (trials) for each sample
+//
+// surveyTypes: Set[str]
+//    The survey types that this sample belongs to
+//
+// sampleDate: Range[Moment]
+//    The range of dates when this sample was collected/sampled
+export class Sample {
+    constructor(model, sampleRowInds) {
+        this.data = sampleRowInds
+        this.states = {};
+        this.detected = new Set();
+        this.notTested = new Set();
+
+        const BySurveyType = MapTools.toDict(d3.group(sampleRowInds, ind => model.data[ind][HCDataCols.SurveyType]));
+        this.surveyTypes = new Set(Object.keys(BySurveyType));
+
+        const ByMicroorganism = MapTools.toDict(d3.group(sampleRowInds, ind => model.data[ind][HCDataCols.Microorganism]));
+
+        // retrieve the states (detected, not detected, not tested) of each microorganism
+        for (const microorganism in ByMicroorganism) {
+            const sampleMicroorganismRowInds = ByMicroorganism[microorganism];
+            const sampleMicroorganismState = model.getSampleState(sampleMicroorganismRowInds);
+
+            this.states[microorganism] = sampleMicroorganismState;
+            if (sampleMicroorganismState == SampleState.Detected) {
+                this.detected.add(microorganism);
+            }
+
+            if (sampleMicroorganismState == SampleState.NotTested) {
+                this.notTested.add(microorganism);
+            }
+        }
+
+        // get the range of dates when the data was sampled
+        const sampleDates = [];
+        this.data.forEach((rowInd) => sampleDates.push(model.data[rowInd][HCDataCols.SampleDate]));
+        const minDate = moment.min(sampleDates);
+        const maxDate = moment.max(sampleDates);
+        this.sampleDate = new Range(minDate, maxDate);
+
+        //this.graphed = this.isGraphed(sampleRowInds);
+    }
+}
+
+
+// GroupingStat: Class to store some statistics about a group of samples
+//
+// Attributes
+// ----------
+// year: Range[Moment]
+//    The year range for the sample
+export class GroupingStat {
+    constructor() {
+        this.year = new Range(0, 0);
+    }
+
+    update(sampleGroup) {
+        const minDates = [];
+        const maxDates = [];
+        for (const sampleCode in sampleGroup) {
+            const sample = sampleGroup[sampleCode];
+            minDates.push(sample.sampleDate.min);
+            maxDates.push(sample.sampleDate.max); 
+        }
+        
+        const minDate = moment.min(minDates);
+        const maxDate = moment.max(maxDates);
+        this.year.min = moment.utc(`${minDate.year()}-01-01 00:00`);
+        this.year.max = moment.utc(`${maxDate.year()}-12-31 23:59`);
+    }
+}
+
 
 // Model: The class for the overall backend of the app
 export class Model {
@@ -447,7 +555,7 @@ export class Model {
         this.graphData = {};
         this.needsRerender = {};
 
-        for (const page in InputOrder) {
+        for (const page in FilterOrder) {
             this.inputs[page] = {};
             this.microorganismTrees[page] = {};
             this.summaryData[page] = {};
@@ -455,7 +563,7 @@ export class Model {
             this.graphData[page] = {};
             this.needsRerender[page] = {};
 
-            for (const tab in InputOrder[page]) {
+            for (const tab in FilterOrder[page]) {
                 this.inputs[page][tab] = {};
                 this.microorganismTrees[page][tab] = new MicroorganismTree();
                 this.summaryData[page][tab] = {};
@@ -470,16 +578,20 @@ export class Model {
     //  group the data for each tab
     initGroupings() {
         this.groupings = {};
+        this.groupingStats = {};
+
         this.groupings[Pages.TrendsOverTime] = {};
         this.groupings[Pages.Overview] = {};
+        this.groupingStats[Pages.TrendsOverTime] = {};
+        this.groupingStats[Pages.Overview] = {};
     }
 
     // initSelections(): Initialize the available selection options for the input filters
     initSelections() {
         this.selections = {};
 
-        for (const page in InputOrder) {
-            const pageInput = InputOrder[page];
+        for (const page in FilterOrder) {
+            const pageInput = FilterOrder[page];
             this.selections[page] = {};
 
             for (const tab in pageInput) {
@@ -535,8 +647,8 @@ export class Model {
     getGraphData({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.graphData, page, tab); }
     getTableData({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.tableData, page, tab); }
     getInputs({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.inputs, page, tab); }
-    getInputOrderInds({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(InputOrderInds, page, tab); }
-    getInputOrder({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(InputOrder, page, tab); }
+    getFilterOrderInds({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(FilterOrderInds, page, tab); }
+    getFilterOrder({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(FilterOrder, page, tab); }
     getMicroOrganismTree({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.microorganismTrees, page, tab); }
     getNeedsRerender({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.needsRerender, page, tab); }
     getActiveTab(page) { return this.activeTabs[page === undefined ? this.pageName : page]; };
@@ -655,6 +767,7 @@ export class Model {
                 this.dataInds.push(ind);
             });
 
+            console.log("DATA: ", this.data);
             this.samples = this.createSampleObjs(this.dataInds);
         });
     }
@@ -666,6 +779,7 @@ export class Model {
             row[HCDataCols.SurveyType] = this.getSurveyType(row);
             row[HCDataCols.QuantitativeResult] = parseFloat(row[HCDataCols.QuantitativeResult]);
             row[HCDataCols.Microorganism] = this.getMicroorganism(row);
+            row[HCDataCols.SampleDate] = moment.utc(moment.tz(row[HCDataCols.SampleDate], TimeZone[row[HCDataCols.SurveyType]]));
             this.data.push(row);
         }
     }
@@ -703,11 +817,39 @@ export class Model {
         this.updateInputs({input, page, tab});
         this.updateVisualData({page, tab});
     }
+
+    // setupGroupingStat(page, tab, groupOrder, initGroupStat, accumulateGroupStat)
+    setupGroupingStat(page, tab, groupOrder, initGroupStat, accumulateGroupStat) {
+        const grouping = this.getGrouping({page, tab});
+        if (grouping == undefined) return;
+
+        let groupingStats = {};
+        const lastGroup = groupOrder.at(-1);
+        TableTools.forGroup(grouping, groupOrder, (keys, values) => {
+            const aggregate = values[lastGroup];
+
+            // initialize the grouping statistics
+            let currentGroupStat = groupingStats;
+            for (let i = 0; i < groupOrder.length; ++i) {
+                const groupName = groupOrder[i];
+                const currentKey = keys[groupName];
+                if (currentGroupStat[currentKey] === undefined) currentGroupStat[currentKey] = i < groupOrder.length - 1 ? {} : initGroupStat();
+                currentGroupStat = currentGroupStat[currentKey];
+            }
+
+            accumulateGroupStat(currentGroupStat, aggregate);
+        });
+
+        this.groupingStats[page][tab] = groupingStats;
+    }
     
     // setupGrouping(page, tab): Setup the data structure of how to optimally group the data
     //  for a particular tab
     setupGrouping(page, tab) {
         let grouping = null;
+        let filterOrder = this.getFilterOrder();
+        let initGroupStat = () => new GroupingStat();
+        let accumulateGroupStat = (groupStat, sample) => groupStat.update(sample);
         
         // Trends Over Time ==> By Microorganism
         if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {
@@ -725,6 +867,7 @@ export class Model {
             grouping[MicroBioDataTypes.PresenceAbsence] = presenceGrouping;
             grouping[MicroBioDataTypes.Concentration] = concentrationGrouping;
             this.groupings[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = grouping;
+            this.setupGroupingStat(page, tab, filterOrder, initGroupStat, accumulateGroupStat);
 
         // Trends Over Time ==> By Food
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
@@ -742,6 +885,7 @@ export class Model {
             grouping[MicroBioDataTypes.PresenceAbsence] = presenceGrouping;
             grouping[MicroBioDataTypes.Concentration] = concentrationGrouping;
             this.groupings[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = grouping;
+            this.setupGroupingStat(page, tab, filterOrder, initGroupStat, accumulateGroupStat);
 
         // Overview ==> By Microorganism
         } else if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
@@ -751,6 +895,7 @@ export class Model {
             ]);
 
             this.groupings[Pages.Overview][OverviewTabs.ByMicroorganism] = grouping;
+            this.setupGroupingStat(page, tab, filterOrder, initGroupStat, accumulateGroupStat);
 
         // Overview ==> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
@@ -761,6 +906,7 @@ export class Model {
             ]);
 
             this.groupings[Pages.Overview][OverviewTabs.ByFood] = grouping;
+            this.setupGroupingStat(page, tab, filterOrder, initGroupStat, accumulateGroupStat);
 
         // Overview ==> By Org
         } else if (page == Pages.Overview && tab == OverviewTabs.ByOrg) {
@@ -769,10 +915,14 @@ export class Model {
             ]);
 
             this.groupings[Pages.Overview][OverviewTabs.ByOrg] = grouping;
+            this.setupGroupingStat(page, tab, filterOrder, initGroupStat, accumulateGroupStat);
         }
+
+        console.log("GROUPING: ", this.groupings);
+        console.log("GROUPSTAT: ", this.groupingStats);
     }
 
-    // setupSelections(page, tab): Initializes the selections when a tab first loads
+    // setupSelections(page, tab): Initializes the selections for the filters when a tab first loads
     setupSelections(page, tab) {
         this.updateSelections({page, tab});
 
@@ -795,33 +945,58 @@ export class Model {
         page = page === undefined ? this.pageName : page;
         tab = tab === undefined ? this.activeTabs[page] : tab;
 
-        const inputOrder = InputOrder[page][tab];
-        const inputOrderInds = InputOrderInds[page][tab];
+        const filterOrder = FilterOrder[page][tab];
+        const filterOrderInds = FilterOrderInds[page][tab];
         const grouping = this.groupings[page][tab];
+        const groupStats = this.groupingStats[page][tab];
         const selections = this.selections[page][tab];
         const inputs = this.inputs[page][tab];
-        const inputInd = input === null ? -1 : inputOrderInds[input];
+        const availableInputs = TabInputs[page][tab];
+        const inputInd = input === null ? -1 : filterOrderInds[input];
 
-        if (inputInd == undefined) return;
+        if (inputInd !== undefined) {
+            // clear out the selections for filter inputs that needs to be updated
+            for (let i = inputInd + 1; i < filterOrder.length; ++i) {
+                const currentInput = filterOrder[i];
+                selections[currentInput].clear();
+            }
 
-        // clear out the selections for filter inputs that needs to be updated
-        for (let i = inputInd + 1; i < inputOrder.length; ++i) {
-            const currentInput = inputOrder[i];
-            selections[currentInput].clear();
+            this._updateSelections(0, inputInd, grouping, filterOrder, selections, inputs);
+            
+            // update the microorganism tree
+            if (filterOrder.includes(Inputs.MicroOrganism) && filterOrderInds[Inputs.MicroOrganism] > inputInd) {
+                this.updateMicroorganismTree({page, tab});
+            }
         }
 
-        this._updateSelections(0, inputInd, grouping, inputOrder, selections, inputs);
-        
-        // update the microorganism tree
-        if (inputOrder.includes(Inputs.MicroOrganism) && inputOrderInds[Inputs.MicroOrganism] > inputInd) {
-            this.updateMicroorganismTree({page, tab});
+        // update the year range
+        if (availableInputs !== undefined && availableInputs.has(Inputs.Year)) {
+            const minDates = [];
+            const maxDates = [];
+
+            TableTools.forGroup(selections, filterOrder, (keys, values) => {
+                let groupStat = groupStats;
+                filterOrder.forEach((filterInput) => groupStat = groupStat[filterInput]);
+                minDates.push(groupStat.year.min);
+                maxDates.push(groupStat.year.max);
+            });
+
+            if (selections[Inputs.Year] == undefined) {
+                selections[Inputs.Year] = new Range();
+            }
+
+            const yearSelection = selections[Inputs.Year];
+            yearSelection.min = moment.min(minDates).format();
+            yearSelection.max = moment.max(maxDates).format();
         }
+
+        console.log("SELECTIONS: ", selections);
     }
 
-    // _updateSelections(currentInd, inputInd, grouping, inputOrder, selections, inputs): Internal function to update the selections
+    // _updateSelections(currentInd, inputInd, grouping, filterOrder, selections, inputs): Internal function to update the selections
     //  of a certain input
-    _updateSelections(currentInd, inputInd, grouping, inputOrder, selections, inputs) {
-        const currentInput = inputOrder[currentInd];
+    _updateSelections(currentInd, inputInd, grouping, filterOrder, selections, inputs) {
+        const currentInput = filterOrder[currentInd];
         const needsSelectionUpdate = (currentInd > inputInd);
         const selection = selections[currentInput];
         const input = inputs[currentInput];
@@ -836,8 +1011,8 @@ export class Model {
             }
 
             // update the selections for filter inputs that comes after the current input
-            if (currentInd < inputOrder.length - 1 && (input === undefined || hasChild)) {
-                this._updateSelections(currentInd + 1, inputInd, grouping[childName], inputOrder, selections, inputs);
+            if (currentInd < filterOrder.length - 1 && (input === undefined || hasChild)) {
+                this._updateSelections(currentInd + 1, inputInd, grouping[childName], filterOrder, selections, inputs);
             }
         }
     }
@@ -872,6 +1047,7 @@ export class Model {
             inputs[Inputs.MicroOrganism] = new Set();
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
             inputs[Inputs.NumberView] = NumberView.Number;
+            inputs[Inputs.Year] = structuredClone(selections[Inputs.Year]);
             this.inputs[Pages.Overview][OverviewTabs.ByMicroorganism] = inputs;
 
         // Overview ==> By Food
@@ -895,18 +1071,18 @@ export class Model {
         page = page === undefined ? this.pageName : page;
         tab = tab === undefined ? this.activeTabs[page] : tab;
 
-        const inputOrder = InputOrder[page][tab];
-        const inputOrderInds = InputOrderInds[page][tab];
+        const filterOrder = FilterOrder[page][tab];
+        const filterOrderInds = FilterOrderInds[page][tab];
         const selections = this.selections[page][tab];
         const inputs = this.inputs[page][tab];
-        const inputInd = input === null ? -1 : inputOrderInds[input];
-        const microorganismInputInd = (inputOrderInds[Inputs.MicroOrganism] === undefined) ? -1 : inputOrderInds[Inputs.MicroOrganism];
+        const inputInd = input === null ? -1 : filterOrderInds[input];
+        const microorganismInputInd = (filterOrderInds[Inputs.MicroOrganism] === undefined) ? -1 : filterOrderInds[Inputs.MicroOrganism];
 
         if (inputInd == undefined) return;
 
         // update the inputs where their corresponding selections have been updated
-        for (let i = inputInd + 1; i < inputOrder.length; ++i) {
-            const currentInput = inputOrder[i];
+        for (let i = inputInd + 1; i < filterOrder.length; ++i) {
+            const currentInput = filterOrder[i];
             inputs[currentInput] = SetTools.intersection(inputs[currentInput], selections[currentInput]);
 
             // update the microorganism tree
@@ -916,6 +1092,8 @@ export class Model {
                 tree.minimalExpand();
             }
         }
+
+        console.log("INPTUS: ", inputs);
     }
 
     updateMicroorganismTree({page = undefined, tab = undefined} = {}) {
@@ -943,11 +1121,11 @@ export class Model {
         microorganismTree.addNonSpeciated();
     }
 
-    // _getFilteredData(inputOrderInd, inputOrder, inputs, result, grouping, forDenom): Internal function
+    // _getFilteredData(filterOrderInd, filterOrder, inputs, result, grouping, forDenom): Internal function
     //  to get all the rows based off the selected filters
-    _getFilteredData(inputOrderInd, inputOrder, inputs, result, grouping, forDenom) {
+    _getFilteredData(filterOrderInd, filterOrder, inputs, result, grouping, forDenom) {
         // get the sample from the grouping
-        if (inputOrderInd >= inputOrder.length) {
+        if (filterOrderInd >= filterOrder.length) {
             for (const sampleId in grouping) {
                 if (result[sampleId !== undefined]) continue;
                 result[sampleId] = grouping[sampleId];
@@ -955,7 +1133,7 @@ export class Model {
             return
         }
 
-        const input = inputOrder[inputOrderInd];
+        const input = filterOrder[filterOrderInd];
         const currentInputs = inputs[input];
 
         for (const currentInput of currentInputs) {
@@ -964,7 +1142,7 @@ export class Model {
                 continue;
             }
 
-            this._getFilteredData(inputOrderInd + 1, inputOrder, inputs, result, newGrouping, forDenom);
+            this._getFilteredData(filterOrderInd + 1, filterOrder, inputs, result, newGrouping, forDenom);
         }
     }
 
@@ -979,7 +1157,7 @@ export class Model {
         }
 
         const result = {};
-        const inputOrder = InputOrder[page][tab];
+        const filterOrder = FilterOrder[page][tab];
 
         let inputs = this.inputs[page][tab];
         let denomGenuses, microorganismTree;
@@ -1002,7 +1180,7 @@ export class Model {
 
         // get the filtered data
         const grouping = this.groupings[page][tab];
-        this._getFilteredData(0, inputOrder, inputs, result, grouping, forDenom);
+        this._getFilteredData(0, filterOrder, inputs, result, grouping, forDenom);
 
         if (!forDenom) {
             return result;
@@ -1026,53 +1204,11 @@ export class Model {
         return result;
     }
 
-    // createSampleObj(sampleRowInds): Creates the object to hold aggregate data about a sample
-    //
-    // Note: The object contains the following structure:
-    //
-    // {
-    //   states: Dict[str, SampleState]  --> by microorganism
-    //   detected: Set[str] --> of microorganisms
-    //   notTested: Set[str] --> of microorganisms
-    //   data: List[int]
-    //   surveyTypes: Set[str]
-    // }
-    createSampleObj(sampleRowInds) {
-        const result = {};
-        result.data = sampleRowInds
-        result.states = {};
-        result.detected = new Set();
-        result.notTested = new Set();
-
-        const BySurveyType = MapTools.toDict(d3.group(sampleRowInds, ind => this.data[ind][HCDataCols.SurveyType]));
-        result.surveyTypes = new Set(Object.keys(BySurveyType));
-
-        const ByMicroorganism = MapTools.toDict(d3.group(sampleRowInds, ind => this.data[ind][HCDataCols.Microorganism]));
-
-        // retrieve the states (detected, not detected, not tested) of each microorganism
-        for (const microorganism in ByMicroorganism) {
-            const sampleMicroorganismRowInds = ByMicroorganism[microorganism];
-            const sampleMicroorganismState = this.getSampleState(sampleMicroorganismRowInds);
-
-            result.states[microorganism] = sampleMicroorganismState;
-            if (sampleMicroorganismState == SampleState.Detected) {
-                result.detected.add(microorganism);
-            }
-
-            if (sampleMicroorganismState == SampleState.NotTested) {
-                result.notTested.add(microorganism);
-            }
-        }
-
-        //result.graphed = this.isGraphed(sampleRowInds);
-        return result;
-    }
-
     // createSampleObjs(grouping): Creates the aggregates for each microorganism sample
     createSampleObjs(dataRowInds) {
         const samples = MapTools.toDict(d3.group(dataRowInds, ind => this.data[ind][GroupNames.SampleCode]));
         for (const sampleName in samples) {
-            const sampleObj = this.createSampleObj(samples[sampleName]);
+            const sampleObj = new Sample(this, samples[sampleName]);
             samples[sampleName] = sampleObj;
         }
 

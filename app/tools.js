@@ -56,6 +56,18 @@ export class Translation {
     }
 }
 
+// Range: Class for a range of values
+export class Range {
+    constructor(min, max) {
+        this.min = min;
+        this.max = max;
+    }
+
+    in(range2) {
+
+    }
+}
+
 
 export class NumberTools {
     // toPercent(count, total): Retrieves the percentage from 'count'

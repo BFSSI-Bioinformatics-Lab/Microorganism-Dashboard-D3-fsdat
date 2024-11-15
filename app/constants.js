@@ -54,7 +54,8 @@ export const Inputs = {
     Food: "Food",
     MicroOrganism: "Microorganism",
     SurveyType: "SurveyType",
-    NumberView: "NumberView"
+    NumberView: "NumberView",
+    Year: "Year"
 };
 
 // Further groups the data for each tab apart from the grouping based on the tabs inputs
@@ -63,29 +64,38 @@ export const GroupNames = {
 }
 
 // order for the filter inputs for each tab
-export const InputOrder = {};
-InputOrder[Pages.TrendsOverTime] = {};
-InputOrder[Pages.Overview] = {};
-InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = [Inputs.DataType, Inputs.SurveyType, Inputs.MicroOrganism, Inputs.FoodGroup, Inputs.Food];
-InputOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = [Inputs.DataType, Inputs.SurveyType, Inputs.FoodGroup, Inputs.Food, Inputs.MicroOrganism];
-InputOrder[Pages.Overview][OverviewTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.SurveyType];
-InputOrder[Pages.Overview][OverviewTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
-InputOrder[Pages.Overview][OverviewTabs.ByOrg] = [Inputs.SurveyType];
-
+export const FilterOrder = {};
+FilterOrder[Pages.TrendsOverTime] = {};
+FilterOrder[Pages.Overview] = {};
+FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = [Inputs.DataType, Inputs.SurveyType, Inputs.MicroOrganism, Inputs.FoodGroup, Inputs.Food];
+FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = [Inputs.DataType, Inputs.SurveyType, Inputs.FoodGroup, Inputs.Food, Inputs.MicroOrganism];
+FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.SurveyType];
+FilterOrder[Pages.Overview][OverviewTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
+FilterOrder[Pages.Overview][OverviewTabs.ByOrg] = [Inputs.SurveyType];
 
 // indices for the order of the filter inputs in each tab
-export const InputOrderInds = {};
-for (const page in InputOrder) {
-    const pageInputOrders = InputOrder[page];
-    InputOrderInds[page] = {};
+export const FilterOrderInds = {};
+for (const page in FilterOrder) {
+    const pageInputOrders = FilterOrder[page];
+    FilterOrderInds[page] = {};
 
     for (const tab in pageInputOrders) {
         const tabInputOrder = pageInputOrders[tab];
         const tabOrderInds = {};
         tabInputOrder.forEach((input, ind) => {tabOrderInds[input] = ind});
-        InputOrderInds[page][tab] = tabOrderInds;
+        FilterOrderInds[page][tab] = tabOrderInds;
     }
 }
+
+// available inputs for each tab
+export const TabInputs = {};
+TabInputs[Pages.TrendsOverTime] = {};
+TabInputs[Pages.Overview] = {};
+TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism]);
+TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood]);
+TabInputs[Pages.Overview][OverviewTabs.ByMicroorganism] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism].concat(Inputs.Year));
+TabInputs[Pages.Overview][OverviewTabs.ByFood] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByFood]);
+TabInputs[Pages.Overview][OverviewTabs.ByOrg] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByOrg]);
 
 // Default selected pages and tabs
 export const DefaultPage = Pages.Overview;
@@ -121,6 +131,16 @@ export const SurveyTypes = {
 // Delimeter for joining each node in the Phylogentic tree
 export const PhylogeneticDelim = "==>"
 
+// the timezones used for each type of data
+// See the link below for all the available timezones in Moment.js
+// https://gist.github.com/diogocapela/12c6617fc87607d11fd62d2a4f42b02a
+export const DefaultDataTimeZone = "America/Toronto";
+export const TimeZone = {};
+TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
+
 // Columns in the Health Canada Data
 // Note: Copy the exact column names from "CANLINE Micro -no... .csv" except for the Columns with 3 stars (***)
 export const HCDataCols = {
@@ -141,6 +161,7 @@ export const HCDataCols = {
     QuantitativeResult: "Quantitative Result",
     QuantitativeUnit: "Quantitative Result Unit",
     IsolateCode: "Isolate Code",
+    SampleDate: "Sample Collection Date",
     SurveyType: "Survey Type", // ***
     Microorganism: "Microorganism", // ***
 }

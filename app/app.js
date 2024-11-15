@@ -399,6 +399,23 @@ class App {
             .classed("checkmarkIcon", true);
     }
 
+    // updateRangeSlier(selectId, selections, inputs, onChange): Updates the range of the range slider
+    updateRangeSlider({selectId, selection, input, onChange = undefined}) {
+        let tabName = this.model.getActiveTab();
+        const selector = `.menuTab[value="${tabName}"] .rangeSlider #${selectId}`
+        const innerSliderId = `${selectId}Inner`;
+
+        let rangeSlider = $(selector);
+        rangeSlider.slider('destroy');
+
+        rangeSlider.slider({ id: innerSliderId, min: selection.min, max: selection.max, range: true, value: [input.min, input.max] });
+        rangeSlider.on("slideStop", (newValue) => {
+            if (onChange !== undefined) {
+                onChange(newValue);
+            }
+        });
+    }
+
     // updateDropdownSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the dropdown select widget
     updateDropdownSelect({selectId, selections, inputs, onChange = undefined, noneSelectedText = ""} = {}) {
         let tab = this.getActiveTab();
@@ -546,7 +563,7 @@ class App {
     }
 
     setupMenuFilters() {
-        const inputOrderInds = this.model.getInputOrderInds();
+        const inputOrderInds = this.model.getFilterOrderInds();
     }
 
     // updateGraphOptions(): Updates the options for the graph
@@ -567,7 +584,7 @@ class App {
 
     // updateMenuFilters(inputs): Updates the filters on the menu
     updateMenuFilters(input = null) {
-        const inputOrderInds = this.model.getInputOrderInds();
+        const inputOrderInds = this.model.getFilterOrderInds();
         const inputInd = input === null ? -1 : inputOrderInds[input];
         const selections = this.model.getSelection();
         const inputs = this.model.getInputs();
