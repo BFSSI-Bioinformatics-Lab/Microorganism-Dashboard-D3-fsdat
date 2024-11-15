@@ -120,6 +120,7 @@ export const SurveyTypes = {
 
 // Delimeter for joining each node in the Phylogentic tree
 export const PhylogeneticDelim = "==>"
+export const TablePhylogenticDelim = " > "
 
 // Columns in the Health Canada Data
 // Note: Copy the exact column names from "CANLINE Micro -no... .csv" except for the Columns with 3 stars (***)
