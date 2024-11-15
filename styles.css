@@ -50,8 +50,10 @@
     --smBorderRadius: 5px;
     --borderRadius: 10px;
 
-    --fastTransition: all 0.5s ease-in-out;
-    --defaultTransition: all 0.75s ease-in-out;
+    --fastTransition: all 0.25s ease-in-out;
+    --medTransition: all 0.5s ease-in-out;
+    --slowTransition: all 0.75s ease-in-out;
+    --defaultTransition: var(--medTransition);
 
     /* ----- Header ----- */
     --headerTitleWidth: 3px;
