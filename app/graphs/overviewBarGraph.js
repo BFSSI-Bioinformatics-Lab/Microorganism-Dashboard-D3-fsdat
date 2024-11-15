@@ -222,7 +222,6 @@ export class OverviewBarGraph {
         this.xAxisScale.domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
         this.xAxisLine
             .call(d3.axisTop(this.xAxisScale).ticks(Dims.overviewBarGraph.GraphWidth / 100, "s"))
-            .call(g => g.selectAll(".domain").remove())
             .attr("font-size", Dims.overviewBarGraph.TickFontSize);
 
         // food names in the y-axis
@@ -260,7 +259,6 @@ export class OverviewBarGraph {
 
         this.yAxisLine
             .call(d3.axisLeft(this.yAxisScale).tickSizeOuter(0))
-            .call(g => g.selectAll(".domain").remove())
             .attr("font-size", Dims.overviewBarGraph.TickFontSize);
 
         // draw the wrapped text for the food names

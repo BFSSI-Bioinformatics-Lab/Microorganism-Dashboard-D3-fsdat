@@ -208,16 +208,16 @@ export const DefaultDims = {
 // Dims: Dimensions used in the visuals
 export const Dims = {
     overviewBarGraph: {
-        HeadingFontSize: 26,
-        AxesFontSize: 18,
-        TickFontSize: 12,
+        HeadingFontSize: 28,
+        AxesFontSize: 20,
+        TickFontSize: 14,
         GraphWidth: 900,
-        GraphTop: 100,
+        GraphTop: 120,
         GraphBottom: 60,
-        GraphLeft: 180,
+        GraphLeft: 220,
         GraphRight: 200,
-        BarHeight: 50,
-        FoodNameWidth: 120,
+        BarHeight: 55,
+        FoodNameWidth: 140,
         LegendSquareSize: 12,
         LegendLeftMargin: 50,
         LegendFontSize: 12
