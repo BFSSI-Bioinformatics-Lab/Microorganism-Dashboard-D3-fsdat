@@ -7,7 +7,7 @@
 //                                                                 //
 /////////////////////////////////////////////////////////////////////
 
-import { DefaultDims, TextWrap } from "./constants.js";
+import { DefaultDims, TextWrap, ModelTimeZone } from "./constants.js";
 
 
 // Translation: Helper class for doing translations
@@ -56,6 +56,32 @@ export class Translation {
     }
 }
 
+// Range: Class for a range of values
+export class Range {
+    constructor(min, max) {
+        this.min = min;
+        this.max = max;
+    }
+
+    // has(target, compareFunc): Checks if 'target' is in between the range
+    has(target, compareFunc = undefined) {
+        if (compareFunc === undefined) {
+            return target <= this.max && target >= this.min;
+        } else {
+            return !(compareFunc(target, this.min) < 0 || compareFunc(target, this.max) > 0);
+        }
+    }
+
+    // within(range, compareFunc): Checks if this class is within 'range'
+    within(range, compareFunc = undefined) {
+        if (compareFunc === undefined) {
+            return this.max >= range.min && this.min <= range.max;
+        } else {
+            return !(compareFunc(this.max, range.min) < 0 || compareFunc(this.min, range.max) > 0);
+        }
+    }
+}
+
 
 export class NumberTools {
     // toPercent(count, total): Retrieves the percentage from 'count'
@@ -72,6 +98,44 @@ export class NumberTools {
     static round(num, decimalPlaces = 2) {
         const factor = Math.pow(10, decimalPlaces);
         return Math.round(num * factor) / factor;
+    }
+}
+
+
+// DateTimeTools: Class for handling with datetime
+export class DateTimeTools {
+    // getYearStart(year, timezone): Retrieves the datetime for the start of the year
+    static getYearStart(year, timezone = ModelTimeZone) {
+        return moment.tz(`${year}-01-01 00:00`, timezone);
+    }
+
+    // getYearEnd(year, timezone): Retrieves the datetime for the end of the year
+    static getYearEnd(year, timezone = ModelTimeZone) {
+        return moment.tz(`${year}-12-31 23:59`, timezone);
+    }
+
+    // datetimeStrCmpFunc(datetimeStr1, datetimeStr2): Compare function for 2 datetimes that
+    //   are represented using a string
+    static datetimeStrCmpFunc(datetimeStr1, datetimeStr2) {
+        const datetime1 = moment(datetimeStr1);
+        const datetime2 = moment(datetimeStr2);
+        return datetime1.diff(datetime2);
+    }
+
+    // rangeToStr(datetimeRange, newCopy): Converts a range of datetimes to a range of datetime strings
+    static rangeToStr(datetimeRange, newCopy = false) {
+        const result = newCopy ? new Range(datetimeRange.min, datetimeRange.max) : datetimeRange;
+        if (result.min !== undefined) result.min = result.min.format();
+        if (result.max !== undefined) result.max = result.max.format();
+        return result;
+    }
+
+    // rangeToDate(datetimeStrRange, timesonze, newCopy): Converts a range of datetime strings to a range of datetimes
+    static rangeToDate(datetimeStrRange, timezone = ModelTimeZone, newCopy = false) {
+        const result = newCopy ? new Range(datetimeStrRange.min, datetimeStrRange.max) : datetimeStrRange;
+        if (result.min !== undefined) result.min = moment.tz(result.min, timezone);
+        if (result.max !== undefined) result.max = moment.tz(result.max, timezone);
+        return result;
     }
 }
 
@@ -188,7 +252,7 @@ export class TableTools {
         return TableTools._groupAggregates(0, aggregates, getAggregateDataFunc, keyFuncs)
     }
 
-    // _forGroup(grouping, groupingOrder, func): Internal function to iterates over a nested dictionary grouping
+    // _forGroup(ind, grouping, groupingOrder, func, keys, values): Internal function that iterates over a nested dictionary grouping
     static _forGroup(ind, grouping, groupingOrder, func, keys, values) {
         if (ind >= groupingOrder.length) {
             func(keys, values);
@@ -210,6 +274,37 @@ export class TableTools {
         const keys = {};
         const values = {};
         this._forGroup(0, grouping, groupingOrder, func, keys, values);
+    }
+
+    // _forFilteredGroup(ind, grouping, groupingOrder, inputs, func, keys, values): Internal function that iterates over a
+    //  a filtered nested dictionary grouping
+    static _forFilteredGroup(ind, grouping, groupingOrder, inputs, func, keys, values) {
+        if (ind >= groupingOrder.length) {
+            func(keys, values);
+            return;
+        }
+
+        const groupName = groupingOrder[ind];
+        const currentInputs = inputs[groupName];
+        if (currentInputs === undefined) return;
+
+        for (const input of currentInputs) {
+            const groupVal = grouping[input];
+            if (groupVal === undefined) continue;
+
+            keys[groupName] = input;
+            values[groupName] = groupVal;
+            this._forFilteredGroup(ind + 1, groupVal, groupingOrder, inputs, func, keys, values);
+        }
+    }
+
+    // forFilteredGroup(grouping, groupiongOrder, inputs, func): Iterates over a filtered subtree
+    //  from a nested dictionary grouping based off 'inputs'
+    //  (saves you time from writing up many nested for loops)
+    static forFilteredGroup(grouping, groupingOrder, inputs, func) {
+        const keys = {};
+        const values = {};
+        this._forFilteredGroup(0, grouping, groupingOrder, inputs, func, keys, values);
     }
 }
 

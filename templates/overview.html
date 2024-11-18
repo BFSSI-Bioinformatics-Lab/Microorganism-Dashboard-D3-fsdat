@@ -80,34 +80,55 @@ What it contains:
             <div class="accordion mt-3" id="byMicroorganismAjustGraphFilterContainer">
               <div class="accordion-item">
                   <h2 class="menuFilterHeading accordion-header" id="byMicroorganismAjustGraphFilterHeading">
-                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismAjustGraphFilter" aria-controls="byMicroorganismAjustGraphFilter">
-                        <span value="adjustGraph">Dummy Name for the Adjust Graph Filter Name (This will be overwritten and you will not see me!)</span>
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismSelectYearFilter" aria-controls="byMicroorganismSelectYearFilter">
+                        <span value="year">Dummy Year Filter</span>
                         <i class="accordionIcon fas fa-chevron-down"></i>
                       </button>
                   </h2>
-                  <div id="byMicroorganismAjustGraphFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismAjustGraphFilterHeading" data-bs-parent="#byMicroorganismAjustGraphFilterContainer">
+                  <div id="byMicroorganismSelectYearFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismSelectYearFilterHeading" data-bs-parent="#byMicroorganismSelectYearFilterContainer">
                       <div class="accordion-body">
-
-                        <span id="showResultAsLabel">Show Result As:</span>
-
-                        <div id="NumberView" class="d-flex flex-wrap">
-                          <label class="radioContainer">
-                            <span id="number">Dummy Number</span>
-                            <input type="radio" checked="checked" name="radio" value="number">
-                            <span class="radioIcon"></span>
-                          </label>
-                          
-                          <label class="radioContainer">
-                            <span id="percentage">Dummy Percentage</span>
-                            <input type="radio" name="radio" value="percentage">
-                            <span class="radioIcon"></span>
-                          </label>
+                        
+                        <div class="rangeSlider sliderContainer rangeSlider">
+                          <input id="Year" type="text"/>
                         </div>
 
                       </div>
                   </div>
               </div>
           </div>
+
+
+          <div class="accordion mt-3" id="byMicroorganismAjustGraphFilterContainer">
+            <div class="accordion-item">
+                <h2 class="menuFilterHeading accordion-header" id="byMicroorganismAjustGraphFilterHeading">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#byMicroorganismAjustGraphFilter" aria-controls="byMicroorganismAjustGraphFilter">
+                      <span value="adjustGraph">Dummy Name for the Adjust Graph Filter Name (This will be overwritten and you will not see me!)</span>
+                      <i class="accordionIcon fas fa-chevron-down"></i>
+                    </button>
+                </h2>
+                <div id="byMicroorganismAjustGraphFilter" class="accordion-collapse collapse show" aria-labelledby="byMicroorganismAjustGraphFilterHeading" data-bs-parent="#byMicroorganismAjustGraphFilterContainer">
+                    <div class="accordion-body">
+
+                      <span id="showResultAsLabel">Show Result As:</span>
+
+                      <div id="NumberView" class="d-flex flex-wrap">
+                        <label class="radioContainer">
+                          <span id="number">Dummy Number</span>
+                          <input type="radio" checked="checked" name="radio" value="number">
+                          <span class="radioIcon"></span>
+                        </label>
+                        
+                        <label class="radioContainer">
+                          <span id="percentage">Dummy Percentage</span>
+                          <input type="radio" name="radio" value="percentage">
+                          <span class="radioIcon"></span>
+                        </label>
+                      </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
 
         </div>
 

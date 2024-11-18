@@ -11,8 +11,8 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts} from "./constants.js"
-import { Translation } from "./tools.js";
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone} from "./constants.js"
+import { Translation, DateTimeTools } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
 
@@ -399,6 +399,34 @@ class App {
             .classed("checkmarkIcon", true);
     }
 
+    // updateRangeSlier(selectId, selections, inputs, onChange): Updates the range of the range slider
+    updateRangeSlider({selectId, selection, input, onChange = undefined}) {
+        let tabName = this.model.getActiveTab();
+        const selector = `.menuTab[value="${tabName}"] .rangeSlider #${selectId}`;
+        const innerSliderId = `${selectId}Inner`;
+
+        let rangeSlider = $(selector);
+        if (input.min === undefined || input.max === undefined || selection.min === undefined || selection.max === undefined) {
+            rangeSlider.parent().addClass("d-none");
+            return;
+        }
+
+        rangeSlider.parent().removeClass("d-none");
+        rangeSlider.slider({ id: innerSliderId, min: selection.min, max: selection.max, range: true, value: [input.min, input.max] });
+        rangeSlider.slider('refresh', { useCurrentValue: true });
+        rangeSlider.on("slideStop", (event) => {
+            // This is a bug with the bootstrap-slider library from firing 3 events
+            //  after the slider stops moving
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+
+            if (onChange !== undefined) {
+                onChange(event.value);
+            }
+        });
+    }
+
     // updateDropdownSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the dropdown select widget
     updateDropdownSelect({selectId, selections, inputs, onChange = undefined, noneSelectedText = ""} = {}) {
         let tab = this.getActiveTab();
@@ -546,7 +574,7 @@ class App {
     }
 
     setupMenuFilters() {
-        const inputOrderInds = this.model.getInputOrderInds();
+        const inputOrderInds = this.model.getFilterOrderInds();
     }
 
     // updateGraphOptions(): Updates the options for the graph
@@ -554,6 +582,7 @@ class App {
         const selections = this.model.getSelection();
         const inputs = this.model.getInputs();
 
+        // number/percentage view
         if (inputs[Inputs.NumberView] !== undefined) {
             this.updateRadioSelect({selectId: Inputs.NumberView, selections: selections[Inputs.NumberView], inputs: new Set([inputs[Inputs.NumberView]]),
                                     translations: Translation.translate("numberview", { returnObjects: true }),
@@ -563,11 +592,48 @@ class App {
                                     }
             })
         }
+
+        // year select
+        if (inputs[Inputs.Year] !== undefined) {
+            let inputRange = DateTimeTools.rangeToDate(inputs[Inputs.Year], ModelTimeZone, true);
+            if (inputRange.min !== undefined) inputRange.min = inputRange.min.year();
+            if (inputRange.max !== undefined) inputRange.max = inputRange.max.year();
+
+            let selectionRange = DateTimeTools.rangeToDate(selections[Inputs.Year], ModelTimeZone, true);
+            if (selectionRange.min !== undefined) selectionRange.min = selectionRange.min.year();
+            if (selectionRange.max !== undefined) selectionRange.max = selectionRange.max.year();
+            
+            this.updateRangeSlider({selectId: Inputs.Year, selection: selectionRange, input: inputRange,
+                                    onChange: (sliderValue) => {
+                                        const selectionYear = DateTimeTools.rangeToDate(selections[Inputs.Year], ModelTimeZone, true);
+                                        const inputYear = inputs[Inputs.Year];
+
+                                        if (sliderValue[0] < selectionYear.min.year()) {
+                                            inputYear.min = selectionYear.min;
+                                        } else if (sliderValue[0] > selectionYear.max.year()) {
+                                            inputYear.min = DateTimeTools.getYearStart(selectionYear.max.year());
+                                        } else {
+                                            inputYear.min = DateTimeTools.getYearStart(sliderValue[0]);
+                                        }
+
+                                        if (sliderValue[1] > selectionYear.max.year()) {
+                                            inputYear.max = selectionYear.max;
+                                        } else if (sliderValue[1] < selectionYear.min.year()) {
+                                            inputYear.max = DateTimeTools.getYearEnd(selectionYear.min.year());
+                                        } else {
+                                            inputYear.max = DateTimeTools.getYearEnd(sliderValue[1]);   
+                                        }
+
+                                        DateTimeTools.rangeToStr(inputYear);
+                                        this.updateTab({input: Inputs.Year});
+                                    }
+            })
+        }
     }
 
     // updateMenuFilters(inputs): Updates the filters on the menu
     updateMenuFilters(input = null) {
-        const inputOrderInds = this.model.getInputOrderInds();
+        const inputOrderInds = this.model.getFilterOrderInds();
         const inputInd = input === null ? -1 : inputOrderInds[input];
         const selections = this.model.getSelection();
         const inputs = this.model.getInputs();
