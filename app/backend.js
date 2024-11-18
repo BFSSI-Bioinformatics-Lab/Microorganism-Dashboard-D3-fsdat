@@ -8,8 +8,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim } from "./constants.js"
-import { Translation, SetTools, MapTools, TableTools, NumberTools, Range } from "./tools.js";
+import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes } from "./constants.js"
+import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState } from "./constants.js"
+import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone } from "./constants.js"
+import { Translation, SetTools, MapTools, TableTools, NumberTools, Range, DateTimeTools } from "./tools.js";
 
 
 // MicroorganismTree: Class for the phylogenetic tree used in the microorganism's naming
@@ -529,8 +531,8 @@ export class GroupingStat {
         
         const minDate = moment.min(minDates);
         const maxDate = moment.max(maxDates);
-        this.year.min = moment.utc(`${minDate.year()}-01-01 00:00`);
-        this.year.max = moment.utc(`${maxDate.year()}-12-31 23:59`);
+        this.year.min = DateTimeTools.getYearStart(minDate.year());
+        this.year.max = DateTimeTools.getYearEnd(maxDate.year());
     }
 }
 
@@ -767,7 +769,6 @@ export class Model {
                 this.dataInds.push(ind);
             });
 
-            console.log("DATA: ", this.data);
             this.samples = this.createSampleObjs(this.dataInds);
         });
     }
@@ -779,7 +780,7 @@ export class Model {
             row[HCDataCols.SurveyType] = this.getSurveyType(row);
             row[HCDataCols.QuantitativeResult] = parseFloat(row[HCDataCols.QuantitativeResult]);
             row[HCDataCols.Microorganism] = this.getMicroorganism(row);
-            row[HCDataCols.SampleDate] = moment.utc(moment.tz(row[HCDataCols.SampleDate], TimeZone[row[HCDataCols.SurveyType]]));
+            row[HCDataCols.SampleDate] = moment.tz(moment.tz(row[HCDataCols.SampleDate], TimeZone[row[HCDataCols.SurveyType]]), ModelTimeZone);
             this.data.push(row);
         }
     }
@@ -917,9 +918,6 @@ export class Model {
             this.groupings[Pages.Overview][OverviewTabs.ByOrg] = grouping;
             this.setupGroupingStat(page, tab, filterOrder, initGroupStat, accumulateGroupStat);
         }
-
-        console.log("GROUPING: ", this.groupings);
-        console.log("GROUPSTAT: ", this.groupingStats);
     }
 
     // setupSelections(page, tab): Initializes the selections for the filters when a tab first loads
@@ -939,6 +937,7 @@ export class Model {
             selections[Inputs.NumberView] = new Set([NumberView.Number, NumberView.Percentage]);
         }
     }
+
 
     // updateSelections(input, page, tab): Updates the available selections in the filters on the menu
     updateSelections({input = null, page = undefined, tab = undefined} = {}) {
@@ -974,23 +973,21 @@ export class Model {
             const minDates = [];
             const maxDates = [];
 
-            TableTools.forGroup(selections, filterOrder, (keys, values) => {
-                let groupStat = groupStats;
-                filterOrder.forEach((filterInput) => groupStat = groupStat[filterInput]);
-                minDates.push(groupStat.year.min);
-                maxDates.push(groupStat.year.max);
+            const filterInnerKey = filterOrder.at(-1);
+            TableTools.forFilteredGroup(groupStats, filterOrder, inputs, (keys, values) => {
+                const sampleGroupStat = values[filterInnerKey];
+                minDates.push(sampleGroupStat.year.min);
+                maxDates.push(sampleGroupStat.year.max);
             });
 
-            if (selections[Inputs.Year] == undefined) {
+            if (selections[Inputs.Year] === undefined) {
                 selections[Inputs.Year] = new Range();
             }
-
+    
             const yearSelection = selections[Inputs.Year];
-            yearSelection.min = moment.min(minDates).format();
-            yearSelection.max = moment.max(maxDates).format();
+            yearSelection.min = minDates.length == 0 ? undefined : moment.min(minDates).format();
+            yearSelection.max = maxDates.length == 0 ? undefined : moment.max(maxDates).format();
         }
-
-        console.log("SELECTIONS: ", selections);
     }
 
     // _updateSelections(currentInd, inputInd, grouping, filterOrder, selections, inputs): Internal function to update the selections
@@ -1093,7 +1090,23 @@ export class Model {
             }
         }
 
-        console.log("INPTUS: ", inputs);
+        // update the year input
+        if (inputs[Inputs.Year] !== undefined && !selections[Inputs.Year] !== undefined) {
+            const selection = selections[Inputs.Year];
+            const input = inputs[Inputs.Year];
+
+            if (selection.min !== undefined && !selection.has(input.min, DateTimeTools.datetimeStrCmpFunc)) {
+                input.min = selection.min;
+            } else if (selection.min === undefined) {
+                input.min = undefined;
+            }
+
+            if (selection.max !== undefined && !selection.has(input.max, DateTimeTools.datetimeStrCmpFunc)) {
+                input.max = selection.max;
+            } else if (selection.max === undefined) {
+                input.max = undefined;
+            }
+        }
     }
 
     updateMicroorganismTree({page = undefined, tab = undefined} = {}) {
@@ -1119,31 +1132,6 @@ export class Model {
 
         // add the non speciated microorganisms into the tree
         microorganismTree.addNonSpeciated();
-    }
-
-    // _getFilteredData(filterOrderInd, filterOrder, inputs, result, grouping, forDenom): Internal function
-    //  to get all the rows based off the selected filters
-    _getFilteredData(filterOrderInd, filterOrder, inputs, result, grouping, forDenom) {
-        // get the sample from the grouping
-        if (filterOrderInd >= filterOrder.length) {
-            for (const sampleId in grouping) {
-                if (result[sampleId !== undefined]) continue;
-                result[sampleId] = grouping[sampleId];
-            }
-            return
-        }
-
-        const input = filterOrder[filterOrderInd];
-        const currentInputs = inputs[input];
-
-        for (const currentInput of currentInputs) {
-            const newGrouping = grouping[currentInput];
-            if (newGrouping === undefined) {
-                continue;
-            }
-
-            this._getFilteredData(filterOrderInd + 1, filterOrder, inputs, result, newGrouping, forDenom);
-        }
     }
 
     // getFilteredData(page, tab, forDenom): Retrieves the filtered data rows based off the user selected filters
@@ -1180,7 +1168,33 @@ export class Model {
 
         // get the filtered data
         const grouping = this.groupings[page][tab];
-        this._getFilteredData(0, filterOrder, inputs, result, grouping, forDenom);
+        const filterInnerKey = filterOrder.at(-1);
+        TableTools.forFilteredGroup(grouping, filterOrder, inputs, (keys, values) => {
+            const sampleGroup = values[filterInnerKey];
+            for (const sampleId in sampleGroup) {
+                if (result[sampleId] !== undefined) continue;
+                result[sampleId] = sampleGroup[sampleId];
+            }
+        });
+
+        const inputYear = structuredClone(inputs[Inputs.Year]);
+        let sampleNamesToRemove = new Set();
+
+        // filter by years
+        if (inputYear !== undefined && inputYear.min !== undefined && inputYear.max !== undefined) {
+            inputYear.min = moment.tz(inputYear.min, ModelTimeZone);
+            inputYear.max = moment.tz(inputYear.max, ModelTimeZone);
+    
+            for (const sampleName in result) {
+                const sample = result[sampleName];
+                if (sample.sampleDate.within(inputYear, (date1, date2) => date1.diff(date2))) continue;
+                sampleNamesToRemove.add(sampleName);
+            }
+    
+            for (const sampleName of sampleNamesToRemove) {
+                delete result[sampleName];
+            }
+        }
 
         if (!forDenom) {
             return result;
@@ -1190,15 +1204,20 @@ export class Model {
         inputs = this.inputs[page][tab];
 
         // remove samples of not Health Canada data that the user did not select from the denominator calculations
-        for (let i = 0; i < result.length; ++i) {
-            const sample = result[i];
+        sampleNamesToRemove.clear();
+        for (const sampleName in result) {
+            const sample = result[sampleName];
             const notHealthCanadaSurveyTypes = SetTools.difference([sample.surveyTypes, healthCanadaSurveyTypes], true);
             if (notHealthCanadaSurveyTypes.size == 0) continue;
 
             const sampleUserMicroorganisms = SetTools.intersection(microorganismInputs, new Set(Object.keys(sample.states)));
             if (sampleUserMicroorganisms.size > 0) continue;
 
-            result.splice(i, 1);
+            sampleNamesToRemove.add(sampleName);
+        }
+
+        for (const sampleName of sampleNamesToRemove) {
+            delete result[sampleName];
         }
 
         return result;
@@ -1242,16 +1261,11 @@ export class Model {
                 } else {
                     foodDenoms[genus] = SetTools.union(foodDenoms[genus], microorganismSamples, false);
                 }
-
-                if (keys.foodName == "Clam") {
-                    console.log("NEW SAMPLY --> ", foodDenoms[genus]);
-                }
             } else if (isHealthCanada) {
                 foodDenoms[keys.microorganism] = microorganismSamples;
             }
         });
 
-        console.log("DENOMS: ", result);
         return result;   
     }
 

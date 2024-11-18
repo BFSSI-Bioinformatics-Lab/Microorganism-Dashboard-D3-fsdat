@@ -136,6 +136,7 @@ export const TablePhylogenticDelim = " > "
 // See the link below for all the available timezones in Moment.js
 // https://gist.github.com/diogocapela/12c6617fc87607d11fd62d2a4f42b02a
 export const DefaultDataTimeZone = "America/Toronto";
+export const ModelTimeZone = "UTC";
 export const TimeZone = {};
 TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
 TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
@@ -440,13 +441,16 @@ FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
 FilterNamesEN[Pages.Overview][OverviewTabs.ByMicroorganism] = {
     "microorganism": "1. Select Microorganism",
     "surveyType": "2. Select Survey Type",
-    "adjustGraph": "3. Adjust Graph"
+    "year": "3. Select Year",
+    "adjustGraph": "4. Adjust Graph"
 }
 
 // Filter names for "Overview" ==> "By Food"
 FilterNamesEN[Pages.Overview][OverviewTabs.ByFood] = {
     "food": "1. Select Food(s)",
-    "surveyType": "2. Select Survey Type"
+    "surveyType": "2. Select Survey Type",
+    "year": "3. Select Year",
+    "adjustGraph": "4. Adjust Graph"
 }
 
 // Filter names for "Overview" ==> "By Org"
@@ -608,13 +612,17 @@ FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
 // Filter names for "Overview" ==> "By Microorganism"
 FilterNamesFR[Pages.Overview][OverviewTabs.ByMicroorganism] = {
     "microorganism": REMPLACER_MOI,
-    "surveyType": REMPLACER_MOI
+    "surveyType": REMPLACER_MOI,
+    "year": REMPLACER_MOI,
+    "adjustGraph": REMPLACER_MOI
 }
 
 // Filter names for "Overview" ==> "By Food"
 FilterNamesFR[Pages.Overview][OverviewTabs.ByFood] = {
     "food": REMPLACER_MOI,
-    "surveyType": REMPLACER_MOI
+    "surveyType": REMPLACER_MOI,
+    "year": REMPLACER_MOI,
+    "adjustGraph": REMPLACER_MOI
 }
 
 // Filter names for "Overview" ==> "By Org"

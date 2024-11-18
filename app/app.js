@@ -11,8 +11,8 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts} from "./constants.js"
-import { Translation } from "./tools.js";
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone} from "./constants.js"
+import { Translation, DateTimeTools } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
 
@@ -402,16 +402,27 @@ class App {
     // updateRangeSlier(selectId, selections, inputs, onChange): Updates the range of the range slider
     updateRangeSlider({selectId, selection, input, onChange = undefined}) {
         let tabName = this.model.getActiveTab();
-        const selector = `.menuTab[value="${tabName}"] .rangeSlider #${selectId}`
+        const selector = `.menuTab[value="${tabName}"] .rangeSlider #${selectId}`;
         const innerSliderId = `${selectId}Inner`;
 
         let rangeSlider = $(selector);
-        rangeSlider.slider('destroy');
+        if (input.min === undefined || input.max === undefined || selection.min === undefined || selection.max === undefined) {
+            rangeSlider.parent().addClass("d-none");
+            return;
+        }
 
+        rangeSlider.parent().removeClass("d-none");
         rangeSlider.slider({ id: innerSliderId, min: selection.min, max: selection.max, range: true, value: [input.min, input.max] });
-        rangeSlider.on("slideStop", (newValue) => {
+        rangeSlider.slider('refresh', { useCurrentValue: true });
+        rangeSlider.on("slideStop", (event) => {
+            // This is a bug with the bootstrap-slider library from firing 3 events
+            //  after the slider stops moving
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+
             if (onChange !== undefined) {
-                onChange(newValue);
+                onChange(event.value);
             }
         });
     }
@@ -571,12 +582,50 @@ class App {
         const selections = this.model.getSelection();
         const inputs = this.model.getInputs();
 
+        // number/percentage view
         if (inputs[Inputs.NumberView] !== undefined) {
             this.updateRadioSelect({selectId: Inputs.NumberView, selections: selections[Inputs.NumberView], inputs: new Set([inputs[Inputs.NumberView]]),
                                     translations: Translation.translate("numberview", { returnObjects: true }),
                                     onChange: (radioValue) => {
                                         inputs[Inputs.NumberView] = radioValue;
                                         this.updateVisuals();
+                                    }
+            })
+        }
+
+        // year select
+        if (inputs[Inputs.Year] !== undefined) {
+            let inputRange = DateTimeTools.rangeToDate(inputs[Inputs.Year], ModelTimeZone, true);
+            if (inputRange.min !== undefined) inputRange.min = inputRange.min.year();
+            if (inputRange.max !== undefined) inputRange.max = inputRange.max.year();
+
+            let selectionRange = DateTimeTools.rangeToDate(selections[Inputs.Year], ModelTimeZone, true);
+            if (selectionRange.min !== undefined) selectionRange.min = selectionRange.min.year();
+            if (selectionRange.max !== undefined) selectionRange.max = selectionRange.max.year();
+            
+            this.updateRangeSlider({selectId: Inputs.Year, selection: selectionRange, input: inputRange,
+                                    onChange: (sliderValue) => {
+                                        const selectionYear = DateTimeTools.rangeToDate(selections[Inputs.Year], ModelTimeZone, true);
+                                        const inputYear = inputs[Inputs.Year];
+
+                                        if (sliderValue[0] < selectionYear.min.year()) {
+                                            inputYear.min = selectionYear.min;
+                                        } else if (sliderValue[0] > selectionYear.max.year()) {
+                                            inputYear.min = DateTimeTools.getYearStart(selectionYear.max.year());
+                                        } else {
+                                            inputYear.min = DateTimeTools.getYearStart(sliderValue[0]);
+                                        }
+
+                                        if (sliderValue[1] > selectionYear.max.year()) {
+                                            inputYear.max = selectionYear.max;
+                                        } else if (sliderValue[1] < selectionYear.min.year()) {
+                                            inputYear.max = DateTimeTools.getYearEnd(selectionYear.min.year());
+                                        } else {
+                                            inputYear.max = DateTimeTools.getYearEnd(sliderValue[1]);   
+                                        }
+
+                                        DateTimeTools.rangeToStr(inputYear);
+                                        this.updateTab({input: Inputs.Year});
                                     }
             })
         }
@@ -717,7 +766,6 @@ class App {
 
         if (needsRerender || updateFilters || justInitialized) {
             this.updateMenuFilters(input);
-            $("#ex12c").slider({ id: "slider12c", min: 1960, max: 2024, range: true, value: [1960, 2024] });
             this.updateGraphOptions();
             this.model.needsRerender[page][tab] = false;
         }
