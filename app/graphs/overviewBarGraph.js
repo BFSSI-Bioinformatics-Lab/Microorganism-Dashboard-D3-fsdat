@@ -10,18 +10,20 @@ export class OverviewBarGraph {
     // getPercentageData(data): Converts the data to be used for the percentage view of the graph
     getPercentageData(data) {
         for (const row of data) {
-            const numOfSamples = row[SummaryAtts.Samples];
+            const numOfSamples = row[SummaryAtts.Samples] - row[SummaryAtts.NotTested];
             row[SummaryAtts.Detected] = NumberTools.toPercent(row[SummaryAtts.Detected], numOfSamples);
             row[SummaryAtts.NotDetected] = NumberTools.toPercent(row[SummaryAtts.NotDetected], numOfSamples);
-            row[SummaryAtts.NotTested] = NumberTools.toPercent(row[SummaryAtts.NotTested], numOfSamples);
         }
 
         return data;
     }
 
-    getGroupedData(data) {
+    getGroupedData(data, numberView) {
         const result = [];
-        const sampleStates = new Set([SummaryAtts.Detected, SummaryAtts.NotDetected, SummaryAtts.NotTested]);
+        const sampleStates = new Set([SummaryAtts.Detected, SummaryAtts.NotDetected]);
+        if (numberView == NumberView.Number) {
+            sampleStates.add(SummaryAtts.NotTested);
+        }
 
         for (const state of sampleStates) {
             const keysToRemove = SetTools.difference([sampleStates, new Set([state])], true);
@@ -164,17 +166,6 @@ export class OverviewBarGraph {
 
         // bars in the graph
         this.bars = this.svg.append("g");
-
-        // colours for the legend
-        const legendStates = [SampleState.Detected, SampleState.NotDetected, SampleState.NotTested];
-        const legendColours = {};
-        for (const state of legendStates) {
-            legendColours[Translation.translate(`qualitativeResults.${state}`)] = SampleStateColours[state];
-        }
-
-        // draw the legend
-        const legendX = Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth + Dims.overviewBarGraph.LegendLeftMargin;
-        this.drawLegend(legendColours, legendX);
     }
 
     // reference: https://observablehq.com/@d3/stacked-horizontal-bar-chart/2
@@ -198,11 +189,14 @@ export class OverviewBarGraph {
             data = this.getPercentageData(data, numberView);
         }
 
-        data = this.getGroupedData(data);
+        data = this.getGroupedData(data, numberView);
 
         // Determine the series that need to be stacked.
         let seriesKeys = new Set(SampleStateOrder);
         seriesKeys.delete(SampleState.InConclusive);
+        if (numberView == NumberView.Percentage) {
+            seriesKeys.delete(SampleState.NotTested);
+        }
 
         const series = d3.stack()
         .keys(seriesKeys) // distinct series keys, in input order
@@ -304,6 +298,21 @@ export class OverviewBarGraph {
             .attr("width", d => this.xAxisScale(d[1]) - this.xAxisScale(d[0]))
             .append("title")
             .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key)[SummaryAtts.StateVal]}`);
+
+        // colours for the legend
+        const legendStates = [SampleState.Detected, SampleState.NotDetected];
+        if (numberView == NumberView.Number) {
+            legendStates.push(SampleState.NotTested);
+        }
+
+        const legendColours = {};
+        for (const state of legendStates) {
+            legendColours[Translation.translate(`qualitativeResults.${state}`)] = SampleStateColours[state];
+        }
+
+        // draw the legend
+        const legendX = Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth + Dims.overviewBarGraph.LegendLeftMargin;
+        this.drawLegend(legendColours, legendX);
 
         // Return the chart with the color scale as a property (for the legend).
         return Object.assign(this.svg.node(), {scales: {color}});
