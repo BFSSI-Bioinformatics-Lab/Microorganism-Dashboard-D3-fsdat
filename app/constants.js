@@ -664,10 +664,10 @@ const denomGenusesFR = [[allMicroorganismsFR, "Bacteria", "Vibrio"].join(Phyloge
 // Different options for the qualitative results
 // Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
 const QualitaiveResultsFR = {};
-QualitaiveResultsFR[SampleState.Detected] = REMPLACER_MOI;
-QualitaiveResultsFR[SampleState.NotDetected] = REMPLACER_MOI;
-QualitaiveResultsFR[SampleState.NotTested] = REMPLACER_MOI;
-QualitaiveResultsFR[SampleState.InConclusive] = REMPLACER_MOI;
+QualitaiveResultsFR[SampleState.Detected] = "detected";
+QualitaiveResultsFR[SampleState.NotDetected] = "not detected";
+QualitaiveResultsFR[SampleState.NotTested] = "not tested";
+QualitaiveResultsFR[SampleState.InConclusive] = "inconclusive";
 
 // labels for the x-axis of the overview bar graph
 const overviewBarGraphXAxisFR = {};
