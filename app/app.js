@@ -579,8 +579,8 @@ class App {
 
     // updateGraphOptions(): Updates the options for the graph
     updateGraphOptions() {
-        const selections = this.model.getSelection();
-        const inputs = this.model.getInputs();
+        let selections = this.model.getSelection();
+        let inputs = this.model.getInputs();
 
         // number/percentage view
         if (inputs[Inputs.NumberView] !== undefined) {
@@ -605,6 +605,9 @@ class App {
             
             this.updateRangeSlider({selectId: Inputs.Year, selection: selectionRange, input: inputRange,
                                     onChange: (sliderValue) => {
+                                        inputs = this.model.getInputs();
+                                        selections = this.model.getSelection();
+
                                         const selectionYear = DateTimeTools.rangeToDate(selections[Inputs.Year], ModelTimeZone, true);
                                         const inputYear = inputs[Inputs.Year];
 
