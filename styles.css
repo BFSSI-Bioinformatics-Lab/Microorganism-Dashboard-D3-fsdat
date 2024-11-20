@@ -33,6 +33,7 @@
     --onPrimary: #ffffff;
     --primaryBorderColour: #7D828B;
     --primaryHover: #444444;
+    --onPrimaryHover: #ffffff;
     --secondary: #335075;
     --onSecondary: #ffffff;
     --secondaryHover: #753350;
@@ -81,11 +82,11 @@ body {
 /* For small phone screeens */
 @media screen and (max-width: 600px) {
     body { 
-        font-size: calc(0.7em + 1vw) !important; 
+        font-size: calc(0.65em + 1vw) !important; 
     }
 
     main {
-        font-size: calc(0.8em + 1vw) !important;
+        font-size: calc(0.65em + 1vw) !important;
     }
     
     h1 {
@@ -101,7 +102,15 @@ body {
     }
 
     .btn {
-        font-size: calc(0.6em + 1vw) !important;
+        font-size: calc(0.7em + 1vw) !important;
+    }
+
+    .btn .svgIconPath {
+        max-height: calc(0.8em + 1vw) !important;
+    }
+
+    .accordion-button {
+        font-size: calc(0.5em + 1vw) !important; ;
     }
 }
 
@@ -112,6 +121,35 @@ body {
     color: var(--link);
 }
 
+/* =========== Buttons ================================ */
+
+.btn-primary {
+    --bs-btn-color: var(--onPrimary);
+    --bs-btn-bg: var(--primary);
+    --bs-btn-border-color: var(--primaryBorderColour);
+    --bs-btn-hover-color: var(--primaryHover);
+    --bs-btn-hover-bg: var(--onPrimaryHover);
+    --bs-btn-hover-border-color: var(--primaryBorderColour);
+    --bs-btn-active-color: var(--onPrimaryHover);
+    --bs-btn-active-bg: var(--primaryHover);
+    --bs-btn-active-border-color: var(--primaryBorderColour);
+    --bs-btn-disabled-color: var(--onPrimary);
+    --bs-btn-disabled-bg: var(--primary);
+    --bs-btn-disabled-border-color: var(--primaryBorderColour);
+}
+
+/* ==================================================== */
+/* =========== SVG Icons ============================== */
+
+.svgIconPath {
+    fill: var(--onPrimary);
+}
+
+.btn:hover .svgIconPath {
+    fill: var(--primaryHover);
+}
+
+/* ==================================================== */
 /* =========== Collapsibles/Accordions================= */
 .accordion {
     --bs-accordion-color: var(--fontColour);
@@ -471,6 +509,10 @@ body {
     border-radius: var(--smBorderRadius);
 }
 
+.tableContainer .dataTable, .tableContainer .dt-scroll-headInner {
+    width: 100% !important;
+}
+
 /* ----- sort icons ----- */
 
 /* Previously displayed two separate icons, hide first one */
@@ -796,9 +838,22 @@ body {
 
 .visualContainer {
     min-height: 70vh;
+    width: 60vw;
+}
+
+/* For small phone screeens */
+@media screen and (max-width: 992px) {
+    .visualContainer {
+        width: 100vw;
+    }
 }
 
 /* =========== Menu for the graphs =================== */
+
+#menuCollapseBtnIcon {
+    max-height: 1.5em;
+    width: auto;
+}
 
 .menuNav {
     border: 1px solid var(--primaryBorderColour);
@@ -818,9 +873,31 @@ body {
 
 /* ****** Menu Tabs ****** */
 
+.mainMenuContainerCollapse {
+    width: 30vw;
+}
+
 .mainMenuContainer .nav-tabs {
     border-bottom: none;
 }
+
+.mainMenuContainer {
+    width: 100%;
+}
+
+@media screen and (min-width: 1200px) {
+    .mainMenuContainerCollapse {
+        max-width: 500px;
+    }
+}
+
+/* For smaller screens */
+@media screen and (max-width: 1200px) {
+    .mainMenuContainerCollapse {
+        width: 100vw;
+    }
+}
+
 
 .mainMenuContainer .nav-link {
     color: var(--secondary) !important;
@@ -848,6 +925,14 @@ body {
 /* container for all the graphs */
 .graphContainer {
     min-height: 50vh;
+}
+
+/* SVG of the graph */
+.svgGraph {
+    max-width: 100%;
+    height: auto;
+    display: flex;
+    margin: auto;
 }
 
 /* =================================================== */

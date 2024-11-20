@@ -116,7 +116,7 @@ export class OverviewBarGraph {
             .attr("width", this.width)
             .attr("height", this.height)
             .attr("viewBox", [0, 0, this.width, this.height])
-            .attr("style", "max-width: 100%; height: auto;");
+            .classed("svgGraph", true);
 
         // create the background for the graph
         this.svg.append("rect")
