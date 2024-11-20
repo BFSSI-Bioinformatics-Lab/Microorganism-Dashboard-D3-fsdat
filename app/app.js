@@ -348,12 +348,13 @@ class App {
             });
         });
 
-        // translate the labels in the filters
+        // translate labels/titles
         const labelTranslations = {
             "#foodGroupLabel": "foodGroupLabel",
             "#foodLabel": "foodLabel",
             "#microorganismLabel": "microorganismLabel",
-            "#showResultAsLabel": "showResultAsLabel"
+            "#showResultAsLabel": "showResultAsLabel",
+            "#tableTitle": "tableTitle"
         };
 
         for (const selector in labelTranslations) {
@@ -734,7 +735,15 @@ class App {
     // Note:
     // - based off Jquery's Datatables: https://datatables.net/
     updateTable(selector, columnInfo, data) {
-        let dataTable = DataTable.isDataTable(selector) ? $(selector).DataTable() : $(selector).DataTable({
+        let dataTable;
+        if (DataTable.isDataTable(selector)) {
+            dataTable = $(selector).DataTable();
+            dataTable.destroy();
+        }
+
+        const dataTableTranslations = Translation.translate("dataTable", { returnObjects: true });
+        dataTable = $(selector).DataTable({
+            language: dataTableTranslations,
             columns: columnInfo,
             scrollCollapse: true,
             scrollX: true,

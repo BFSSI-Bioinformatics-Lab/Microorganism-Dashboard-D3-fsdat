@@ -110,7 +110,7 @@ body {
     }
 
     .accordion-button {
-        font-size: calc(0.5em + 1vw) !important; ;
+        font-size: calc(0.5em + 1vw) !important;
     }
 }
 
@@ -136,6 +136,7 @@ body {
     --bs-btn-disabled-color: var(--onPrimary);
     --bs-btn-disabled-bg: var(--primary);
     --bs-btn-disabled-border-color: var(--primaryBorderColour);
+    transition: var(--defaultTransition);
 }
 
 /* ==================================================== */
@@ -578,6 +579,7 @@ body {
 .dataTable th {
     background-color: var(--primary) !important;
     color: var(--onPrimary);
+    text-align: center !important;
 }
 
 
@@ -591,6 +593,7 @@ body {
 
 .dataTable td {
     color: var(--fontColour);
+    text-align: center !important;
 }
 
 .dataTable tr:nth-child(even) td {
@@ -645,9 +648,15 @@ body {
 
 /* ===== Menu options on the navigation bar ===== */
 
+.navbar-nav {
+    --bs-nav-link-color: var(--onPrimary);
+    --bs-nav-link-hover-color: var(--primaryHover);
+}
+
 .navBarContainer .nav-link {
-    color: var(--onPrimary);
     padding: 1px !important;
+    --bs-link-color-rgb: var(--primary);
+    transition: var(--defaultTransition);
 }
 
 .navBarContainer .nav-link.active {
@@ -672,24 +681,22 @@ body {
 /* hovering on the navigation bar option */
 .navBarContainer .nav-link:hover,  .navBarContainer .nav-link.active:hover {
     background-color: var(--onPrimary) !important;
-    color: var(--primaryHover) !important;
     border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
     border-top: 1px solid var(--onPrimary);
+}
+
+.navBarContainer .nav-link div, .navBarContainer .nav-link.active div {
     transition: var(--defaultTransition);
 }
 
 .navBarContainer .nav-link:hover div, .navBarContainer .nav-link.active:hover div {
     border-color: var(--onPrimary);
-    transition: var(--defaultTransition);
+    color: var(--primaryHover);
 }
 
 /* clicking on the navigation bar option */
 .navBarContainer .nav-link:active div {
     border-color: var(--primary);
-}
-
-.navBarContainer .nav-link:visited, .navBarContainer .nav-link.active:visited {
-    color: var(--onPrimary) !important;
 }
 
 /* ============================================== */
