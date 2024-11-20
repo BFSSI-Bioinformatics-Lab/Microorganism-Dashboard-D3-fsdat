@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone} from "./constants.js"
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons} from "./constants.js"
 import { Translation, DateTimeTools } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
@@ -23,6 +23,10 @@ class App {
         this.model = model;
         this.lang = DefaultLanguage;
         this.theme = DefaultTheme;
+
+        this.menuCollapsed = {};
+        this.menuCollapsed[Pages.Overview] = false;
+        this.menuCollapsed[Pages.TrendsOverTime] = false;
     }
 
     // init(): Initializes the entire app
@@ -305,8 +309,34 @@ class App {
         return result;
     }
 
-    // updateMenuFilterNames(): Updates the names for the filters
-    updateMenuFilterNames() {
+    // updateMenuCollapse(btn): Updates the menu collapse
+    updateMenuCollapse(btn) {
+        const menuCollapsed = this.menuCollapsed[this.model.pageName];
+        if (menuCollapsed === undefined) return;
+
+        const btnText = Translation.translate(menuCollapsed ? "showMenu" : "hideMenu");
+        const btnIcon = SVGIcons[menuCollapsed ? "EyeClosed" : "EyeOpen"]; 
+
+        btn.select("span").text(btnText);
+        btn.select("svg").html(btnIcon);
+        btn.classed("collapsed", menuCollapsed);
+
+        // set whether the menu is shown/collapsed
+        this.page.select(".mainMenuContainerCollapse").classed("show", !menuCollapsed);
+
+        btn.on("click", (event) => {
+            this.menuCollapsed[this.model.pageName] = !this.menuCollapsed[this.model.pageName];
+            btn = this.page.select("#menuCollapseBtn");
+            this.updateMenuCollapse(btn);
+        });
+    }
+
+    // updateMenuNames(): Updates the names within the menu
+    updateMenuNames() {
+        const menuCollapseBtn = this.page.select("#menuCollapseBtn");
+        this.updateMenuCollapse(menuCollapseBtn);
+
+        // translate names of the filters
         this.page.selectAll(".menuTab").each((tabData, tabInd, tabElements) => {
             const tab = d3.select(tabElements[tabInd]);
             const tabValue = tab.attr("value");
@@ -755,7 +785,7 @@ class App {
 
     // updateTab(input): Updates visuals on a certain tab
     updateTab({input = null, updateFilters = true} = {}) {
-        this.updateMenuFilterNames();
+        this.updateMenuNames();
         const page = this.model.pageName;
         const tab = this.model.activeTabs[page];
 
@@ -789,7 +819,7 @@ class App {
             return Translation.translate(`TrendsOverTimeTabs.${tabValue}`);
         });
 
-        this.updateMenuFilterNames();
+        this.updateMenuNames();
 
         /* ------------------------------------------------ */
 
@@ -808,7 +838,7 @@ class App {
             return Translation.translate(`OverviewTabs.${tabValue}`);
         });
 
-        this.updateMenuFilterNames();
+        this.updateMenuNames();
 
         /* ------------------------------------------------ */
 
