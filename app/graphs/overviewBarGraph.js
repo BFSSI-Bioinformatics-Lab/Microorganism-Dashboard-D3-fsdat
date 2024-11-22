@@ -2,9 +2,10 @@ import {  SummaryAtts, SampleStateColours, SampleStateOrder, Dims, SampleState, 
 import { SetTools, Translation, Visuals, NumberTools } from "../tools.js";
 
 export class OverviewBarGraph {
-    constructor(model) {
+    constructor(model, summaryAtt) {
         this.model = model;
         this.isDrawn = false;
+        this.summaryAtt = summaryAtt;
     }
 
     // getPercentageData(data): Converts the data to be used for the percentage view of the graph
@@ -201,7 +202,8 @@ export class OverviewBarGraph {
         const series = d3.stack()
         .keys(seriesKeys) // distinct series keys, in input order
         .value(([, D], key) => D.get(key)[SummaryAtts.StateVal]) // get value for each series key and stack
-        (d3.index(data, d => d[SummaryAtts.FoodName], d => d[SummaryAtts.State])); // group by stack then series key
+        (d3.index(data, d => d[this.summaryAtt], d => d[SummaryAtts.State])); // group by stack then series key
+
 
         // Compute the height from the number of stacks.
         this.height = series[0].length * Dims.overviewBarGraph.BarHeight + Dims.overviewBarGraph.GraphTop + Dims.overviewBarGraph.GraphBottom;
@@ -240,8 +242,8 @@ export class OverviewBarGraph {
                 return 1;
             }
 
-            const name1 = group1[0][SummaryAtts.FoodName];
-            const name2 = group2[0][SummaryAtts.FoodName];
+            const name1 = group1[0][this.summaryAtt];
+            const name2 = group2[0][this.summaryAtt];
             if (name1 > name2) {
                 return 1;
             } else if (name1 < name2) {
@@ -249,7 +251,7 @@ export class OverviewBarGraph {
             }
 
             return 0;
-        }, d => d[SummaryAtts.FoodName]));
+        }, d => d[this.summaryAtt]));
 
         this.yAxisLine
             .call(d3.axisLeft(this.yAxisScale).tickSizeOuter(0))
@@ -258,7 +260,7 @@ export class OverviewBarGraph {
         // draw the wrapped text for the food names
         this.yAxisLine.selectAll(".tick text").each((data, ind, textElements) => {
             const textGroup = d3.select(textElements[ind]);
-            const textWidth = Dims.overviewBarGraph.FoodNameWidth;
+            const textWidth = Dims.overviewBarGraph.YAxisTickNameWidth;
             textGroup.text("").attr("dy", null);
 
             let textY = -Dims.overviewBarGraph.TickFontSize * 3 / 4;
@@ -279,9 +281,9 @@ export class OverviewBarGraph {
             .unknown("var(--unknown)");
 
         // text for the heading and axis labels
-        this.heading.text(Translation.translate("overviewByMicroorganism.graphTitle"));
-        this.xAxisLabel.text(Translation.translate(`overviewByMicroorganism.xAxis.${numberView}`));
-        this.yAxisLabel.text(Translation.translate("overviewByMicroorganism.yAxis"));
+        this.heading.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.graphTitle`));
+        this.xAxisLabel.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.xAxis.${numberView}`));
+        this.yAxisLabel.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.yAxis`));
 
         // Append a group for each series, and a rect for each element in the series.
         this.bars.append("g")
