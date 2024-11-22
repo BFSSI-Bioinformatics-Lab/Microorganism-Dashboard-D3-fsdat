@@ -1,30 +1,92 @@
+/*********************************************************************
+ *                                                                   *
+ * Purpose: Defines the styles for the app                           *
+ *                                                                   *
+ * What it Contains:                                                 *
+ *      - variables for colour themes                                *
+ *      - styling for the header and footer                          *
+ *      - styling for the main page                                  *
+ *********************************************************************/
+
+
 :root {
-    /* colour theme */
+    /** colour theme **
+
+    Note: 
+      - The colours below are just placeholders, see app/constants.js for the actual colours
+      - The colours are based off Android's Material colour theme:
+         https://m2.material.io/develop/android/theming/color
+         https://m2.material.io/design/color/the-color-system.html
+
+    *******************/
     --fontColour: #333333;
+    --background: #ffffff;
+    --surface: #ffffff;
+    --secondarySurface: #fbfcf8;
+    --error: #ff0000;
+    --onBackground: #000000;
+    --onSurface: #000000;
+    --onSecondarySurface: #000000;
+    --onError: #ffffff;
     --primary: #26374a;
-    --primaryBg: #ffffff;
+    --primaryVariant: #3B4B5C;
+    --onPrimary: #ffffff;
+    --primaryBorderColour: #7D828B;
     --primaryHover: #444444;
+    --onPrimaryHover: #ffffff;
     --secondary: #335075;
-    --secondaryBg: #cfd1d5;
-    --tertiary: #af3c43;
+    --onSecondary: #ffffff;
+    --secondaryHover: #753350;
+    --onSecondaryHover: #d8dadd;
+    --secondaryBorderColour: #bbbfc5;
+    --tertiary: #d7faff;
+    --tertiaryBorderColour: #269abc;
+    --onTertiary: #333333;
     --link: #284162;
     --headerTitleColor: #000000;
+    
+    --detected: #C5705D;
+    --notDetected: #41B3A2;
+    --notTested: #cc9900;
+    --unknown: #cccccc;
 
     --smBorderRadius: 5px;
     --borderRadius: 10px;
 
-    --navTransition: all 0.75s ease-in-out;
+    --fastTransition: all 0.25s ease-in-out;
+    --medTransition: all 0.5s ease-in-out;
+    --slowTransition: all 0.75s ease-in-out;
+    --defaultTransition: var(--medTransition);
+
+    /* ----- Header ----- */
+    --headerTitleWidth: 3px;
+    --navBarBorderWidth: 1px;
+    --headerNavItemHorPadding: 20px;
+    --headerNavItemVertPadding: 15px;
+
+    /* ----- Footer ----- */
+    --footerLandscapeMinHeight: 200px;
+    --footerLogoMinHeight: 100px;
+}
+
+body {
+    font-family: "Noto Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "wdth" 100;
+    background-color: var(--background);
+    color: var(--fontColour);
 }
 
 
 /* For small phone screeens */
 @media screen and (max-width: 600px) {
     body { 
-        font-size: calc(0.8em + 1vw) !important; 
+        font-size: calc(0.65em + 1vw) !important; 
     }
 
     main {
-        font-size: calc(0.8em + 1vw) !important;
+        font-size: calc(0.65em + 1vw) !important;
     }
     
     h1 {
@@ -40,43 +102,846 @@
     }
 
     .btn {
-        font-size: calc(0.6em + 1vw) !important;
-        margin: 3px 0;
+        font-size: calc(0.7em + 1vw) !important;
+    }
+
+    .btn .svgIconPath {
+        max-height: calc(0.8em + 1vw) !important;
+    }
+
+    .accordion-button {
+        font-size: calc(0.5em + 1vw) !important;
     }
 }
 
-
-body {
-    font-family: "Noto Sans", sans-serif;
-    font-optical-sizing: auto;
-    font-style: normal;
-    font-variation-settings: "wdth" 100;
-
-    color: var(--fontColour);
-}
+/* ################ GENERAL STYLES ########################## */
 
 /* URL Links in the site*/
 .link {
     color: var(--link);
 }
 
+/* =========== Buttons ================================ */
+
+.btn-primary {
+    --bs-btn-color: var(--onPrimary);
+    --bs-btn-bg: var(--primary);
+    --bs-btn-border-color: var(--primaryBorderColour);
+    --bs-btn-hover-color: var(--primaryHover);
+    --bs-btn-hover-bg: var(--onPrimaryHover);
+    --bs-btn-hover-border-color: var(--primaryBorderColour);
+    --bs-btn-active-color: var(--onPrimaryHover);
+    --bs-btn-active-bg: var(--primaryHover);
+    --bs-btn-active-border-color: var(--primaryBorderColour);
+    --bs-btn-disabled-color: var(--onPrimary);
+    --bs-btn-disabled-bg: var(--primary);
+    --bs-btn-disabled-border-color: var(--primaryBorderColour);
+    transition: var(--defaultTransition);
+}
+
+/* ==================================================== */
+/* =========== SVG Icons ============================== */
+
+.svgIconPath {
+    fill: var(--onPrimary);
+}
+
+.btn:hover .svgIconPath {
+    fill: var(--primaryHover);
+}
+
+/* ==================================================== */
+/* =========== Collapsibles/Accordions================= */
+.accordion {
+    --bs-accordion-color: var(--fontColour);
+    --bs-accordion-bg: var(--secondarySurface);
+    --bs-accordion-btn-color: var(--secondary);
+    --bs-accordion-btn-bg: var(--surface);
+    --bs-accordion-active-color: var(--secondary);
+    --bs-accordion-border-color: var(--secondaryBorderColour);
+    --bs-accordion-active-bg: var(--surface);
+    --bs-accordion-btn-icon: none;
+    --bs-accordion-btn-active-icon: none;
+    --bs-accordion-btn-focus-box-shadow: none;
+}
+
+.accordion-button {
+    transition: var(--defaultTransition);
+}
+
+.accordion-button:hover {
+    color: var(--secondaryHover);
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.accordionIcon {
+    position: absolute;
+    right: 15px;
+    transition: var(--fastTransition);
+}
+
+.accordion-button:not(.collapsed):focus {
+    border-bottom: 1px var(--secondaryBorderColour) solid;
+}
+
+.accordion-button:not(.collapsed) .accordionIcon {
+    transform: rotate(-180deg);
+}
+
+/* =================================================== */
+/* =========== Dropdowns on the app ================== */
+
+.dropdown-menu {
+    background-color: var(--background);
+    color: var(--onPrimary);
+    border-color: var(--primaryBorderColour);
+}
+
+.dropdown-item {
+    color: var(--fontColour);
+}
+
+.dropdown-item.active {
+    background-color: var(--primary);
+}
+
+.dropdown-item:focus, .dropdown-item:active {
+    background-color: var(--primaryHover);
+}
+
+.dropdown-item:hover {
+    background-color: var(--primaryHover);
+    color: var(--onPrimary);
+}
+
+/* =================================================== */
+/* ======== Radio Buttons/ CheckBoxes ================ */
+
+/* Reference: https://www.w3schools.com/howto/howto_css_custom_checkbox.asp */
+
+/* The container */
+.radioContainer, .checkBoxContainer {
+    display: block;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    margin-right: 15px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.radioContainer input, .checkBoxContainer input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Create a custom radio button */
+.radioIcon, .checkmarkIcon {
+    position: absolute;
+    top: calc(var(--bs-body-font-size) / 4);
+    left: 0;
+    height: 1em;
+    width: 1em;
+    background-color: var(--background);
+    border: 1px solid var(--primaryBorderColour);
+    transition: var(--fastTransition);
+}
+
+.radioIcon {
+    border-radius: 50%;
+}
+
+.checkmarkIcon {
+    border-radius: 0.2em;
+}
+
+/* On mouse-over, add a grey background color */
+.radioContainer:hover input ~ .radioIcon, .checkBoxContainer:hover input ~ .checkmarkIcon {
+    background-color: var(--secondaryHover);
+}
+
+/* When the radio button is checked, add a blue background */
+.radioContainer input:checked ~ .radioIcon, .checkBoxContainer input:checked ~ .checkmarkIcon {
+    background-color: var(--secondary);
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.radioIcon:after, .checkmarkIcon:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.radioContainer input:checked ~ .radioIcon:after, .checkBoxContainer input:checked ~ .checkmarkIcon:after {
+    display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.radioContainer .radioIcon:after {
+    top: 0.2em;
+    left: 0.2em;
+    width: 0.5em;
+    height: 0.5em;
+    border-radius: 50%;
+    background: var(--onSecondary);
+}
+
+/* Style the checkmark/indicator */
+.checkBoxContainer .checkmarkIcon:after {
+    left: 0.25em;
+    top: 0;
+    width: 0.4em;
+    height: 0.8em;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+
+/* =================================================== */
+/* ======== Text Input =============================== */
+
+.form-control {
+    background-color: var(--background);
+    color: var(--fontColour);
+    transition: var(--fastTransition);
+}
+
+.form-control:focus {
+    background-color: var(--background);
+    box-shadow: 0 0 0 .25rem var(--secondary);
+    color: var(--fontColour);
+}
+
+/* ======== Multiselect ============================== */
+
+.bootstrap-select > .dropdown-toggle.bs-placeholder {
+    color: var(--secondary);
+    background-color: var(--surface);
+    transition: var(--defaultTransition);
+}
+
+.bootstrap-select > .dropdown-toggle.bs-placeholder:hover {
+    color: var(--secondaryHover);
+}
+
+.btn-light {
+    --bs-btn-bg: var(--onSecondary);
+    --bs-btn-color: var(--secondary);
+    --bs-btn-border-color: var(--secondaryBorderColour);
+    --bs-btn-active-bg: var(--surface);
+    --bs-btn-hover-color: var(--secondaryHover);
+    --bs-btn-hover-bg: var(--onSecondaryHover);
+}
+
+.btn.show {
+    color: var(--secondaryHover);
+}
+
+.bootstrap-select .form-control {
+    margin-bottom: 15px;
+}
+
+.bootstrap-select .no-results {
+    background-color: var(--surface);
+    color: var(--error);
+}
+
+/* =================================================== */
+/* ======== Tree Select ============================== */
+
+.node-tree {
+    transition: var(--fastTransition);
+}
+
+.node-tree:not(.node-disabled):hover {
+    color: var(--onPrimaryHover);
+}
+
+.treeview li {
+    transition: var(--fastTransition);
+}
+
+.treeview li:hover {
+    color: var(--onPrimaryHover);
+}
+
+.treeview .badge {
+    color: var(--onPrimary);
+    background-color: var(--primary);
+    float: right;
+}
+
+.treeview li:hover .badge, .treeview .node-selected .badge {
+    color: var(--primary);
+    background-color: var(--onPrimary);
+}
+
+/* =================================================== */
+/* ======== Tooltip ================================== */
+
+.tooltip.show {
+    --bs-tooltip-opacity: 1;
+}
+
+.tooltip-inner {
+    z-index: 1;
+    background: var(--tertiary);
+    border-color: var(--tertiaryBorderColour);
+    border-width: 1px 1px 1px 5px;
+    border-style: solid;
+    color: var(--onTertiary)
+}
+
+.tooltip .arrow {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    rotate: 45deg;
+    background: var(--tertiary);
+    left: -5px;
+    bottom: -5px;
+    z-index: 2;
+    border-style: solid;
+    border-color: var(--tertiaryBorderColour);
+}
+
+.tooltip.bs-tooltip-top .arrow {
+    bottom: -5px;
+    border-width: 0 1px 1px 0;
+}
+
+.tooltip.bs-tooltip-bottom .arrow {
+    top: -5px;
+    border-width: 1px 0 0 1px;
+}
+
+
+/* =================================================== */
+/* ======== Slider =================================== */
+
+.sliderContainer {
+    padding: 10px 0;
+}
+
+.slider.slider-horizontal .slider-track {
+    height: 7px;
+    border: 1px var(--primaryBorderColour) solid;
+}
+
+.slider-handle.round {
+    border-radius: 50%;
+}
+
+.slider .slider-selection {
+    background: var(--primaryVariant);
+}
+
+.slider .slider-track-low, .slider .slider-track-high {
+    background: var(--surface);
+}
+
+.slider-handle {
+    background: var(--primary);
+    width: 15px;
+    height: 15px;
+}
+
+.slider .tooltip {
+    position: absolute;
+    width: 75px;
+    opacity: 1;
+}
+
+.slider .tooltip-inner {
+    padding: 2px;
+}
+
+.slider .tooltip.bs-tooltip-top {
+    margin-top: -30px;
+}
+
+/* don't show the main tooltip */
+.rangeSlider .tooltip-main {
+    display: none !important;
+    opacity: 0;
+}
+
+.rangeSlider .tooltip-min, .rangeSlider .tooltip-max {
+    display: block !important;
+    opacity: 1;
+}
+
+
+/* =================================================== */
+/* ======== Pagination =============================== */
+
+.pagination {
+    --bs-pagination-color: var(--primary);
+    --bs-pagination-bg: var(--onPrimary);
+    --bs-pagination-border-color: var(--primaryBorderColour);
+    --bs-pagination-hover-color: var(--onPrimaryHover);
+    --bs-pagination-hover-bg: var(--primary);
+    --bs-pagination-hover-border-color: var(--onPrimaryHover);
+    --bs-pagination-active-bg: var(--primaryHover);
+    --bs-pagination-active-color: var(--onPrimaryHover);
+    --bs-pagination-active-border-color: var(--onPrimaryHover);
+    --bs-pagination-focus-color: var(--primaryHover);
+    --bs-pagination-focus-bg: var(--onPrimaryHover);
+    --bs-pagination-disabled-bg: var(--secondaryBg);
+    --bs-pagination-disabled-border-color: var(--secondaryBorderColour);
+    --bs-pagination-disabled-color: var(--secondary);
+}
+
+/* =================================================== */
+/* ======== Datatables =============================== */
+
+.tableContainer {
+    background-color: var(--surface);
+    padding: 10px;
+    border-radius: var(--smBorderRadius);
+}
+
+.tableContainer .dataTable, .tableContainer .dt-scroll-headInner {
+    width: 100% !important;
+}
+
+/* ----- sort icons ----- */
+
+/* Previously displayed two separate icons, hide first one */
+.dt-column-order {
+    top: 0.18em !important;
+    font-family: 'Font Awesome 6 Free' !important;
+    font-size: 1.3em !important;
+}
+ 
+.dt-column-order:before, .dt-column-order:after {
+    content: "" !important;
+}
+
+
+/* font-family and font-weight needed for Font Awesome icons to display by CSS */
+.dt-column-order::before {
+    font-family: 'Font Awesome\ 5 Free';
+    font-weight: 900;
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+ 
+/* Only display in after */
+.dt-orderable-asc .dt-column-order::before
+{
+    /*right:    0 !important;*/
+    content: "\f0dc" !important;
+    color: var(--onPrimary) !important;
+    opacity: 1 !important;
+    top: unset !important;
+    bottom: 0.3em !important;
+    line-height: unset !important;
+    padding-left: 5px;
+}
+
+/* sort ascending */
+.dt-ordering-asc span.dt-column-order::before {
+    content: "\f161" !important;
+    color: var(--onPrimary) !important;
+    opacity: 1 !important;
+    top: unset !important;
+    bottom: 0.3em !important;
+    line-height: unset !important; /* DataTable 1.12 set to 9px */
+    padding-left: inherit;
+}
+
+/* sort descending */
+.dt-ordering-desc span.dt-column-order::before {
+    content: "\f160" !important;
+    color: var(--onPrimary) !important;
+    opacity: 1 !important;
+    top: unset !important;
+    bottom: 0.3em !important;
+    line-height: unset !important; /* DataTable 1.12 set to 9px */
+    padding-left: inherit;
+}
+
+/* ---------------------- */
+
+.dataTable th {
+    background-color: var(--primary) !important;
+    color: var(--onPrimary);
+    text-align: center !important;
+}
+
+
+.dataTable th:first-child {
+    border-radius: var(--smBorderRadius) 0 0 0;
+}
+
+.dataTable th:last-child {
+    border-radius: 0 var(--smBorderRadius) 0 0;
+}
+
+.dataTable td {
+    color: var(--fontColour);
+    text-align: center !important;
+}
+
+.dataTable tr:nth-child(even) td {
+    background-color: var(--secondarySurface) !important;
+    opacity: 0.95;
+}
+
+.dataTable tr:nth-child(odd) td {
+    background-color: var(--surface) !important;
+    opacity: 0.95;
+    box-shadow: none !important;
+}
+
+/* =================================================== */
+
+/* ########################################################## */
+/* ################### HEADER ############################### */
+
+.headerTitleSection {
+    background-color: var(--background);
+    border-bottom: var(--headerTitleWidth) solid var(--primary);
+    padding: 15px 0 20px 0;
+}
+
+.headerOption {
+    float: right;
+}
+
+.headerTitle {
+    text-decoration: none;
+    color: var(--headerTitleColor);
+}
+
+.navBarContainer {
+    margin-top: calc(-1 * var(--headerTitleWidth) + 0.5px);
+}
+
+.navBarContainer .navbar {
+    background-color: var(--primary);
+    padding-top: 0;
+    padding-bottom: 0;
+    border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
+    border-bottom: var(--navBarBorderWidth) solid var(--primary);
+    border-left: var(--navBarBorderWidth) solid var(--primary);
+    border-right: var(--navBarBorderWidth) solid var(--primary);
+}
+
+.container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* ===== Menu options on the navigation bar ===== */
+
+.navbar-nav {
+    --bs-nav-link-color: var(--onPrimary);
+    --bs-nav-link-hover-color: var(--primaryHover);
+}
+
+.navBarContainer .nav-link {
+    padding: 1px !important;
+    --bs-link-color-rgb: var(--primary);
+    transition: var(--defaultTransition);
+}
+
+.navBarContainer .nav-link.active {
+    background-color: var(--primaryHover) !important;
+    color: var(--onPrimary) !important;
+    border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
+}
+
+.navBarContainer .nav-link div {
+    padding-top: var(--headerNavItemVertPadding);
+    padding-bottom: var(--headerNavItemVertPadding);
+    padding-left: var(--headerNavItemHorPadding) !important;
+    padding-right: var(--headerNavItemHorPadding) !important;
+    border: 1px solid var(--primary);
+    border-radius: var(--smBorderRadius);
+}
+
+.navBarContainer .nav-link.active div {
+    border-color: var(--primaryHover);
+}
+
+/* hovering on the navigation bar option */
+.navBarContainer .nav-link:hover,  .navBarContainer .nav-link.active:hover {
+    background-color: var(--onPrimary) !important;
+    border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
+    border-top: 1px solid var(--onPrimary);
+}
+
+.navBarContainer .nav-link div, .navBarContainer .nav-link.active div {
+    transition: var(--defaultTransition);
+}
+
+.navBarContainer .nav-link:hover div, .navBarContainer .nav-link.active:hover div {
+    border-color: var(--onPrimary);
+    color: var(--primaryHover);
+}
+
+/* clicking on the navigation bar option */
+.navBarContainer .nav-link:active div {
+    border-color: var(--primary);
+}
+
+/* ============================================== */
+/* ===== Menu icon for mobile phones ============ */
+
+.navBarContainer .navbar-toggler {
+    padding-top: var(--headerNavItemVertPadding);
+    padding-bottom: var(--headerNavItemVertPadding);
+    padding-left: var(--headerNavItemHorPadding) !important;
+    padding-right: var(--headerNavItemHorPadding) !important;
+    border-color: var(--primary);
+}
+
+/* the 3 lines on the icon */
+.mobileMenuLine {
+    height: 3px;
+    width: 30px;
+    margin: 4px;
+    border-radius: var(--smBorderRadius);
+    background-color: var(--onPrimary);
+}
+
+/* hovering over the icon */
+.navBarContainer .navbar-toggler:hover, .themeDropdown:hover {
+    background-color: var(--onPrimary) !important;
+    color: var(--primaryHover);
+    transition: all 0.5s ease-out;
+}
+
+/* pressing on the icon button */
+.navBarContainer .navbar-toggler:hover .mobileMenuLine {
+    background-color: var(--primaryHover);
+    transition: var(--defaultTransition);
+}
+
+.navBarContainer .navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* ============================================== */
+/* ===== Theme Dropdown Selection =============== */
+
+.navBarContainer .dropdown {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+/* icon for the theme dropdown */
+#themeIcon {
+    max-width: 35px; 
+    height: auto;
+}
+
+#themeIconPath {
+    fill: var(--onPrimary);
+}
+
+/* hovering over the theme icon */
+.themeDropdown:hover #themeIconPath {
+    fill: var(--primaryHover);
+}
+
+/* theme dropdown */
+.themeDropdown {
+    background-color: var(--primary);
+    color: var(--surface);
+    border: none;
+    padding: 11px var(--headerNavItemHorPadding);
+    border-radius: 0 0 var(--smBorderRadius) var(--smBorderRadius);
+}
+
+/* ============================================== */
+
+/* ########################################################## */
+/* ################### FOOTER ############################### */
+
+.footerContainer {
+    min-height: calc(var(--footerLandscapeMinHeight) + var(--footerLogoMinHeight));
+}
+
+/* ===== Footer navigation bar ===== */
+
+.footerLandscapeContainer {
+    position: relative;
+}
+
+.footerLandscapeFiller, .footerLandscape, .footerLandscapeFilter {
+    min-height: var(--footerLandscapeMinHeight);
+    width: 100%;
+}
+
+.footerLandscape, .footerLandscapeFilter {
+    position: absolute;
+}
+
+.footerLandscape {
+    background: white url("assets/landscape.png") no-repeat right bottom;
+    z-index: 0;
+}
+
+.footerLandscapeFilter {
+    z-index: 1;
+    background: var(--primary);
+    opacity: 0.9;
+}
+
+/* ================================= */
+/* ===== Footer Logo =============== */
+
+.footerLogoContainer {
+    min-height: var(--footerLogoMinHeight);
+}
+
+.footerLogo {
+    height: 40px;
+    width: auto;
+    margin-top: 20px;
+    margin-right: 20px;
+    float: right;
+}
+
+.footerUrlLinks {
+    padding: 2em 0;
+}
+
+/* text on the logo */
+.fip_text {
+    fill: var(--fontColour);
+}
+
+/* the flag on the logo */
+.fip_flag {
+    fill: #ff0000;
+}
+
+/* ================================= */
+
+/* ########################################################## */
+/* ################### Main Pages ########################### */
+
 #mainPage {
     min-height: 70vh;
     position: relative;
 }
 
-.mainMenuContainer {
-    max-width: 30%;
+.visualContainer {
+    min-height: 70vh;
+    width: 60vw;
+}
+
+/* For small phone screeens */
+@media screen and (max-width: 992px) {
+    .visualContainer {
+        width: 100vw;
+    }
+}
+
+/* =========== Menu for the graphs =================== */
+
+#menuCollapseBtnIcon {
+    max-height: 1.5em;
+    width: auto;
 }
 
 .menuNav {
-    border: 1px solid var(--secondaryBg);
-    border-radius: var(--smBorderRadius);
+    border: 1px solid var(--primaryBorderColour);
+    border-radius: var(--smBorderRadius) var(--smBorderRadius) 0 0;
+    color: var(--secondary);
+    display: inline-flex;
+    display: inline flex;
 }
 
 .menu {
     min-height: 70vh;
-    background-color: var(--primaryBg);
-    border: 1px solid var(--secondaryBg);
-    border-radius: var(--borderRadius);
+    background-color: var(--surface);
+    border: 1px solid var(--primaryBorderColour);
+    border-radius: 0 var(--borderRadius) var(--borderRadius) var(--borderRadius);
 }
+
+
+/* ****** Menu Tabs ****** */
+
+.mainMenuContainerCollapse {
+    width: 30vw;
+}
+
+.mainMenuContainer .nav-tabs {
+    border-bottom: none;
+}
+
+.mainMenuContainer {
+    width: 100%;
+}
+
+@media screen and (min-width: 1200px) {
+    .mainMenuContainerCollapse {
+        max-width: 380px;
+    }
+}
+
+/* For smaller screens */
+@media screen and (max-width: 1200px) {
+    .mainMenuContainerCollapse {
+        width: 100vw;
+    }
+}
+
+
+.mainMenuContainer .nav-link {
+    color: var(--secondary) !important;
+    transition: var(--defaultTransition);
+    border-bottom: none;
+}
+
+/* selected menu tab */
+.mainMenuContainer .nav-link.active {
+    border-color: var(--primaryBorderColour);
+    background-color: var(--surface);
+    border-bottom: none;
+}
+
+/* hovering over the menu tab */
+.mainMenuContainer .nav-link:hover {
+    color: var(--secondaryHover) !important;
+    border-color: var(--secondaryBorderColour);
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+/* *********************** */
+
+/* container for all the graphs */
+.graphContainer {
+    min-height: 50vh;
+}
+
+/* SVG of the graph */
+.svgGraph {
+    max-width: 100%;
+    height: auto;
+    display: flex;
+    margin: auto;
+}
+
+/* =================================================== */
+
+/* ########################################################## */
