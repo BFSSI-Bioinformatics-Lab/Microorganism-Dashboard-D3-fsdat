@@ -102,9 +102,9 @@ TabInputs[Pages.TrendsOverTime] = {};
 TabInputs[Pages.Overview] = {};
 TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism]);
 TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood]);
-TabInputs[Pages.Overview][OverviewTabs.ByMicroorganism] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism].concat(Inputs.Year));
-TabInputs[Pages.Overview][OverviewTabs.ByFood] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByFood]);
-TabInputs[Pages.Overview][OverviewTabs.ByOrg] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByOrg]);
+TabInputs[Pages.Overview][OverviewTabs.ByMicroorganism] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism].concat([Inputs.Year]));
+TabInputs[Pages.Overview][OverviewTabs.ByFood] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByFood].concat([Inputs.Year]));
+TabInputs[Pages.Overview][OverviewTabs.ByOrg] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByOrg].concat([Inputs.Year]));
 
 // Default selected pages and tabs
 export const DefaultPage = Pages.Overview;
@@ -247,8 +247,8 @@ export const Dims = {
         GraphBottom: 60,
         GraphLeft: 220,
         GraphRight: 200,
-        BarHeight: 55,
-        FoodNameWidth: 140,
+        BarHeight: 60,
+        YAxisTickNameWidth: 140,
         LegendSquareSize: 12,
         LegendLeftMargin: 50,
         LegendFontSize: 12
@@ -522,6 +522,20 @@ tableColsEN[SummaryAtts.SamplesWithConcentration] = "# Samples with Conc. Data"
 tableColsEN[SummaryAtts.ConcentrationMean] = "Conc. Mean (cfu/g)"
 tableColsEN[SummaryAtts.ConcentrationRange] = "Conc. Range (cfu/g)"
 
+// title/labels in the Overview bar graph
+const overviewBarGraphEN = {};
+overviewBarGraphEN[SummaryAtts.FoodName] = {
+    "graphTitle": "Selected Qualitative Result by Microorganisms",
+    "xAxis": overviewBarGraphXAxisEN,
+    "yAxis": "Food Name"
+};
+
+overviewBarGraphEN[SummaryAtts.Microorganism] = {
+    "graphTitle": "Selected Qualitative Result by Food",
+    "xAxis": overviewBarGraphXAxisEN,
+    "yAxis": "Microorganism"
+};
+
 const LangEN = {
     "websiteTitle": "Microbiology Tool",
     "websiteTabTitle": "FSDAT -Microbiology",
@@ -561,11 +575,7 @@ const LangEN = {
 
     "tableTitle": "Statistical Summary",
     tableCols: tableColsEN,
-    overviewByMicroorganism: {
-        "graphTitle": "Selected Qualitative Result by Microorganisms",
-        "xAxis": overviewBarGraphXAxisEN,
-        "yAxis": "Food Name"
-    },
+    overviewBarGraph: overviewBarGraphEN,
 
     // reference: https://datatables.net/plug-ins/i18n/English.html
     // note:
@@ -946,6 +956,20 @@ tableColsFR[SummaryAtts.SamplesWithConcentration] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.ConcentrationMean] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.ConcentrationRange] = REMPLACER_MOI;
 
+// title/labels in the Overview bar graph
+const overviewBarGraphFR = {};
+overviewBarGraphFR[SummaryAtts.FoodName] = {
+    "graphTitle": REMPLACER_MOI,
+    "xAxis": overviewBarGraphXAxisFR,
+    "yAxis": REMPLACER_MOI
+};
+
+overviewBarGraphFR[SummaryAtts.Microorganism] = {
+    "graphTitle": REMPLACER_MOI,
+    "xAxis": overviewBarGraphXAxisFR,
+    "yAxis": REMPLACER_MOI
+};
+
 const LangFR = {
     "websiteTitle": REMPLACER_MOI,
     "websiteTabTitle": REMPLACER_MOI,
@@ -984,11 +1008,7 @@ const LangFR = {
 
     "tableTitle": REMPLACER_MOI,
     tableCols: tableColsFR,
-    overviewByMicroorganism: {
-        "graphTitle": REMPLACER_MOI,
-        "xAxis": overviewBarGraphXAxisFR,
-        "yAxis": REMPLACER_MOI
-    },
+    overviewBarGraph: overviewBarGraphFR,
 
     // references: https://datatables.net/plug-ins/i18n/French.html
     // note:

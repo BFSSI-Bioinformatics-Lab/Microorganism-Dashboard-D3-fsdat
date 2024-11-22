@@ -805,6 +805,7 @@ export class Model {
             this.setupGrouping(page, tab);
             this.setupSelections(page, tab);
             this.setupInputs(page, tab);
+            this.updateInputDependents({page, tab});
             this.updateVisualData({page, tab});
             setupDone = true;
         }
@@ -816,6 +817,7 @@ export class Model {
     updateTab({input = null, page = undefined, tab = undefined} = {}) {
         this.updateSelections({input, page, tab});
         this.updateInputs({input, page, tab});
+        this.updateInputDependents({page, tab});
         this.updateVisualData({page, tab});
     }
 
@@ -935,40 +937,25 @@ export class Model {
             let selections = this.selections[page][tab];
             selections[Inputs.SurveyType] = new Set();
             selections[Inputs.NumberView] = new Set([NumberView.Number, NumberView.Percentage]);
+        
+        // Overview ==> By Food
+        } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
+            let selections = this.selections[page][tab];
+            selections[Inputs.NumberView] = new Set([NumberView.Number, NumberView.Percentage]);
         }
     }
 
-
-    // updateSelections(input, page, tab): Updates the available selections in the filters on the menu
-    updateSelections({input = null, page = undefined, tab = undefined} = {}) {
+    // updateYearSelection(): Updates the selection for the year range
+    updateYearSelection({page = undefined, tab = undefined} = {}) {
         page = page === undefined ? this.pageName : page;
         tab = tab === undefined ? this.activeTabs[page] : tab;
 
         const filterOrder = FilterOrder[page][tab];
-        const filterOrderInds = FilterOrderInds[page][tab];
-        const grouping = this.groupings[page][tab];
         const groupStats = this.groupingStats[page][tab];
-        const selections = this.selections[page][tab];
         const inputs = this.inputs[page][tab];
+        const selections = this.selections[page][tab];
         const availableInputs = TabInputs[page][tab];
-        const inputInd = input === null ? -1 : filterOrderInds[input];
 
-        if (inputInd !== undefined) {
-            // clear out the selections for filter inputs that needs to be updated
-            for (let i = inputInd + 1; i < filterOrder.length; ++i) {
-                const currentInput = filterOrder[i];
-                selections[currentInput].clear();
-            }
-
-            this._updateSelections(0, inputInd, grouping, filterOrder, selections, inputs);
-            
-            // update the microorganism tree
-            if (filterOrder.includes(Inputs.MicroOrganism) && filterOrderInds[Inputs.MicroOrganism] > inputInd) {
-                this.updateMicroorganismTree({page, tab});
-            }
-        }
-
-        // update the year range
         if (availableInputs !== undefined && availableInputs.has(Inputs.Year)) {
             const minDates = [];
             const maxDates = [];
@@ -988,6 +975,38 @@ export class Model {
             yearSelection.min = minDates.length == 0 ? undefined : moment.min(minDates).format();
             yearSelection.max = maxDates.length == 0 ? undefined : moment.max(maxDates).format();
         }
+    }
+
+
+    // updateSelections(input, page, tab): Updates the available selections in the filters on the menu
+    updateSelections({input = null, page = undefined, tab = undefined} = {}) {
+        page = page === undefined ? this.pageName : page;
+        tab = tab === undefined ? this.activeTabs[page] : tab;
+
+        const filterOrder = FilterOrder[page][tab];
+        const filterOrderInds = FilterOrderInds[page][tab];
+        const grouping = this.groupings[page][tab];
+        const selections = this.selections[page][tab];
+        const inputs = this.inputs[page][tab];
+        const inputInd = input === null ? -1 : filterOrderInds[input];
+
+        if (inputInd !== undefined) {
+            // clear out the selections for filter inputs that needs to be updated
+            for (let i = inputInd + 1; i < filterOrder.length; ++i) {
+                const currentInput = filterOrder[i];
+                selections[currentInput].clear();
+            }
+
+            this._updateSelections(0, inputInd, grouping, filterOrder, selections, inputs);
+            
+            // update the microorganism tree
+            if (filterOrder.includes(Inputs.MicroOrganism) && filterOrderInds[Inputs.MicroOrganism] > inputInd) {
+                const microorganisms = selections[Inputs.MicroOrganism];
+                this.updateMicroorganismTree({microorganisms, page, tab});
+            }
+        }
+
+        this.updateYearSelection({page, tab});
     }
 
     // _updateSelections(currentInd, inputInd, grouping, filterOrder, selections, inputs): Internal function to update the selections
@@ -1053,6 +1072,8 @@ export class Model {
             inputs[Inputs.FoodGroup] = structuredClone(selections[Inputs.FoodGroup]);
             inputs[Inputs.Food] = structuredClone(selections[Inputs.Food]);
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
+            inputs[Inputs.Year] = structuredClone(selections[Inputs.Year]);
+            inputs[Inputs.NumberView] = NumberView.Number;
             this.inputs[Pages.Overview][OverviewTabs.ByFood] = inputs;
 
         // Overview ==> By Org
@@ -1109,23 +1130,47 @@ export class Model {
         }
     }
 
-    updateMicroorganismTree({page = undefined, tab = undefined} = {}) {
-        if (page === undefined) {
-            page = this.pageName;
+    // updateInputDependents(page, tab): Update any other sdata that depends on both the selections and the inputs
+    updateInputDependents({page = undefined, tab = undefined} = {}) {
+        const inputs = this.getInputs({page, tab});
+        const selections = this.getSelection({page, tab});
+        const filterOrder = this.getFilterOrder({page, tab});
+        const grouping = this.getGrouping({page, tab});
+
+        const yearSelection = selections[Inputs.Year];
+
+        // update the year range selections/inputs if previously no year range was found
+        if (yearSelection !== undefined && (yearSelection.min === undefined || yearSelection.max === undefined)) {
+            this.updateYearSelection();
+            inputs[Inputs.Year] = structuredClone(selections[Inputs.Year]);
         }
 
-        if (tab === undefined) {
-            tab = this.activeTabs[page];
+        // update the microorganism tree for tabs do not explicitely have any microorganism inputs for the user to select
+        if (!filterOrder.includes(Inputs.MicroOrganism)) {
+            const microorganisms = new Set();
+            const innerKey = filterOrder.at(-1);
+
+            TableTools.forFilteredGroup(grouping, filterOrder, inputs, (keys, values) => {
+                const sampleGroup = values[innerKey];
+                for (const sampleName in sampleGroup) {
+                    const sample = sampleGroup[sampleName];
+                    const sampleMicroorganisms = new Set(Object.keys(sample.states));
+                    SetTools.union(microorganisms, sampleMicroorganisms);
+                }
+            });
+
+            this.updateMicroorganismTree({microorganisms, page, tab});
         }
+    }
 
-        let selections = this.selections[page][tab][Inputs.MicroOrganism];
-        if (selections === undefined) return;
+    updateMicroorganismTree({microorganisms, page = undefined, tab = undefined} = {}) {
+        if (microorganisms === undefined) return;
 
-        const microorganismTree = this.microorganismTrees[page][tab];
+        const microorganismTree = this.getMicroOrganismTree({page, tab});
         microorganismTree.clear();
 
         // construct the new microorganism tree
-        for (const microorganism of selections) {
+        for (const microorganism of microorganisms) {
             const microoranismParts = microorganism.split(PhylogeneticDelim);
             microorganismTree.addPath(microoranismParts);
         }
@@ -1354,6 +1399,7 @@ export class Model {
             if (tableData[keys.foodName] === undefined) tableData[keys.foodName] = {};
             const microorganismSummary = values.microorganism;
             const genus = microorganismTree.genuses[keys.microorganism];
+
             let microorganismKey = keys.microorganism;
             if (microorganismKey == genus) {
                 microorganismKey = `${microorganismKey}${PhylogeneticDelim}${nonSpeciated}`;
@@ -1398,6 +1444,40 @@ export class Model {
         return tableData;
     }
 
+    // computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay): Retrieves the graph data for the overview page
+    computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay) {
+        if (getSummaryKeyDisplay === undefined) {
+            getSummaryKeyDisplay = (summaryKey) => summaryKey;
+        }
+
+        let graphData = {};
+        TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism"], (keys, values) => {
+            const microorganismSummary = values.microorganism;
+            const summaryKey = keys[summaryKeyName];
+
+            if (graphData[summaryKey] === undefined) {
+                let newGraphData = structuredClone(microorganismSummary);
+                newGraphData[summaryAtt] = getSummaryKeyDisplay(summaryKey);
+                graphData[summaryKey] = newGraphData;
+            } else {
+                graphData[summaryKey] = this.combineSummaryData(graphData[summaryKey], microorganismSummary);
+            }
+        });
+        
+        TableTools.forGroup(graphData, [summaryKeyName], (keys, values) => {
+            const currentData = values[summaryKeyName];
+            currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
+            currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
+            currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
+            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
+            currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
+            currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested]);
+        });
+
+        graphData = Object.values(graphData);
+        return graphData;
+    }
+
     // updateVisualData(page, tab): Gets the updated data needed for the graphs/tables
     updateVisualData({page = undefined, tab = undefined} = {}) {
         if (page === undefined) {
@@ -1415,34 +1495,17 @@ export class Model {
         this.summaryData[page][tab] = summaryData;
 
         // get the data needed for the graphs and tables
-        // Overview --> ByMicroorganism
+        // Overview --> By Microorganism
         if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
-            let graphData = {};
+            let graphData = this.computeOverviewGraphData("foodName", SummaryAtts.FoodName, summaryData);
+            let tableData = this.computeTableData(summaryData);
 
-            // get the graph data
-            TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism"], (keys, values) => {
-                const microorganismSummary = values.microorganism;
-                if (graphData[keys.foodName] === undefined) {
-                    let newGraphData = structuredClone(microorganismSummary);
-                    newGraphData[SummaryAtts.FoodName] = keys.foodName;
-                    graphData[keys.foodName] = newGraphData;
-                } else {
-                    graphData[keys.foodName] = this.combineSummaryData(graphData[keys.foodName], microorganismSummary);
-                }
-            });
-            
-            TableTools.forGroup(graphData, ["foodName"], (keys, values) => {
-                const currentData = values.foodName;
-                currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
-                currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
-                currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
-                currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
-                currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
-                currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested]);
-            });
-            graphData = Object.values(graphData);
-
-            // get the table data
+            this.graphData[page][tab] = graphData;
+            this.tableData[page][tab] = tableData;
+        
+        // Overview --> By Food
+        } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
+            let graphData = this.computeOverviewGraphData("microorganism", SummaryAtts.Microorganism, summaryData, (summaryKey) => Model.getDisplayMicroorganism(summaryKey));
             let tableData = this.computeTableData(summaryData);
 
             this.graphData[page][tab] = graphData;

@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons} from "./constants.js"
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons, Tabs} from "./constants.js"
 import { Translation, DateTimeTools } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
@@ -289,8 +289,6 @@ class App {
             this.model.activeTabs[this.model.pageName] = tabValue;
             this.updateTab({updateFilters: false});
         });
-
-        
 
         // load the data for the tab
         this.updateTab(); 
@@ -776,7 +774,11 @@ class App {
         }
 
         const graphData = this.model.getGraphData();
-        if (graphData !== undefined) {
+        const tab = this.model.getActiveTab();
+        let summaryAtt;
+
+        if (graphData !== undefined && tab == Tabs[Pages.Overview].ByMicroorganism) {
+            summaryAtt = SummaryAtts.FoodName;
             const tableColInfo = [
                 {title: "Food Name", data: SummaryAtts.FoodName},
                 {title: "# of Samples", data: SummaryAtts.Samples},
@@ -786,10 +788,24 @@ class App {
             ];
 
             this.updateTable("#tempGraphTable", tableColInfo, graphData);
+
+        } else if (tab == Tabs[Pages.Overview].ByFood) {
+            summaryAtt = SummaryAtts.Microorganism;
+            const tableColInfo = [
+                {title: "Microorganism", data: SummaryAtts.Microorganism},
+                {title: "# of Samples", data: SummaryAtts.Samples},
+                {title: "# of Detected", data: SummaryAtts.Detected},
+                {title: "# of Not Detected", data: SummaryAtts.NotDetected},
+                {title: "# of Not Tested", data: SummaryAtts.NotTested}
+            ];
+
+            this.updateTable("#tempGraphTable", tableColInfo, graphData);
         }
 
-        let overviewGraph = new OverviewBarGraph(this.model);
-        overviewGraph.update();
+        if (graphData !== undefined) {
+            let overviewGraph = new OverviewBarGraph(this.model, summaryAtt);
+            overviewGraph.update();
+        }
     }
 
     // updateTab(input): Updates visuals on a certain tab
