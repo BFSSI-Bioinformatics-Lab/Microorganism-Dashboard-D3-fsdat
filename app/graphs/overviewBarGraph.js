@@ -44,7 +44,7 @@ export class OverviewBarGraph {
     }
 
     // drawLegend(titleToColours, legendXPos): Draws the legend
-    drawLegend(titleToColours, legendXPos){
+    drawLegend(id, titleToColours, legendXPos){
 
         // ----------------- draws the legend ---------------------
         
@@ -61,7 +61,10 @@ export class OverviewBarGraph {
         let currentLegendItemYPos = 0;
         
         // draw the container to hold the legend
-        const legendGroup = this.svg.append("g")
+        d3.select(`#${id}`).remove();
+        const legendGroup = this.svg
+            .append("g")
+            .attr("id", id)
             .attr("transform", `translate(${legendXPos}, ${Dims.overviewBarGraph.GraphTop})`);
 
         // draw all the keys for the legend
@@ -120,10 +123,10 @@ export class OverviewBarGraph {
             .classed("svgGraph", true);
 
         // create the background for the graph
-        this.svg.append("rect")
+        this.background = this.svg.append("rect")
         .attr("fill", "none")
         .attr("width", this.width)
-        .attr("height", this.height)
+        .attr("height", this.height);
 
         // add the heading
         this.heading = this.svg.append("g")
@@ -138,16 +141,21 @@ export class OverviewBarGraph {
 
         // x-axis
         this.xAxis = this.axes.append("g");
-        this.xAxisLine = this.xAxis.append("g")
-            .attr("transform", `translate(0, ${Dims.overviewBarGraph.GraphTop})`);
 
         this.xAxisLabel = this.xAxis.append("text").attr("font-size", Dims.overviewBarGraph.AxesFontSize)
             .attr("x", Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth / 2)
             .attr("y", Dims.overviewBarGraph.GraphTop - Dims.overviewBarGraph.AxesFontSize * 2)
             .attr("fill", "var(--fontColour)");
 
+        this.xAxisDomain = [0, 100];
         this.xAxisScale = d3.scaleLinear()
-            .range([Dims.overviewBarGraph.GraphLeft, Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth]);
+            .range([Dims.overviewBarGraph.GraphLeft, Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth])
+            .domain(this.xAxisDomain);
+
+        this.xAxisFunc = d3.axisTop(this.xAxisScale);
+        this.xAxisLine = this.xAxis.append("g")
+            .attr("transform", `translate(0, ${Dims.overviewBarGraph.GraphTop})`)
+            .call(this.xAxisFunc);
 
         // y-axis
         this.yAxis = this.axes.append("g")
@@ -204,8 +212,13 @@ export class OverviewBarGraph {
         .value(([, D], key) => D.get(key)[SummaryAtts.StateVal]) // get value for each series key and stack
         (d3.index(data, d => d[this.summaryAtt], d => d[SummaryAtts.State])); // group by stack then series key
 
+        // get the dimensions of the container holding the graph
+        const graphContainer = d3.select(".visualGraph").node();
+        const graphContainerDims = graphContainer.getBoundingClientRect();
+        Dims.overviewBarGraph.GraphWidth = Math.max(Dims.overviewBarGraph.minGraphWidth, graphContainerDims.width - Dims.overviewBarGraph.GraphLeft - Dims.overviewBarGraph.GraphRight); 
 
         // Compute the height from the number of stacks.
+        const prevWidth = this.width;
         this.height = series[0].length * Dims.overviewBarGraph.BarHeight + Dims.overviewBarGraph.GraphTop + Dims.overviewBarGraph.GraphBottom;
         this.width = Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth + Dims.overviewBarGraph.GraphRight;
 
@@ -214,18 +227,44 @@ export class OverviewBarGraph {
             this.isDrawn = true;
         }
 
+        this.svg.attr("width", this.width)
+            .attr("height", this.height)
+            .attr("viewBox", [0, 0, this.width, this.height]);
+
+        this.background.attr("width", this.width)
+            .attr("height", this.height);
+
         // # of samples in x-axis
-        this.xAxisScale.domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
-        this.xAxisLine
-            .call(d3.axisTop(this.xAxisScale).ticks(Dims.overviewBarGraph.GraphWidth / 100, "s"))
+        let changeXAxis = true;
+        const newXAxisDomain = numberView == NumberView.Percentage ? [0, 100] : [0, d3.max(series, d => d3.max(d, d => d[1]))];
+        if (prevWidth == this.width && newXAxisDomain[0] == this.xAxisDomain[0] && newXAxisDomain[1] == this.xAxisDomain[1]) {
+            changeXAxis = false;
+        }
+
+        this.xAxisDomain = newXAxisDomain;
+        this.xAxisScale
+            .range([Dims.overviewBarGraph.GraphLeft, Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth])
+            .domain(this.xAxisDomain)
+            .nice()
+
+        this.xAxisFunc = d3.axisTop(this.xAxisScale);
+
+        if (changeXAxis) {
+            this.xAxisLine
+            .transition()
+            .ease(d3.easeLinear)
+            .call(this.xAxisFunc)
             .attr("font-size", Dims.overviewBarGraph.TickFontSize);
+        }
 
         // food names in the y-axis
         // sort by "risk" defined by the sorting order below:
         // 1. Sort by % detected (descending)
         // 2. Sort by # samples (descending)
         // 3. Sort by Name (alphabetical order)
-        this.yAxisScale.domain(d3.groupSort(data, (group1, group2) => {
+        this.yAxisScale
+        .range([Dims.overviewBarGraph.GraphTop, this.height - Dims.overviewBarGraph.GraphBottom])
+        .domain(d3.groupSort(data, (group1, group2) => {
             const percentDetected1 = group1[0][SummaryAtts.PercentDetected];
             const percentDetected2 = group2[0][SummaryAtts.PercentDetected];
             if (percentDetected1 > percentDetected2) {
@@ -281,11 +320,20 @@ export class OverviewBarGraph {
             .unknown("var(--unknown)");
 
         // text for the heading and axis labels
-        this.heading.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.graphTitle`));
-        this.xAxisLabel.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.xAxis.${numberView}`));
-        this.yAxisLabel.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.yAxis`));
+        this.heading.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.graphTitle`))
+            .transition()
+            .attr("x", Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth / 2);
+
+        this.xAxisLabel.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.xAxis.${numberView}`))
+            .transition()
+            .attr("x", Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth / 2);
+
+        this.yAxisLabel.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.yAxis`))
+            .transition()
+            .attr("x", -(this.height / 2));
 
         // Append a group for each series, and a rect for each element in the series.
+        this.bars.selectAll("*").remove();
         this.bars.append("g")
             .selectAll()
             .data(series)
@@ -314,7 +362,7 @@ export class OverviewBarGraph {
 
         // draw the legend
         const legendX = Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth + Dims.overviewBarGraph.LegendLeftMargin;
-        this.drawLegend(legendColours, legendX);
+        this.drawLegend("graphLegend", legendColours, legendX);
 
         // Return the chart with the color scale as a property (for the legend).
         return Object.assign(this.svg.node(), {scales: {color}});
