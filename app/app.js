@@ -27,6 +27,10 @@ class App {
         this.menuCollapsed = {};
         this.menuCollapsed[Pages.Overview] = false;
         this.menuCollapsed[Pages.TrendsOverTime] = false;
+
+        this.graphs = {};
+        this.graphs[Pages.Overview] = {};
+        this.graphs[Pages.TrendsOverTime] = {};
     }
 
     // init(): Initializes the entire app
@@ -234,6 +238,9 @@ class App {
         const tabsToRerender = this.model.needsRerender[self.model.pageName];
         if (tabsToRerender === undefined) return;
 
+        // reset the graphs for the page
+        this.graphs[self.model.pageName] = {};
+
         for (const tab in tabsToRerender) {
             tabsToRerender[tab] = true;
         }
@@ -287,6 +294,7 @@ class App {
             const tab = d3.select(event.target);
             const tabValue = tab.attr("value");
             this.model.activeTabs[this.model.pageName] = tabValue;
+            this.graphs[this.model.pageName][tabValue] = undefined;
             this.updateTab({updateFilters: false});
         });
 
@@ -319,13 +327,28 @@ class App {
         btn.select("svg").html(btnIcon);
         btn.classed("collapsed", menuCollapsed);
 
-        // set whether the menu is shown/collapsed
-        this.page.select(".mainMenuContainerCollapse").classed("show", !menuCollapsed);
-
         btn.on("click", (event) => {
             this.menuCollapsed[this.model.pageName] = !this.menuCollapsed[this.model.pageName];
             btn = this.page.select("#menuCollapseBtn");
             this.updateMenuCollapse(btn);
+        });
+
+        // set whether the menu is shown/collapsed
+        let collapsible = this.page.select(".mainMenuContainerCollapse").classed("show", !menuCollapsed);
+
+        collapsible = document.getElementById("collapseMenu")
+        collapsible.addEventListener('hidden.bs.collapse', (event) => {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+            this.updateVisuals();
+        });
+
+        collapsible.addEventListener('shown.bs.collapse', (event) => {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+            this.updateVisuals();
         });
     }
 
@@ -803,7 +826,12 @@ class App {
         }
 
         if (graphData !== undefined) {
-            let overviewGraph = new OverviewBarGraph(this.model, summaryAtt);
+            let overviewGraph = this.graphs[this.model.pageName][tab];
+            if (overviewGraph === undefined) {
+                overviewGraph = new OverviewBarGraph(this.model, summaryAtt);
+                this.graphs[this.model.pageName][tab] = overviewGraph;
+            }
+
             overviewGraph.update();
         }
     }

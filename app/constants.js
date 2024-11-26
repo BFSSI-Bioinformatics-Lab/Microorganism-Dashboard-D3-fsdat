@@ -242,6 +242,7 @@ export const Dims = {
         HeadingFontSize: 28,
         AxesFontSize: 20,
         TickFontSize: 14,
+        minGraphWidth: 600,
         GraphWidth: 900,
         GraphTop: 120,
         GraphBottom: 60,
@@ -249,9 +250,10 @@ export const Dims = {
         GraphRight: 200,
         BarHeight: 60,
         YAxisTickNameWidth: 140,
+        XAxisNumOfTicks: 10,
         LegendSquareSize: 12,
         LegendLeftMargin: 50,
-        LegendFontSize: 12
+        LegendFontSize: 12,
     }
 }
 
