@@ -375,7 +375,8 @@ class App {
             "#foodLabel": "foodLabel",
             "#microorganismLabel": "microorganismLabel",
             "#showResultAsLabel": "showResultAsLabel",
-            "#tableTitle": "tableTitle"
+            "#tableTitle": "tableTitle",
+            "#downloadGraphBtn": "downloadGraph"
         };
 
         for (const selector in labelTranslations) {

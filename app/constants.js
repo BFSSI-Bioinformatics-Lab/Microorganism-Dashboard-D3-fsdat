@@ -579,6 +579,8 @@ const LangEN = {
     tableCols: tableColsEN,
     overviewBarGraph: overviewBarGraphEN,
 
+    "downloadGraph": "Download Graph",
+
     // reference: https://datatables.net/plug-ins/i18n/English.html
     // note:
     //  For some reason the CDN link provided in the documentation causes
@@ -1011,6 +1013,8 @@ const LangFR = {
     "tableTitle": REMPLACER_MOI,
     tableCols: tableColsFR,
     overviewBarGraph: overviewBarGraphFR,
+
+    "downloadGraph": REMPLACER_MOI,
 
     // references: https://datatables.net/plug-ins/i18n/French.html
     // note:
