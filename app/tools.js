@@ -99,6 +99,11 @@ export class NumberTools {
         const factor = Math.pow(10, decimalPlaces);
         return Math.round(num * factor) / factor;
     }
+
+    // randomInt(min, max): Generates a random integer from 'start' to 'end' (inclusive)
+    static randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) ) + min;
+    }
 }
 
 
@@ -432,5 +437,25 @@ export class Visuals {
         }
 
         return {width, textBottomYPos: textY - lineSpacing - fontSize, numLines};
+    }
+
+    // saveAsImage(): Saves some graph as an image
+    static async saveAsImage({svg, title="", backgroundColor = "white", preProcessor = undefined, postProcessor = undefined} = {}) {
+        // use await so that the below operations can happen in the order they are listed
+        //  to simulate a mutex.
+        // 
+        // We do not want the operations to run at the same time or have the compiler reorder the lines for optimization.
+        //  (or else you may have a picture of a graph without the source text)
+        // https://blog.mayflower.de/6369-javascript-mutex-synchronizing-async-operations.html
+
+        if (preProcessor !== undefined) {
+            await preProcessor();
+        }
+
+        await saveSvgAsPng(svg, `${title}.png`, {backgroundColor});
+
+        if (postProcessor !== undefined) {
+            await postProcessor();
+        }
     }
 }

@@ -12,7 +12,7 @@
 
 
 import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons, Tabs} from "./constants.js"
-import { Translation, DateTimeTools } from "./tools.js";
+import { Translation, DateTimeTools, Visuals } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
 
@@ -32,6 +32,8 @@ class App {
         this.graphs[Pages.Overview] = {};
         this.graphs[Pages.TrendsOverTime] = {};
     }
+
+    getGraph({page = undefined, tab = undefined} = {}) { return this.model.getTabbedElement(this.graphs, page, tab); }
 
     // init(): Initializes the entire app
     async init() {
@@ -298,6 +300,14 @@ class App {
             this.updateTab({updateFilters: false});
         });
 
+        // when the user presses the download graph button]
+        const downloadGraphBtn = d3.select("#downloadGraphBtn");
+        downloadGraphBtn.on("click", () => {
+            const graph = this.getGraph();
+            if (graph === undefined || !graph.isDrawn) return;
+            Visuals.saveAsImage({svg: graph.svg.node(), title: graph.title});
+        });
+
         // load the data for the tab
         this.updateTab(); 
     }
@@ -375,7 +385,8 @@ class App {
             "#foodLabel": "foodLabel",
             "#microorganismLabel": "microorganismLabel",
             "#showResultAsLabel": "showResultAsLabel",
-            "#tableTitle": "tableTitle"
+            "#tableTitle": "tableTitle",
+            "#downloadGraphBtn": "downloadGraph"
         };
 
         for (const selector in labelTranslations) {

@@ -1,4 +1,4 @@
-import {  SummaryAtts, SampleStateColours, SampleStateOrder, Dims, SampleState, TextWrap, Inputs, NumberView } from "../constants.js";
+import {  SummaryAtts, SampleStateColours, SampleStateOrder, Dims, SampleState, TextWrap, Inputs, NumberView, SVGIcons, NoDataStates } from "../constants.js";
 import { SetTools, Translation, Visuals, NumberTools } from "../tools.js";
 
 export class OverviewBarGraph {
@@ -6,6 +6,8 @@ export class OverviewBarGraph {
         this.model = model;
         this.isDrawn = false;
         this.summaryAtt = summaryAtt;
+        this.title = "";
+        this.svg;
     }
 
     // getPercentageData(data): Converts the data to be used for the percentage view of the graph
@@ -182,11 +184,43 @@ export class OverviewBarGraph {
         let data = structuredClone(this.model.getGraphData());
         const inputs = this.model.getInputs();
 
+        // Display the "No Data" text when no data is available
         if (data.length == 0) {
-            d3.select(".visualGraph")
+            const noDataContainer = d3.select(".visualGraph")
             .html("")
-            .append("h1")
-            .text(Translation.translate("noData"));
+            .append("div")
+            .classed("emptyGraphsContainer", true)
+            .append("div")
+            .classed("emptyGraphTextContainer", true);
+
+            // No Data available title
+            noDataContainer.append("h1")
+                .text(Translation.translate("noData"));
+
+            const descHitRate = NumberTools.randomInt(1, 100);
+
+            let noDataState = NoDataStates.Normal;
+            if (descHitRate <= 10) noDataState = NoDataStates.Doggy;
+            else if (descHitRate <= 20) noDataState = NoDataStates.Kitty;
+
+            noDataContainer.append("p")
+                .text(Translation.translate(`noDataDesc.${noDataState}`));
+
+            if (noDataState == NoDataStates.Normal) {
+                noDataContainer.append("svg")
+                .classed("emptyGraphIcon", true)
+                .attr("viewBox", "0 0 512 512")
+                .attr("width", "512")
+                .attr("height", "512")
+                .html(SVGIcons["MagnifyingGlass"]);
+            
+            // Easter Egg??!
+            } else {
+                const imgLink = noDataState == NoDataStates.Doggy ? "assets/puppy.png" : "assets/kitty.png";
+                noDataContainer.append("img")
+                    .classed("emptyGraphIcon", true)
+                    .attr("src", imgLink);
+            }
 
             this.isDrawn = false;
             return
@@ -320,7 +354,8 @@ export class OverviewBarGraph {
             .unknown("var(--unknown)");
 
         // text for the heading and axis labels
-        this.heading.text(Translation.translate(`overviewBarGraph.${this.summaryAtt}.graphTitle`))
+        this.title = Translation.translate(`overviewBarGraph.${this.summaryAtt}.graphTitle`);
+        this.heading.text(this.title)
             .transition()
             .attr("x", Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth / 2);
 
