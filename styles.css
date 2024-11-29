@@ -989,3 +989,35 @@ body {
 /* =================================================== */
 
 /* ########################################################## */
+/* ################### Loading Screen ####################### */
+
+.loadingContainer {
+    min-height: 60vh;
+}
+
+.loadingCircle {
+    background-color: var(--primary);
+}
+
+.loadingCircleSecondary {
+    background-color: var(--secondary);
+}
+
+.loadCircleRight {
+    transform: translateX(100%);
+}
+
+.loadCircleLeft {
+    transform: translateX(-100%);
+}
+
+.loadCircleSlow {
+    --bs-spinner-animation-speed: 1s;
+}
+
+.loadCircleMed {
+    --bs-spinner-animation-speed: 0.75s;
+}
+
+
+/* ########################################################## */
