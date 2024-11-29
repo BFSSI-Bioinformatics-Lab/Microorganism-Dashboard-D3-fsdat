@@ -791,29 +791,6 @@ body {
 }
 
 /* ============================================== */
-/* == Area to display "No Data" for the graphs == */
-
-.emptyGraphsContainer {
-    position: relative;
-    height: 60vh;
-}
-
-.emptyGraphTextContainer {
-    text-align: center;
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-}
-
-.emptyGraphIcon {
-    color: var(--primary);
-    max-height: 80px;
-    width: auto;
-}
-
-/* ============================================== */
 
 /* ########################################################## */
 /* ################### FOOTER ############################### */
@@ -899,6 +876,29 @@ body {
     }
 }
 
+/* ==== Area to display "No Data" for the graphs ===== */
+
+.emptyGraphsContainer {
+    position: relative;
+    height: 60vh;
+}
+
+.emptyGraphTextContainer {
+    text-align: center;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.emptyGraphIcon {
+    color: var(--primary);
+    max-height: 80px;
+    width: auto;
+}
+
+/* =================================================== */
 /* =========== Menu for the graphs =================== */
 
 #menuCollapseBtnIcon {
@@ -915,7 +915,6 @@ body {
 }
 
 .menu {
-    min-height: 70vh;
     background-color: var(--surface);
     border: 1px solid var(--primaryBorderColour);
     border-radius: 0 var(--borderRadius) var(--borderRadius) var(--borderRadius);
