@@ -5,6 +5,7 @@ export class OverviewBarGraph {
     constructor(model, summaryAtt) {
         this.model = model;
         this.isDrawn = false;
+        this.noDataDrawn = false;
         this.summaryAtt = summaryAtt;
         this.title = "";
         this.svg;
@@ -185,7 +186,7 @@ export class OverviewBarGraph {
         const inputs = this.model.getInputs();
 
         // Display the "No Data" text when no data is available
-        if (data.length == 0) {
+        if (data.length == 0 && !this.noDataDrawn) {
             const noDataContainer = d3.select(".visualGraph")
             .html("")
             .append("div")
@@ -223,8 +224,10 @@ export class OverviewBarGraph {
             }
 
             this.isDrawn = false;
-            return
+            this.noDataDrawn = true;
         }
+
+        if (data.length == 0) return;
 
         // update the data to percentage view
         const numberView = inputs[Inputs.NumberView];
@@ -259,6 +262,7 @@ export class OverviewBarGraph {
         if (!this.isDrawn) {
             this.setup();
             this.isDrawn = true;
+            this.noDataDrawn = false;
         }
 
         this.svg.attr("width", this.width)

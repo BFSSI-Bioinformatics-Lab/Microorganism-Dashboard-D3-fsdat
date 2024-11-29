@@ -341,6 +341,25 @@ body {
     color: var(--fontColour);
 }
 
+/* =================================================== */
+/* ======== Popup Modals ============================= */
+
+.modal {
+    --bs-modal-bg: var(--surface);
+    --bs-modal-header-border-color: var(--primaryBorderColour);
+    --bs-modal-footer-border-color: var(--primaryBorderColour);
+}
+
+/* The "X" button on the popup */
+.popupExitBtnIcon {
+    color: var(--secondary);
+}
+
+.modal .btn-close {
+    --bs-btn-close-bg: none;
+}
+
+/* =================================================== */
 /* ======== Multiselect ============================== */
 
 .bootstrap-select > .dropdown-toggle.bs-placeholder {

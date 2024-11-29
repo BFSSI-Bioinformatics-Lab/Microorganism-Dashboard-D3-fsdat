@@ -221,6 +221,27 @@ export class MapTools {
 //    dictionaries of dictionaries, dictionaries of lists, etc...
 export class TableTools {
 
+    // createCSVContent(matrix): Creates the string needed for exporting to CSV
+    static createCSVContent(matrix) {
+        let result = "";
+        for (const row of matrix) {
+            const colLen = row.length;
+            const csvRow = [];
+
+            // clean up the text for each cell
+            for (let i = 0; i < colLen; ++i) {
+                let cleanedText = `${row[i]}`.replace(/"/g, "'");
+                cleanedText = `"${cleanedText}"`;
+                csvRow.push(cleanedText);
+            }
+
+            result += csvRow.join(",") + "\r\n";
+        }
+
+        return result;
+    }
+
+
     // _groupAggregates(ind, aggregates, getAggregateDataFunc, keyFuncs): Interal function for grouping
     //  aggregates into different sets
     static _groupAggregates(ind, aggregates, getAggregateDataFunc, keyFuncs) {
@@ -457,5 +478,20 @@ export class Visuals {
         if (postProcessor !== undefined) {
             await postProcessor();
         }
+    }
+
+    // downloadCSV(csvConvent): Exports some table as a CSV file
+    static downloadCSV({csvContent, fileName = ""} = {}) {
+        const universalBOM = "\uFEFF";
+        const encodedUri = encodeURI(universalBOM + csvContent);
+
+        // creates a temporary link for exporting the table
+        const link = document.createElement('a');
+        link.setAttribute('href', "data:text/csv;charset=utf-8," + encodedUri);
+        link.setAttribute('download', `${fileName}.csv`);
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 }

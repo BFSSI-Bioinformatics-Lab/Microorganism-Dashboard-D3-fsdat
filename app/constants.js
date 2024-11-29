@@ -235,6 +235,18 @@ export const SummaryAtts = {
     ConcentrationRange: "concentrationRange"
 }
 
+// Columns for the Summary Statistics table
+export const SummaryTableCols = [
+    SummaryAtts.FoodName,
+    SummaryAtts.Microorganism,
+    SummaryAtts.PercentDetected,
+    SummaryAtts.Detected,
+    SummaryAtts.Samples,
+    SummaryAtts.ConcentrationMean,
+    SummaryAtts.ConcentrationRange,
+    SummaryAtts.SamplesWithConcentration
+];
+
 // DefaultDims: Default dimensions used for certain dimension attributes
 export const DefaultDims = {
     fontSize: 12,
@@ -540,6 +552,18 @@ tableColsEN[SummaryAtts.SamplesWithConcentration] = "# Samples with Conc. Data"
 tableColsEN[SummaryAtts.ConcentrationMean] = "Conc. Mean (cfu/g)"
 tableColsEN[SummaryAtts.ConcentrationRange] = "Conc. Range (cfu/g)"
 
+// names for the columns of the table in the CSV file
+// Note: CSV treats the hashtag(#) as a comment
+const csvtableColsEN = {};
+csvtableColsEN[SummaryAtts.FoodName] = "Food Name";
+csvtableColsEN[SummaryAtts.Microorganism] = "Pathogen Branch";
+csvtableColsEN[SummaryAtts.PercentDetected] = "% Detected";
+csvtableColsEN[SummaryAtts.Detected] = "No. of Detected";
+csvtableColsEN[SummaryAtts.Samples] = "No. of Samples";
+csvtableColsEN[SummaryAtts.SamplesWithConcentration] = "No. of Samples with Conc. Data"
+csvtableColsEN[SummaryAtts.ConcentrationMean] = "Conc. Mean (cfu/g)"
+csvtableColsEN[SummaryAtts.ConcentrationRange] = "Conc. Range (cfu/g)"
+
 // Easter Egg when displaying the description for no data available
 const NoDataDescEN = {};
 NoDataDescEN[NoDataStates.Normal] = "The graph is empty...";
@@ -569,6 +593,7 @@ const LangEN = {
     "showMenu": "Show Menu",
     "hideMenu": "Hide Menu",
     "loading": "Loading...",
+    "close": "Close",
     
     navigation: NavigationEN,
     themes: ColourThemesEN,
@@ -585,6 +610,10 @@ const LangEN = {
     "noResultsFound": "No results matched {0}",
     "noData": "No Data Available",
     noDataDesc: NoDataDescEN,
+    noDataPopupDesc: {
+        "graph": "The graph is empty...",
+        "table": "The table is empty..."
+    },
 
     "foodGroupLabel": "Food Groups:",
     "foodLabel": "Foods:",
@@ -601,9 +630,11 @@ const LangEN = {
 
     "tableTitle": "Statistical Summary",
     tableCols: tableColsEN,
+    csvTableCols: csvtableColsEN,
     overviewBarGraph: overviewBarGraphEN,
 
     "downloadGraph": "Download Graph",
+    "downloadTable": "Download Table",
 
     // reference: https://datatables.net/plug-ins/i18n/English.html
     // note:
@@ -984,6 +1015,18 @@ tableColsFR[SummaryAtts.SamplesWithConcentration] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.ConcentrationMean] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.ConcentrationRange] = REMPLACER_MOI;
 
+// names for the columns of the table in the CSV file
+// Note: CSV treats the hashtag(#) as a comment
+const csvtableColsFR = {};
+csvtableColsFR[SummaryAtts.FoodName] = REMPLACER_MOI;
+csvtableColsFR[SummaryAtts.Microorganism] = REMPLACER_MOI;
+csvtableColsFR[SummaryAtts.PercentDetected] = REMPLACER_MOI;
+csvtableColsFR[SummaryAtts.Detected] = REMPLACER_MOI;
+csvtableColsFR[SummaryAtts.Samples] = REMPLACER_MOI;
+csvtableColsFR[SummaryAtts.SamplesWithConcentration] = REMPLACER_MOI;
+csvtableColsFR[SummaryAtts.ConcentrationMean] = REMPLACER_MOI;
+csvtableColsFR[SummaryAtts.ConcentrationRange] = REMPLACER_MOI;
+
 // Easter Egg when displaying the description for no data available
 const NoDataDescFR = {};
 NoDataDescFR[NoDataStates.Normal] = "Le graphique est vide...";
@@ -1013,6 +1056,7 @@ const LangFR = {
     "showMenu": REMPLACER_MOI,
     "hideMenu": REMPLACER_MOI,
     "loading": "Chargement en cours...",
+    "close": "Fermer",
 
     navigation: NavigationFR,
     themes: ColourThemesFR,
@@ -1029,6 +1073,10 @@ const LangFR = {
     "noResultsFound": `${REMPLACER_MOI_AVEC_ARGUMENTS} {0}`,
     "noData": "Aucune Donnée Disponible",
     noDataDesc: NoDataDescFR,
+    noDataPopupDesc: {
+        "graph": "Le graphique est vide...",
+        "table": "Le tableau est vide..."
+    },
 
     "foodGroupLabel": REMPLACER_MOI,
     "foodLabel": REMPLACER_MOI,
@@ -1044,9 +1092,11 @@ const LangFR = {
 
     "tableTitle": REMPLACER_MOI,
     tableCols: tableColsFR,
+    csvTableCols: csvtableColsFR,
     overviewBarGraph: overviewBarGraphFR,
 
     "downloadGraph": REMPLACER_MOI,
+    "downloadTable": REMPLACER_MOI,
 
     // references: https://datatables.net/plug-ins/i18n/French.html
     // note:

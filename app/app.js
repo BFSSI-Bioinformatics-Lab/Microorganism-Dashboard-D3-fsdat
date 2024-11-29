@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons, Tabs} from "./constants.js"
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons, Tabs, SummaryTableCols} from "./constants.js"
 import { Translation, DateTimeTools, Visuals } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
@@ -315,16 +315,51 @@ class App {
             this.updateTab({updateFilters: false});
         });
 
-        // when the user presses the download graph button]
+        // when the user presses the download graph button
         const downloadGraphBtn = d3.select("#downloadGraphBtn");
         downloadGraphBtn.on("click", () => {
             const graph = this.getGraph();
-            if (graph === undefined || !graph.isDrawn) return;
+            if (graph === undefined || !graph.isDrawn) {
+                this.showAlertPopup(Translation.translate("noData"), Translation.translate("noDataPopupDesc.graph"), Translation.translate("close"));
+                return;
+            }
+
             Visuals.saveAsImage({svg: graph.svg.node(), title: graph.title});
         });
 
+        // when the user presses the download table button
+        const downloadTableBtn = d3.select("#downloadTableBtn");
+        downloadTableBtn.on("click", () => {
+            const graph = this.getGraph();
+            const tableCSV = this.model.getTableCSV();
+            if (!tableCSV || graph === undefined || !graph.isDrawn) {
+                this.showAlertPopup(Translation.translate("noData"), Translation.translate("noDataPopupDesc.table"), Translation.translate("close"));
+                return;
+            }
+
+            Visuals.downloadCSV({csvContent: tableCSV, fileName: graph.title});
+        });
+
+
         // load the data for the tab
         this.updateTab(); 
+    }
+
+    // showAlertPopup(title, description, buttonName): Shows an alert popup
+    showAlertPopup(title, description, buttonName) {
+        // update all the text in the popup
+        let popup = d3.select('#alertPopup');
+        popup.select(".modal-title").text(title);
+        popup.select(".modal-body")
+            .html("")
+            .append("p")
+            .text(description)
+
+        popup.select(".modal-footer button").text(buttonName);
+        popup.select(".modal .btn-close").attr("aria-label", Translation.translate("close"));
+
+        popup = new bootstrap.Modal('#alertPopup', {backdrop: 'static'});
+        popup.show();
     }
 
     // readCheckmarkSelect(selectId): Reads the selected values from a checkmark select widget
@@ -403,7 +438,8 @@ class App {
             "#microorganismLabel": "microorganismLabel",
             "#showResultAsLabel": "showResultAsLabel",
             "#tableTitle": "tableTitle",
-            "#downloadGraphBtn": "downloadGraph"
+            "#downloadGraphBtn": "downloadGraph",
+            "#downloadTableBtn": "downloadTable"
         };
 
         for (const selector in labelTranslations) {
@@ -810,16 +846,9 @@ class App {
         const tableData = this.model.getTableData();
         if (tableData !== undefined) {
             const translations = Translation.translate("tableCols",{ returnObjects: true });
-            const tableColInfo = [
-                {title: translations[SummaryAtts.FoodName], data: SummaryAtts.FoodName},
-                {title: translations[SummaryAtts.Microorganism], data: SummaryAtts.Microorganism},
-                {title: translations[SummaryAtts.PercentDetected], data: SummaryAtts.PercentDetected},
-                {title: translations[SummaryAtts.Detected], data: SummaryAtts.Detected},
-                {title: translations[SummaryAtts.Samples], data: SummaryAtts.Samples},
-                {title: translations[SummaryAtts.ConcentrationMean], data: SummaryAtts.ConcentrationMean},
-                {title: translations[SummaryAtts.ConcentrationRange], data: SummaryAtts.ConcentrationRange},
-                {title: translations[SummaryAtts.SamplesWithConcentration], data: SummaryAtts.SamplesWithConcentration}
-            ];
+            const tableColInfo = SummaryTableCols.map((summaryAtt) => {
+                return {title: translations[summaryAtt], data: summaryAtt};
+            });
 
             this.updateTable("#visualTable", tableColInfo, tableData);
         }
