@@ -10,7 +10,7 @@
 
 import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes } from "./constants.js"
 import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState } from "./constants.js"
-import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone } from "./constants.js"
+import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols } from "./constants.js"
 import { Translation, SetTools, MapTools, TableTools, NumberTools, Range, DateTimeTools } from "./tools.js";
 
 
@@ -556,6 +556,7 @@ export class Model {
         this.summaryData = {};
         this.tableData = {};
         this.graphData = {};
+        this.tableCSV = {};
         this.needsRerender = {};
 
         for (const page in FilterOrder) {
@@ -563,6 +564,7 @@ export class Model {
             this.microorganismTrees[page] = {};
             this.summaryData[page] = {};
             this.tableData[page] = {};
+            this.tableCSV[page] = {};
             this.graphData[page] = {};
             this.needsRerender[page] = {};
 
@@ -571,6 +573,7 @@ export class Model {
                 this.microorganismTrees[page][tab] = new MicroorganismTree();
                 this.summaryData[page][tab] = {};
                 this.tableData[page][tab] = [];
+                this.tableCSV[page][tab] = "";
                 this.graphData[page][tab] = [];
                 this.needsRerender[page][tab] = false;
             }
@@ -649,6 +652,7 @@ export class Model {
     getSelection({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.selections, page, tab); }
     getGraphData({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.graphData, page, tab); }
     getTableData({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.tableData, page, tab); }
+    getTableCSV({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.tableCSV, page, tab); }
     getInputs({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.inputs, page, tab); }
     getFilterOrderInds({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(FilterOrderInds, page, tab); }
     getFilterOrder({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(FilterOrder, page, tab); }
@@ -1446,6 +1450,23 @@ export class Model {
         return tableData;
     }
 
+    // computeTableCSV(tableData): Computes the CSV content for the statistic summary table
+    computeTableCSV(tableData) {
+        let result = [];
+        if (tableData.length == 0) return TableTools.createCSVContent(result);
+
+        // heading for the CSV content
+        const colTranslations = Translation.translate("csvTableCols",{ returnObjects: true });
+        result.push(SummaryTableCols.map((summaryAtt) => colTranslations[summaryAtt]));
+
+        // rows for the CSV content
+        for (const row of tableData) {
+            result.push(SummaryTableCols.map((summaryAtt) => row[summaryAtt]));
+        }
+
+        return TableTools.createCSVContent(result);
+    }
+
     // computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay): Retrieves the graph data for the overview page
     computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay) {
         if (getSummaryKeyDisplay === undefined) {
@@ -1501,17 +1522,21 @@ export class Model {
         if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
             let graphData = this.computeOverviewGraphData("foodName", SummaryAtts.FoodName, summaryData);
             let tableData = this.computeTableData(summaryData);
+            let csvContent = this.computeTableCSV(tableData);
 
             this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
+            this.tableCSV[page][tab] = csvContent;
         
         // Overview --> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
             let graphData = this.computeOverviewGraphData("microorganism", SummaryAtts.Microorganism, summaryData, (summaryKey) => Model.getDisplayMicroorganism(summaryKey));
             let tableData = this.computeTableData(summaryData);
+            let csvContent = this.computeTableCSV(tableData);
 
             this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
+            this.tableCSV[page][tab] = csvContent;
         }
     }
 

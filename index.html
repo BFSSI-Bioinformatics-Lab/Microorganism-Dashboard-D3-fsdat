@@ -75,6 +75,26 @@ What it contains:
     </head>
 
     <body>
+      <!-- Alert Popups -->
+        <div class="modal fade" id="alertPopup" tabindex="-1" aria-labelledby="alertPopupTitle" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="alertPopupTitle">Some title for the alert popup</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                  <i class="fas fa-times fa-lg popupExitBtnIcon"></i>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>Some description for the popup</p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close (or any other text you want)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div id="header">
             <header class="headerTitleSection">
                 <div class="container">
