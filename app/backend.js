@@ -540,6 +540,7 @@ export class GroupingStat {
 // Model: The class for the overall backend of the app
 export class Model {
     constructor() {
+        this.loaded = false;
         this.pageName = DefaultPage;
         this.activeTabs = structuredClone(DefaultTabs);
 
@@ -770,6 +771,7 @@ export class Model {
             });
 
             this.samples = this.createSampleObjs(this.dataInds);
+            this.loaded = true;
         });
     }
 
@@ -1518,6 +1520,7 @@ export class Model {
     //  This function is mostly used when changing between languages since the program needs
     //      to load in new data specific for the language
     clear() {
+        this.loaded = false;
         this.initInputs();
         this.initGroupings();
         this.initSelections();

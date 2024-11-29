@@ -19,7 +19,8 @@ export const Pages = {
     TrendsOverTime: "TrendsOverTime",
     Overview: "Overview",
     About: "About",
-    Contact: "Contact"
+    Contact: "Contact",
+    Loading: "Loading"
 }
 
 // File locations for each page
@@ -28,6 +29,7 @@ PageSrc[Pages.TrendsOverTime] = "./templates/trendsOverTime.html"
 PageSrc[Pages.Overview] = "./templates/overview.html"
 PageSrc[Pages.About] = "./templates/about.html"
 PageSrc[Pages.Contact] = "./templates/contact.html"
+PageSrc[Pages.Loading] = "./templates/loading.html"
 
 // SVG Icons that are inserted to the website at runtime
 export const SVGIcons = {
@@ -566,6 +568,7 @@ const LangEN = {
     "changeLanguageValue": Languages.French,
     "showMenu": "Show Menu",
     "hideMenu": "Hide Menu",
+    "loading": "Loading...",
     
     navigation: NavigationEN,
     themes: ColourThemesEN,
@@ -866,7 +869,7 @@ NavigationFR[Pages.Contact] = REMPLACER_MOI;
 // names for colour themes
 const ColourThemesFR = {};
 ColourThemesFR[ThemeNames.Light] = "Clair"
-ColourThemesFR[ThemeNames.Dark] = "Foncé"
+ColourThemesFR[ThemeNames.Dark] = "Sombre"
 ColourThemesFR[ThemeNames.Blue] = "Bleu"
 
 // names for the "Trends Over Time" sections
@@ -1009,6 +1012,7 @@ const LangFR = {
     "changeLanguageValue": Languages.English,
     "showMenu": REMPLACER_MOI,
     "hideMenu": REMPLACER_MOI,
+    "loading": "Chargement en cours...",
 
     navigation: NavigationFR,
     themes: ColourThemesFR,

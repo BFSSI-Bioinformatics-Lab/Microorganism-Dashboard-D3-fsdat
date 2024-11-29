@@ -35,8 +35,8 @@ class App {
 
     getGraph({page = undefined, tab = undefined} = {}) { return this.model.getTabbedElement(this.graphs, page, tab); }
 
-    // init(): Initializes the entire app
-    async init() {
+    // init(page): Initializes the entire app
+    async init(page = undefined) {
         const self = this;
         this.changeLanguage(self.lang);
 
@@ -47,7 +47,7 @@ class App {
         this.themeVars = document.querySelector(':root');
         this.setTheme();
 
-        this.loadMainPage();
+        this.loadMainPage(page);
     }
 
     // =================== HEADER/FOOTER ===============================
@@ -65,10 +65,14 @@ class App {
                 selectedHeader = d3.select(selectedHeader);
                 const activeHeader = d3.select(".navBarContainer .nav-item .nav-link.active");
 
+                const page = selectedHeader.attr("value");
+                if (!self.model.loaded && page != Pages.Home) return;
+                console.log("BOYYYA");
+
                 self.setSelectedOpt(selectedHeader, activeHeader, data, (selectedOpt, data) => {
                     // load the new page
                     const page = data;
-                    if (page) {
+                    if (page && page != Pages.Home) {
                         self.model.pageName = page;
                         self.loadMainPage();
                     }
@@ -184,11 +188,13 @@ class App {
         const newLanguage = this.headerLink.attr("value");
         this.changeLanguage(newLanguage);
 
+        this.updateHeaderText();
+        this.loadMainPage(Pages.Loading);
+
         this.model.clear();
 
         Promise.all([this.model.load()]).then(() => {
-            this.updateHeaderText();
-            this.updateMainPage();
+            this.loadMainPage();
         });
     }
 
@@ -232,16 +238,20 @@ class App {
     }
 
     // Loads the selected main page for the app
-    loadMainPage() {
+    loadMainPage(page = undefined) {
         const self = this;
-        $("#mainPage").load(PageSrc[self.model.pageName], function() { self.updateMainPage(); });
+        if (page === undefined) {
+            page = self.model.pageName;
+        }
+
+        $("#mainPage").load(PageSrc[page], function() { self.updateMainPage(page); });
 
         // flag all the tabs on the page to require a refresh in their UI
-        const tabsToRerender = this.model.needsRerender[self.model.pageName];
+        const tabsToRerender = this.model.needsRerender[page];
         if (tabsToRerender === undefined) return;
 
         // reset the graphs for the page
-        this.graphs[self.model.pageName] = {};
+        this.graphs[page] = {};
 
         for (const tab in tabsToRerender) {
             tabsToRerender[tab] = true;
@@ -249,13 +259,18 @@ class App {
     }
 
     // updateMainPage(): Updates the entire main page without loading its corresponding HTML
-    updateMainPage() {
+    updateMainPage(page = undefined) {
         this.page = d3.select(".pageContainer");
+        if (page === undefined) {
+            page = this.model.pageName;
+        }
         
-        if (this.model.pageName == Pages.TrendsOverTime) {
+        if (page == Pages.TrendsOverTime) {
             this.updateTrendsOverTime();
-        } else if (this.model.pageName == Pages.Overview) {
+        } else if (page == Pages.Overview) {
             this.updateOverview();
+        } else if (page == Pages.Loading) {
+            this.updateLoadingPage();
         }
 
         // load the multiselect options
@@ -346,7 +361,9 @@ class App {
         // set whether the menu is shown/collapsed
         let collapsible = this.page.select(".mainMenuContainerCollapse").classed("show", !menuCollapsed);
 
-        collapsible = document.getElementById("collapseMenu")
+        collapsible = document.getElementById("collapseMenu");
+        if (collapsible === null) return;
+
         collapsible.addEventListener('hidden.bs.collapse', (event) => {
             event.stopImmediatePropagation();
             event.stopPropagation();
@@ -872,6 +889,7 @@ class App {
 
     // updateTrendsOverTime(): Updates the "Trends Over Time" page
     updateTrendsOverTime() {
+        this.model.pageName = Pages.TrendsOverTime;
         this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
 
         /* ------- update the text of the menu ------------ */
@@ -892,6 +910,7 @@ class App {
 
     // updateOverview(): Updates the "overview" page
     updateOverview() {
+        this.model.pageName = Pages.Overview;
         this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
 
         /* ------- update the text of the menu ------------ */
@@ -909,6 +928,12 @@ class App {
         this.setupMenuTabs();
     }
 
+    // updateLoadingPage(): Updates the "loading" page
+    updateLoadingPage() {
+        // change the text of the loading bubbles for accessbility purposes
+        d3.selectAll(".loadingContainer .spinner-grow span").text(Translation.translate("loading"));
+    }
+
     // =================================================================
 }
 
@@ -919,7 +944,10 @@ class App {
 
 Translation.register(TranslationObj);
 let model = new Model();
-await model.load();
 
 let app = new App(model);
-await app.init();
+app.init(Pages.Loading);
+
+Promise.all([model.load()]).then(() => {
+    app.loadMainPage();
+});
