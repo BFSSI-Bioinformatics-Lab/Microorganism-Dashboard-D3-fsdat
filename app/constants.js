@@ -266,7 +266,7 @@ export const Dims = {
         minGraphWidth: 600,
         GraphWidth: 900,
         GraphTop: 120,
-        GraphBottom: 60,
+        GraphBottom: 80,
         GraphLeft: 220,
         GraphRight: 200,
         BarHeight: 60,
@@ -275,6 +275,9 @@ export const Dims = {
         LegendSquareSize: 12,
         LegendLeftMargin: 50,
         LegendFontSize: 12,
+        FooterPaddingHor: 20,
+        FooterPaddingTop: 40,
+        FooterFontSize: 12
     }
 }
 
@@ -632,6 +635,7 @@ const LangEN = {
     tableCols: tableColsEN,
     csvTableCols: csvtableColsEN,
     overviewBarGraph: overviewBarGraphEN,
+    "graphSourceText": "Source: Health Canada, Food Surveillance Data Analytics Tool – Microbiology",
 
     "downloadGraph": "Download Graph",
     "downloadTable": "Download Table",
@@ -1094,6 +1098,7 @@ const LangFR = {
     tableCols: tableColsFR,
     csvTableCols: csvtableColsFR,
     overviewBarGraph: overviewBarGraphFR,
+    "graphSourceText": REMPLACER_MOI,
 
     "downloadGraph": REMPLACER_MOI,
     "downloadTable": REMPLACER_MOI,

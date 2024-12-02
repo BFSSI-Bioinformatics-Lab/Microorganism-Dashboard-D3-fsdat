@@ -324,7 +324,7 @@ class App {
                 return;
             }
 
-            Visuals.saveAsImage({svg: graph.svg.node(), title: graph.title});
+            graph.saveAsImage();
         });
 
         // when the user presses the download table button
