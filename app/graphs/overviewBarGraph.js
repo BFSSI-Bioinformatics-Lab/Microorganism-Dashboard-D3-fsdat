@@ -176,6 +176,15 @@ export class OverviewBarGraph {
             .range([Dims.overviewBarGraph.GraphTop, this.height - Dims.overviewBarGraph.GraphBottom])
             .padding(0.08);
 
+        // source text
+        this.sourceTextContainer = this.svg.append("g")
+            .attr("transform", `translate(${Dims.overviewBarGraph.GraphLeft}, ${this.height - Dims.overviewBarGraph.GraphBottom})`);
+
+        this.sourceText = this.sourceTextContainer.append("text")
+            .attr("transform", `translate(${Dims.overviewBarGraph.FooterPaddingHor}, ${Dims.overviewBarGraph.FooterPaddingTop})`)
+            .attr("font-size", Dims.overviewBarGraph.FooterFontSize)
+            .attr("visibility", "hidden");
+
         // bars in the graph
         this.bars = this.svg.append("g");
     }
@@ -371,6 +380,13 @@ export class OverviewBarGraph {
             .transition()
             .attr("x", -(this.height / 2));
 
+        // source text
+        this.sourceTextContainer
+            .transition()
+            .attr("transform", `translate(${Dims.overviewBarGraph.GraphLeft}, ${this.height - Dims.overviewBarGraph.GraphBottom})`);
+
+        Visuals.drawText({textGroup: this.sourceText, text: Translation.translate("graphSourceText"), width: this.width, fontSize: Dims.overviewBarGraph.FooterFontSize});
+
         // Append a group for each series, and a rect for each element in the series.
         this.bars.selectAll("*").remove();
         this.bars.append("g")
@@ -405,5 +421,11 @@ export class OverviewBarGraph {
 
         // Return the chart with the color scale as a property (for the legend).
         return Object.assign(this.svg.node(), {scales: {color}});
+    }
+
+    saveAsImage() {
+        const preProcessor = async () => { this.sourceText.attr("visibility", "visible"); };
+        const postProcessor = async () => { this.sourceText.attr("visibility", "hidden"); };
+        Visuals.saveAsImage({svg: this.svg.node(), title: this.title, preProcessor, postProcessor});
     }
 }
