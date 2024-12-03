@@ -210,8 +210,8 @@ export class OverviewBarGraph {
             const descHitRate = NumberTools.randomInt(1, 100);
 
             let noDataState = NoDataStates.Normal;
-            if (descHitRate <= 8) noDataState = NoDataStates.Doggy;
-            else if (descHitRate <= 16) noDataState = NoDataStates.Kitty;
+            if (descHitRate <= 5) noDataState = NoDataStates.Doggy;
+            else if (descHitRate <= 10) noDataState = NoDataStates.Kitty;
 
             noDataContainer.append("p")
                 .text(Translation.translate(`noDataDesc.${noDataState}`));

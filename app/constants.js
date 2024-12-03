@@ -235,6 +235,12 @@ export const SummaryAtts = {
     ConcentrationRange: "concentrationRange"
 }
 
+// Different ways of how to combine graphs
+export const CombineGraphTypes = {
+    ByFood: "byFood",
+    ByMicroorganism: "byMicroorganism"
+}
+
 // Columns for the Summary Statistics table
 export const SummaryTableCols = [
     SummaryAtts.FoodName,
