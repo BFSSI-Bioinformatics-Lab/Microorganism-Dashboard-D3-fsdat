@@ -67,7 +67,6 @@ class App {
 
                 const page = selectedHeader.attr("value");
                 if (!self.model.loaded && page != Pages.Home) return;
-                console.log("BOYYYA");
 
                 self.setSelectedOpt(selectedHeader, activeHeader, data, (selectedOpt, data) => {
                     // load the new page

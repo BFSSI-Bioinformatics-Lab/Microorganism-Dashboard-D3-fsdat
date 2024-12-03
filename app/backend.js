@@ -10,7 +10,7 @@
 
 import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes } from "./constants.js"
 import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState } from "./constants.js"
-import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols } from "./constants.js"
+import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols, CombineGraphTypes } from "./constants.js"
 import { Translation, SetTools, MapTools, TableTools, NumberTools, Range, DateTimeTools } from "./tools.js";
 
 
@@ -1395,10 +1395,12 @@ export class Model {
     }
 
     // computeTableData(summaryData): Retrieves the table data needed to be displayed on the website
-    computeTableData(summaryData) {
+    computeTableData(summaryData, combineGraphType = undefined) {
         let tableData = {};
         const microorganismTree = this.getMicroOrganismTree();
         const nonSpeciated = Translation.translate("nonSpeciated");
+        const allMicroorganisms = Translation.translate("allMicroorganisms");
+        const allFoods = Translation.translate("allFoods");
 
         // get the table data
         TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism"], (keys, values) => {
@@ -1429,6 +1431,33 @@ export class Model {
                 tableData[keys.foodName][genus] = newTableData;
             } else {
                 tableData[keys.foodName][genus] = this.combineSummaryData(tableData[keys.foodName][genus], microorganismSummary);
+            }
+
+            if (combineGraphType === undefined) return;
+
+            // total row for combined foods (Trends Over Time --> By Microorganism)
+            if (combineGraphType == CombineGraphTypes.ByFood) {
+                if (tableData[allFoods] === undefined) tableData[allFoods] = {};
+
+                if (tableData[allFoods][microorganismKey] === undefined) {
+                    let newTableData = structuredClone(microorganismSummary);
+                    newTableData[SummaryAtts.FoodName] = allFoods;
+                    newTableData[SummaryAtts.Microorganism] = Model.getDisplayMicroorganism(microorganismKey);
+                    tableData[allFoods][microorganismKey] = newTableData;
+                } else {
+                    tableData[allFoods][microorganismKey] = this.combineSummaryData(tableData[allFoods][microorganismKey], microorganismSummary);
+                }
+            
+            // total row for combined microorganisms (Trends Over Time --> By Food)
+            } else if (combineGraphType == CombineGraphTypes.ByMicroorganism) {
+                if (tableData[keys.foodName][allMicroorganisms] === undefined) {
+                    let newTableData = structuredClone(microorganismSummary);
+                    newTableData[SummaryAtts.FoodName] = keys.foodName;
+                    newTableData[SummaryAtts.Microorganism] = allMicroorganisms;
+                    tableData[keys.foodName][allMicroorganisms] = newTableData;
+                } else {
+                    tableData[keys.foodName][allMicroorganisms] = this.combineSummaryData(tableData[keys.foodName][allMicroorganisms], microorganismSummary);
+                }
             }
         });
 
@@ -1535,6 +1564,22 @@ export class Model {
             let csvContent = this.computeTableCSV(tableData);
 
             this.graphData[page][tab] = graphData;
+            this.tableData[page][tab] = tableData;
+            this.tableCSV[page][tab] = csvContent;
+        
+        // Trends Over Time --> By Microorganism
+        } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {
+            let tableData = this.computeTableData(summaryData, CombineGraphTypes.ByFood);
+            let csvContent = this.computeTableCSV(tableData);
+
+            this.tableData[page][tab] = tableData;
+            this.tableCSV[page][tab] = csvContent;
+        
+        // Trends Over Time --> By Food
+        } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
+            let tableData = this.computeTableData(summaryData, CombineGraphTypes.ByMicroorganism);
+            let csvContent = this.computeTableCSV(tableData);
+
             this.tableData[page][tab] = tableData;
             this.tableCSV[page][tab] = csvContent;
         }
