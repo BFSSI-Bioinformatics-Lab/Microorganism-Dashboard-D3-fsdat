@@ -123,7 +123,12 @@ export class OverviewBarGraph {
             .attr("width", this.width)
             .attr("height", this.height)
             .attr("viewBox", [0, 0, this.width, this.height])
-            .classed("svgGraph", true);
+            .classed("svgGraph", true)
+            .on("touchstart", (event) => {
+                if (this.shownTooltip === undefined) return;
+                this.hideTooltip(this.shownTooltip);
+                this.shownTooltip = undefined;
+            });
 
         // create the background for the graph
         this.background = this.svg.append("rect")
@@ -187,6 +192,161 @@ export class OverviewBarGraph {
 
         // bars in the graph
         this.bars = this.svg.append("g");
+
+        // tooltips
+        this.tooltips = {};
+        this.shownTooltip;
+        this.tooltipGroup = this.svg.append("g")
+    }
+
+    /* Creates tooltip for hovering over bars */
+    hoverTooltip({data, state, numberView, hide = false} = {}){
+        const groupName = data[0];
+        const stateValue = data[1].get(state)[SummaryAtts.StateVal];
+        const colour = SampleStateColours[state];
+
+        let numberDisplay = Translation.translateNum(`${stateValue}`);
+        if (numberView == NumberView.Percentage) {
+            numberDisplay += "%"
+        }
+
+        const lines = Translation.translate("overviewBarGraph.tooltip", { 
+            returnObjects: true, 
+            state,
+            number: numberDisplay
+        });
+        
+        // ------- draw the tooltip ------------
+
+        // attributes for the tool tip
+        const toolTip = {};
+        let toolTipWidth = Dims.overviewBarGraph.TooltipMinWidth;
+        let toolTipHeight = Dims.overviewBarGraph.TooltipHeight;
+        const textGroupPosX = Dims.overviewBarGraph.TooltipBorderWidth + Dims.overviewBarGraph.TooltipPaddingHor +  Dims.overviewBarGraph.TooltipTextPaddingHor;
+        let currentTextGroupPosY = Dims.overviewBarGraph.TooltipPaddingVert + Dims.overviewBarGraph.TooltipTextPaddingVert;
+
+        const toolTipHighlightXPos = Dims.overviewBarGraph.TooltipPaddingHor + Dims.overviewBarGraph.TooltipBorderWidth / 2;
+
+        // draw the container for the tooltip
+        toolTip.group = this.tooltipGroup.append("g")
+            .attr("opacity", hide ? 0 : 1)
+            .on("touchstart", (event, data) => {
+                event.stopImmediatePropagation();
+                event.stopPropagation();
+                event.preventDefault();
+
+                if (this.shownTooltip === undefined) return;
+
+                let currentOpacity = this.shownTooltip.group.attr("opacity");
+                let newOpacity = Math.abs(currentOpacity - 1);
+                this.shownTooltip.group
+                    .attr("opacity", newOpacity)
+                    .style("pointer-events", newOpacity ? "auto": "none");
+
+                if (newOpacity == 0) {
+                    this.shownTooltip = undefined;
+                }
+            });
+
+        // draw the background for the tooltip
+        toolTip.background = toolTip.group.append("rect")
+            .attr("height", toolTipHeight)
+            .attr("width", toolTipWidth)
+            .attr("fill", "var(--surface)")
+            .attr("stroke", colour)
+            .attr("stroke-width", 1)
+            .attr("rx", 5);
+
+        // draw the highlight
+        toolTip.highlight = toolTip.group.append("line")
+            .attr("x1", toolTipHighlightXPos)
+            .attr("x2", toolTipHighlightXPos)
+            .attr("y1", Dims.overviewBarGraph.TooltipPaddingVert)
+            .attr("y2", toolTipHeight - Dims.overviewBarGraph.TooltipPaddingVert)
+            .attr("stroke", colour) 
+            .attr("stroke-width", Dims.overviewBarGraph.TooltipBorderWidth)
+            .attr("stroke-linecap", "round");
+
+        // draw the title
+        toolTip.titleGroup = toolTip.group.append("text")
+            .attr("font-size", Dims.overviewBarGraph.TooltipFontSize)
+            .attr("font-weight", "bold")
+            .attr("transform", `translate(${textGroupPosX}, ${currentTextGroupPosY})`);
+
+        const titleDims = Visuals.drawText({textGroup: toolTip.titleGroup, text: groupName, fontSize: Dims.overviewBarGraph.TooltipFontSize, 
+                                            textWrap: TextWrap.NoWrap, padding: Dims.overviewBarGraph.TooltipPaddingVert});
+
+        currentTextGroupPosY += titleDims.textBottomYPos + Dims.overviewBarGraph.TooltipTitleMarginBtm;
+
+        // draw the text
+        toolTip.textGroup = toolTip.group.append("text")
+            .attr("font-size", Dims.overviewBarGraph.TooltipFontSize)
+            .attr("transform", `translate(${textGroupPosX}, ${currentTextGroupPosY})`);
+
+        const textDims = Visuals.drawText({textGroup: toolTip.textGroup, text: lines, fontSize: Dims.overviewBarGraph.TooltipFontSize, 
+                                           textWrap: TextWrap.NoWrap, padding: Dims.overviewBarGraph.TooltipPaddingVert});
+
+        currentTextGroupPosY += textDims.textBottomYPos;
+
+        // update the height of the tooltip to be larger than the height of all the text
+        toolTipHeight = Math.max(toolTipHeight, currentTextGroupPosY + Dims.overviewBarGraph.TooltipPaddingVert + Dims.overviewBarGraph.TooltipTextPaddingVert);
+        toolTip.background.attr("height", toolTipHeight);
+        toolTip.highlight.attr("y2", toolTipHeight - Dims.overviewBarGraph.TooltipPaddingVert);
+
+        // update the width of the tooltip to be larger than the width of all the text
+        toolTipWidth = Math.max(toolTipWidth, 2 * Dims.overviewBarGraph.TooltipPaddingHor + Dims.overviewBarGraph.TooltipBorderWidth + 2 * Dims.overviewBarGraph.TooltipTextPaddingHor + Math.max(titleDims.width, textDims.width));
+        toolTip.background.attr("width", toolTipWidth);
+
+        // -------------------------------------
+        
+        if (this.tooltips[groupName] === undefined) this.tooltips[groupName] = {};
+        this.tooltips[groupName][state] = toolTip;
+        return toolTip;
+    }
+
+    // onBarHover(event, data): Show the tooltip when the user hovers over the bar
+    onBarHover(event, data) {
+        const groupName = data.data[0];
+        const state = data.key;
+
+        if (this.tooltips[groupName] === undefined || this.tooltips[groupName][state] === undefined) return;
+
+        if (this.shownTooltip !== undefined) {
+            this.shownTooltip.group
+                .attr("opacity", 0)
+                .style("pointer-events", "none");
+        }
+
+        const tooltip = this.tooltips[groupName][state];
+        const mousePos = d3.pointer(event);
+
+        tooltip.group
+            .attr("opacity", 1)
+            .attr("transform", `translate(${mousePos[0]}, ${mousePos[1]})`)
+            .style("pointer-events", "auto");
+
+        d3.select(event.target).style("cursor", "pointer");
+        this.shownTooltip = tooltip;
+    }
+
+    // hideTooltip(tooltip): Hides the tooltips
+    hideTooltip(tooltip) {
+        tooltip.group.attr("opacity", 0)
+            .style("pointer-events", "none");
+    }
+
+    // onBarUnHover(event, data): Hides the tooltip when the user unhovers from the bar
+    onBarUnHover(event, data){
+        const groupName = data.data[0];
+        const state = data.key;
+
+        if (this.tooltips[groupName] === undefined || this.tooltips[groupName][state] === undefined) return;
+
+        const tooltip = this.tooltips[groupName][state];
+        this.hideTooltip(tooltip);
+
+        d3.select(event.target).style("cursor", "default");
+        this.shownTooltip = undefined;
     }
 
     // reference: https://observablehq.com/@d3/stacked-horizontal-bar-chart/2
@@ -387,22 +547,36 @@ export class OverviewBarGraph {
 
         Visuals.drawText({textGroup: this.sourceText, text: Translation.translate("graphSourceText"), width: this.width, fontSize: Dims.overviewBarGraph.FooterFontSize});
 
+        // draw all the tooltips
+        for (const group of series) {
+            const state = group.key;
+            for (const barData of group) {
+                this.hoverTooltip({data: barData.data, state, numberView: numberView, hide: true})
+            }
+        }
+
         // Append a group for each series, and a rect for each element in the series.
         this.bars.selectAll("*").remove();
         this.bars.append("g")
             .selectAll()
             .data(series)
-            .join("g")
+            .enter()
+            .append("g")
             .attr("fill", d => color(d.key))
             .selectAll("rect")
             .data(D => D.map(d => (d.key = D.key, d)))
-            .join("rect")
+            .enter()
+            .append("rect")
             .attr("x", d => this.xAxisScale(d[0]))
             .attr("y", d => this.yAxisScale(d.data[0]))
             .attr("height", this.yAxisScale.bandwidth())
             .attr("width", d => this.xAxisScale(d[1]) - this.xAxisScale(d[0]))
-            .append("title")
-            .text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key)[SummaryAtts.StateVal]}`);
+            //.append("title")
+            //.text(d => `${d.data[0]} ${d.key}\n${d.data[1].get(d.key)[SummaryAtts.StateVal]}`)
+            .on("mouseover", (event, d) => this.onBarHover(event, d))
+            .on("mousemove", (event, d) => this.onBarHover(event, d))
+            .on("mouseenter", (event, d) => this.onBarHover(event, d))
+            .on("mouseleave", (event, d) => this.onBarUnHover(event, d));
 
         // colours for the legend
         const legendStates = [SampleState.Detected, SampleState.NotDetected];
