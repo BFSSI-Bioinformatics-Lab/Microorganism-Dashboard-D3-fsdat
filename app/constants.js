@@ -283,7 +283,16 @@ export const Dims = {
         LegendFontSize: 12,
         FooterPaddingHor: 20,
         FooterPaddingTop: 40,
-        FooterFontSize: 12
+        FooterFontSize: 12,
+        TooltipMinWidth: 140,
+        TooltipHeight: 50,
+        TooltipPaddingVert: 8,
+        TooltipPaddingHor: 10,
+        TooltipTextPaddingVert: 3,
+        TooltipTextPaddingHor: 5,
+        TooltipBorderWidth: 3,
+        TooltipFontSize: 14,
+        TooltipTitleMarginBtm: 10,
     }
 }
 
@@ -580,7 +589,12 @@ NoDataDescEN[NoDataStates.Doggy] = "It is empty around here... Here is a puppy t
 NoDataDescEN[NoDataStates.Kitty] = "It is empty around here... Here is a kitty to keep you company!";
 
 // title/labels in the Overview bar graph
-const overviewBarGraphEN = {};
+const overviewBarGraphEN = {
+    "tooltip": [
+        "{{ state }}",
+        "{{ number }}"
+    ]
+};
 overviewBarGraphEN[SummaryAtts.FoodName] = {
     "graphTitle": "Selected Qualitative Result by Microorganisms",
     "xAxis": overviewBarGraphXAxisEN,
@@ -594,6 +608,8 @@ overviewBarGraphEN[SummaryAtts.Microorganism] = {
 };
 
 const LangEN = {
+    Number: "{{num, number}}",
+
     "websiteTitle": "Microbiology Tool",
     "websiteTabTitle": "FSDAT -Microbiology",
     "websiteDescription": "FSDAT -Microbiology",
@@ -1044,7 +1060,12 @@ NoDataDescFR[NoDataStates.Doggy] = "C'est vide ici... Voici un petit chien pour 
 NoDataDescFR[NoDataStates.Kitty] = "C'est vide ici... Voici un petit chat pour vous accompagner!";
 
 // title/labels in the Overview bar graph
-const overviewBarGraphFR = {};
+const overviewBarGraphFR = {
+    "tooltip": [
+        "{{ state }}",
+        "{{ number }}"
+    ]
+};
 overviewBarGraphFR[SummaryAtts.FoodName] = {
     "graphTitle": REMPLACER_MOI,
     "xAxis": overviewBarGraphXAxisFR,
@@ -1058,6 +1079,8 @@ overviewBarGraphFR[SummaryAtts.Microorganism] = {
 };
 
 const LangFR = {
+    Number: "{{num, number}}",
+
     "websiteTitle": REMPLACER_MOI,
     "websiteTabTitle": REMPLACER_MOI,
     "websiteDescription": REMPLACER_MOI,
