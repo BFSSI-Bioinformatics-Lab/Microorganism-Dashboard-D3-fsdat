@@ -1590,10 +1590,12 @@ export class Model {
             let graphData = this.computeOverviewGraphData("foodName", SummaryAtts.FoodName, summaryData);
             let tableData = this.computeTableData(summaryData);
             let csvContent = this.computeTableCSV(tableData);
+            let rawCSVContent = this.computeRawCSV(denomSamples);
 
             this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
             this.tableCSV[page][tab] = csvContent;
+            this.rawCSV[page][tab] = rawCSVContent;
         
         // Overview --> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
@@ -1611,17 +1613,21 @@ export class Model {
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {
             let tableData = this.computeTableData(summaryData, CombineGraphTypes.ByFood);
             let csvContent = this.computeTableCSV(tableData);
+            let rawCSVContent = this.computeRawCSV(denomSamples);
 
             this.tableData[page][tab] = tableData;
             this.tableCSV[page][tab] = csvContent;
+            this.rawCSV[page][tab] = rawCSVContent;
         
         // Trends Over Time --> By Food
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
             let tableData = this.computeTableData(summaryData, CombineGraphTypes.ByMicroorganism);
             let csvContent = this.computeTableCSV(tableData);
+            let rawCSVContent = this.computeRawCSV(denomSamples);
 
             this.tableData[page][tab] = tableData;
             this.tableCSV[page][tab] = csvContent;
+            this.rawCSV[page][tab] = rawCSVContent;
         }
     }
 
