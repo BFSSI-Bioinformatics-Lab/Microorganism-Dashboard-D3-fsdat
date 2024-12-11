@@ -557,6 +557,7 @@ export class Model {
         this.tableData = {};
         this.graphData = {};
         this.tableCSV = {};
+        this.rawCSV = {};
         this.needsRerender = {};
 
         for (const page in FilterOrder) {
@@ -565,6 +566,7 @@ export class Model {
             this.summaryData[page] = {};
             this.tableData[page] = {};
             this.tableCSV[page] = {};
+            this.rawCSV[page] = {};
             this.graphData[page] = {};
             this.needsRerender[page] = {};
 
@@ -574,6 +576,7 @@ export class Model {
                 this.summaryData[page][tab] = {};
                 this.tableData[page][tab] = [];
                 this.tableCSV[page][tab] = "";
+                this.rawCSV[page][tab] = "";
                 this.graphData[page][tab] = [];
                 this.needsRerender[page][tab] = false;
             }
@@ -653,6 +656,7 @@ export class Model {
     getGraphData({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.graphData, page, tab); }
     getTableData({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.tableData, page, tab); }
     getTableCSV({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.tableCSV, page, tab); }
+    getRawCSV({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.rawCSV, page, tab); }
     getInputs({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.inputs, page, tab); }
     getFilterOrderInds({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(FilterOrderInds, page, tab); }
     getFilterOrder({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(FilterOrder, page, tab); }
@@ -1496,6 +1500,40 @@ export class Model {
         return TableTools.createCSVContent(result);
     }
 
+    // computeRawCSV(sampleData): Computes the CSV content for the raw data table
+    computeRawCSV(sampleData) {
+        // get the row indices to the data
+        let rowInds = new Set();
+        for (const sampleName in sampleData) {
+            const sample = sampleData[sampleName];
+
+            for (const sampleInd of sample.data) {
+                rowInds.add(sampleInd);
+            }
+        }
+
+        if (rowInds.size == 0) return TableTools.createCSVContent([]);
+        
+        let result = [];
+        let heading = null;
+
+        // add the rows for the CSV content
+        for (const ind of rowInds) {
+            const row = this.data[ind];
+            
+            // add the header for the CSV content
+            // TODO: When CFIA data comes, what columns should we display? (union of Health Canada and CFIA?)
+            if (heading === null) {
+                heading = Object.keys(row);
+                result.push(heading);
+            }
+
+            result.push(heading.map((colHeading) => row[colHeading]));
+        }
+
+        return TableTools.createCSVContent(result);
+    }
+
     // computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay): Retrieves the graph data for the overview page
     computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay) {
         if (getSummaryKeyDisplay === undefined) {
@@ -1561,11 +1599,13 @@ export class Model {
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
             let graphData = this.computeOverviewGraphData("microorganism", SummaryAtts.Microorganism, summaryData, (summaryKey) => Model.getDisplayMicroorganism(summaryKey));
             let tableData = this.computeTableData(summaryData);
-            let csvContent = this.computeTableCSV(tableData);
+            let tableCSVContent = this.computeTableCSV(tableData);
+            let rawCSVContent = this.computeRawCSV(denomSamples);
 
             this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
-            this.tableCSV[page][tab] = csvContent;
+            this.tableCSV[page][tab] = tableCSVContent;
+            this.rawCSV[page][tab] = rawCSVContent;
         
         // Trends Over Time --> By Microorganism
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {

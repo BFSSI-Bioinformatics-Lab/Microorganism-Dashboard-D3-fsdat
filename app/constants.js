@@ -654,6 +654,10 @@ const LangEN = {
     denomGenuses: denomGenusesEN,
 
     "tableTitle": "Statistical Summary",
+    "csvTitle": {
+        "table": "{{ graphTitle }} {{ tableTitle }}",
+        "data": "{{ graphTitle }} Data"
+    },
     tableCols: tableColsEN,
     csvTableCols: csvtableColsEN,
     overviewBarGraph: overviewBarGraphEN,
@@ -661,6 +665,7 @@ const LangEN = {
 
     "downloadGraph": "Download Graph",
     "downloadTable": "Download Table",
+    "downloadData": "Download Data",
 
     // reference: https://datatables.net/plug-ins/i18n/English.html
     // note:
@@ -1124,6 +1129,10 @@ const LangFR = {
     numberview: NumberViewFR,
 
     "tableTitle": REMPLACER_MOI,
+    "csvTitle": {
+        "table": `${REMPLACER_MOI_AVEC_ARGUMENTS}{{ graphTitle }} {{ tableTitle }}`,
+        "data": `${REMPLACER_MOI_AVEC_ARGUMENTS}{{ graphTitle }}`
+    },
     tableCols: tableColsFR,
     csvTableCols: csvtableColsFR,
     overviewBarGraph: overviewBarGraphFR,
@@ -1131,6 +1140,7 @@ const LangFR = {
 
     "downloadGraph": REMPLACER_MOI,
     "downloadTable": REMPLACER_MOI,
+    "downloadData": REMPLACER_MOI,
 
     // references: https://datatables.net/plug-ins/i18n/French.html
     // note:

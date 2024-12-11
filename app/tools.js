@@ -230,7 +230,7 @@ export class TableTools {
 
             // clean up the text for each cell
             for (let i = 0; i < colLen; ++i) {
-                let cleanedText = `${row[i]}`.replace(/"/g, "'");
+                let cleanedText = `${row[i]}`.replace(/"/g, "'").replace('"', "'");
                 cleanedText = `"${cleanedText}"`;
                 csvRow.push(cleanedText);
             }
@@ -481,17 +481,26 @@ export class Visuals {
     }
 
     // downloadCSV(csvConvent): Exports some table as a CSV file
+    // Note: For large CSV files, their string content are so big, that they take up
+    //  all of the browser's memory and end up not downloading the file.
+    //  We want to slowly stream the data download using 'URL.CreateObjectURL'.
+    //  https://stackoverflow.com/questions/30167326/unable-to-download-large-data-using-javascript
+    //
+    // WARNING: Remember to FREE UP the memory of the newly created URL object by calling 'URL.revokeObjectURL'
+    //  https://developer.mozilla.org/en-US/docs/Web/API/URL/revokeObjectURL_static
     static downloadCSV({csvContent, fileName = ""} = {}) {
         const universalBOM = "\uFEFF";
-        const encodedUri = encodeURI(universalBOM + csvContent);
 
         // creates a temporary link for exporting the table
         const link = document.createElement('a');
-        link.setAttribute('href', "data:text/csv;charset=utf-8," + encodedUri);
+        var urlObjId = URL.createObjectURL( new Blob( [universalBOM + csvContent], {type:'text/csv;charset=utf-8'} ) );
+        link.setAttribute('href', urlObjId);
         link.setAttribute('download', `${fileName}.csv`);
 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
+        return urlObjId;
     }
 }
