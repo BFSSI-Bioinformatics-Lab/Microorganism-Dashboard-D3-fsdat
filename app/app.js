@@ -31,6 +31,9 @@ class App {
         this.graphs = {};
         this.graphs[Pages.Overview] = {};
         this.graphs[Pages.TrendsOverTime] = {};
+
+        this.tableDownloadURLObjId = undefined;
+        this.RawDownloadURLObjId = undefined;
     }
 
     getGraph({page = undefined, tab = undefined} = {}) { return this.model.getTabbedElement(this.graphs, page, tab); }
@@ -336,7 +339,35 @@ class App {
                 return;
             }
 
-            Visuals.downloadCSV({csvContent: tableCSV, fileName: graph.title});
+            // free up the previous download object for table
+            if (this.tableDownloadURLObjId !== undefined) {
+                URL.revokeObjectURL(this.tableDownloadURLObjId);
+                this.tableDownloadURLObjId = undefined;
+            }
+
+            const summaryTableTitle = Translation.translate("tableTitle");
+            const csvTitle = Translation.translate("csvTitle.table", {graphTitle: graph.title, tableTitle: summaryTableTitle});
+            this.tableDownloadURLObjId = Visuals.downloadCSV({csvContent: tableCSV, fileName: csvTitle});
+        });
+
+        // when the user presses the download data button
+        const downloadDataBtn = d3.select("#downloadDataBtn");
+        downloadDataBtn.on("click", () => {
+            const graph = this.getGraph();
+            const rawCSV = this.model.getRawCSV();
+            if (!rawCSV || graph === undefined || !graph.isDrawn) {
+                this.showAlertPopup(Translation.translate("noData"), Translation.translate("noDataPopupDesc.table"), Translation.translate("close"));
+                return;
+            }
+
+            // free up the previous download object for table
+            if (this.RawDownloadURLObjId !== undefined) {
+                URL.revokeObjectURL(this.RawDownloadURLObjId);
+                this.RawDownloadURLObjId = undefined;
+            }
+
+            const csvTitle = Translation.translate("csvTitle.data", {graphTitle: graph.title});
+            this.RawDownloadURLObjId = Visuals.downloadCSV({csvContent: rawCSV, fileName: csvTitle});
         });
 
 
@@ -438,7 +469,8 @@ class App {
             "#showResultAsLabel": "showResultAsLabel",
             "#tableTitle": "tableTitle",
             "#downloadGraphBtn": "downloadGraph",
-            "#downloadTableBtn": "downloadTable"
+            "#downloadTableBtn": "downloadTable",
+            "#downloadDataBtn": "downloadData"
         };
 
         for (const selector in labelTranslations) {
