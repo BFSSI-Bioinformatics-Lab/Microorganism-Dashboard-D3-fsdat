@@ -32,7 +32,8 @@ export class Translation {
     static translate(key, args){
         const result = i18next.t(key, args);
 
-        if (typeof result !== 'string') return result;
+        if (Object.prototype.toString.call(result) === '[object Array]') return result.map((line) => he.decode(line));
+        else if (typeof result !== 'string') return result;
         return he.decode(result);
     }
 
