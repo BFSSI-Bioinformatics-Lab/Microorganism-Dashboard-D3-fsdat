@@ -10,7 +10,7 @@
 
 import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes } from "./constants.js"
 import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState } from "./constants.js"
-import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols, CombineGraphTypes } from "./constants.js"
+import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols, CombineGraphTypes, TimeGroup } from "./constants.js"
 import { Translation, SetTools, MapTools, TableTools, NumberTools, Range, DateTimeTools } from "./tools.js";
 
 
@@ -941,17 +941,24 @@ export class Model {
             let selections = this.selections[page][tab];
             selections[Inputs.FoodGroup] = new Set();
             selections[Inputs.Food] = new Set();
+            selections[Inputs.NumberView] = new Set(Object.values(NumberView));
+            selections[Inputs.TimeGroup] = new Set(Object.values(TimeGroup));
+        
+        // Trends Over Time ==> By Food
+        } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
+            let selections = this.selections[page][tab];
+            selections[Inputs.NumberView] = new Set(Object.values(NumberView));
 
         // Overview ==> By Microorganism
         } else if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
             let selections = this.selections[page][tab];
             selections[Inputs.SurveyType] = new Set();
-            selections[Inputs.NumberView] = new Set([NumberView.Number, NumberView.Percentage]);
+            selections[Inputs.NumberView] = new Set(Object.values(NumberView));
         
         // Overview ==> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
             let selections = this.selections[page][tab];
-            selections[Inputs.NumberView] = new Set([NumberView.Number, NumberView.Percentage]);
+            selections[Inputs.NumberView] = new Set(Object.values(NumberView));
         }
     }
 
@@ -1016,7 +1023,10 @@ export class Model {
             }
         }
 
-        this.updateYearSelection({page, tab});
+        // independent selections that do not depend on each other
+        if (input === null || inputInd !== undefined || input == Inputs.Year) {
+            this.updateYearSelection({page, tab});
+        }
     }
 
     // _updateSelections(currentInd, inputInd, grouping, filterOrder, selections, inputs): Internal function to update the selections
@@ -1055,6 +1065,8 @@ export class Model {
             inputs[Inputs.FoodGroup] = new Set();
             inputs[Inputs.Food] = new Set();
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
+            inputs[Inputs.NumberView] = NumberView.Number;
+            inputs[Inputs.TimeGroup] = TimeGroup.Months;
             this.inputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = inputs;
 
         // Trends Over Time ==> By Food
@@ -1065,6 +1077,8 @@ export class Model {
             inputs[Inputs.FoodGroup] = structuredClone(selections[Inputs.FoodGroup]);
             inputs[Inputs.Food] = structuredClone(selections[Inputs.Food]);
             inputs[Inputs.MicroOrganism] = new Set();
+            inputs[Inputs.NumberView] = NumberView.Number;
+            inputs[Inputs.TimeGroup] = TimeGroup.Months;
             this.inputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = inputs;
 
         // Overview ==> By Microorganism
@@ -1106,7 +1120,7 @@ export class Model {
         const inputInd = input === null ? -1 : filterOrderInds[input];
         const microorganismInputInd = (filterOrderInds[Inputs.MicroOrganism] === undefined) ? -1 : filterOrderInds[Inputs.MicroOrganism];
 
-        if (inputInd == undefined) return;
+        if (inputInd === undefined) return;
 
         // update the inputs where their corresponding selections have been updated
         for (let i = inputInd + 1; i < filterOrder.length; ++i) {
@@ -1140,7 +1154,7 @@ export class Model {
         }
     }
 
-    // updateInputDependents(page, tab): Update any other sdata that depends on both the selections and the inputs
+    // updateInputDependents(page, tab): Update any other data that depends on both the selections and the inputs
     updateInputDependents({page = undefined, tab = undefined} = {}) {
         const inputs = this.getInputs({page, tab});
         const selections = this.getSelection({page, tab});
@@ -1289,7 +1303,7 @@ export class Model {
         return samples;
     }
 
-    // getDenomSamples(groupedSamples, microorganismTree): Retrieves all the samples used for the denominators of each food
+    // getDenomSamples(groupedSamples, microorganismTree): Retrieves all the samples used for the denominators of each food for each time division
     //
     // Note:
     //  For Health Canada Data:
@@ -1300,31 +1314,70 @@ export class Model {
         const genuses = new Set(Translation.translate("denomGenuses", { returnObjects: true }));
 
         // get the unique samples
-        TableTools.forGroup(groupedSamples, ["surveyType", "foodName", "microorganism"], (keys, values) => {
-            const microorganismSamples = new Set(Object.keys(values.microorganism));
+        TableTools.forGroup(groupedSamples, ["surveyType", "foodName", "microorganism", "timeGroup"], (keys, values) => {
+            const microorganismSamples = new Set(Object.keys(values.timeGroup));
             const genus = microorganismTree.genuses[keys.microorganism];
             const isHealthCanada = keys.surveyType == SurveyTypes.HC || keys.surveyType == SurveyTypes.PHAC;
+            const hasGenus = genuses.has(genus)
 
             if (result[keys.surveyType] === undefined) result[keys.surveyType] = {};
             if (result[keys.surveyType][keys.foodName] == undefined) result[keys.surveyType][keys.foodName] = {};
             const foodDenoms = result[keys.surveyType][keys.foodName];
 
             // accumulate the unique samples
-            if (isHealthCanada && genuses.has(genus)) {
-                if (foodDenoms[genus] === undefined) {
-                    foodDenoms[genus] =  microorganismSamples;
+            if (isHealthCanada && hasGenus) {
+                if (foodDenoms[genus] === undefined) foodDenoms[genus] = {};
+
+                if (foodDenoms[genus][keys.timeGroup] === undefined) {
+                    foodDenoms[genus][keys.timeGroup] =  microorganismSamples;
                 } else {
-                    foodDenoms[genus] = SetTools.union(foodDenoms[genus], microorganismSamples, false);
+                    foodDenoms[genus][keys.timeGroup] = SetTools.union(foodDenoms[genus][keys.timeGroup], microorganismSamples, false);
                 }
-            } else if (isHealthCanada) {
-                foodDenoms[keys.microorganism] = microorganismSamples;
+            } else {
+                if (foodDenoms[keys.microorganism] === undefined) foodDenoms[keys.microorganism] = {};
+
+                if (foodDenoms[keys.microorganism][keys.timeGroup] === undefined) {
+                    foodDenoms[keys.microorganism][keys.timeGroup] = microorganismSamples;
+                } else {
+                    foodDenoms[keys.microorganism][keys.timeGroup] = SetTools.union(foodDenoms[keys.microorganism][keys.timeGroup], microorganismSamples, false);
+                }
             }
         });
 
+        console.log("DENOMS SAMPLES: ", result);
+        return result;
+    }
+
+    // getOverallDenomSamples(denomSamples): Retrieves all the samples used for the denominators of each food for the overall time
+    getOverallDenomSamples(denomSamples) {
+        const result = {};
+        TableTools.forGroup(denomSamples, ["surveyType", "foodName", "microorganism", "timeGroup"], (keys, values) => {
+            if (result[keys.surveyType] === undefined) result[keys.surveyType] = {};
+            if (result[keys.surveyType][keys.foodName] === undefined) result[keys.surveyType][keys.foodName] = {};
+
+            if (result[keys.surveyType][keys.foodName][keys.microorganism] === undefined) {
+                result[keys.surveyType][keys.foodName][keys.microorganism] = values.timeGroup;
+            } else {
+                result[keys.surveyType][keys.foodName][keys.microorganism] = SetTools.union(result[keys.surveyType][keys.foodName][keys.microorganism], values.timeGroup, true);
+            }
+        });
+
+        console.log("OVERALL DENOMS: ", result);
         return result;   
     }
 
-    // getSummary(samples, page, tab): Creates the summary for samples detected/not detected/not tested for
+    // getTimeKey(dataInd, timeGroup): Retrieves the key for grouping data by time
+    getTimeKey(dataInd, timeGroup) {
+        if (timeGroup === undefined || timeGroup == TimeGroup.Overall) return TimeGroup.Overall;
+        
+        const rowDateTime = this.data[dataInd][HCDataCols.SampleDate];
+        if (timeGroup == TimeGroup.Years) return rowDateTime.year()
+        else if (timeGroup == TimeGroup.Months) {
+             return `${rowDateTime.year()} ${rowDateTime.month()}`
+        }
+    }
+
+    // getSummary(groupedSamples, denomGroupedSamples, page, tab): Creates the summary for samples detected/not detected/not tested for
     //  each food 
     // 
     // Note:
@@ -1335,32 +1388,21 @@ export class Model {
     //      notDetected: int,
     //      notTested: int
     //   }
-    getSummary({samples, denomSamples, page = undefined, tab = undefined} = {}) {
-        let groupedSamples = TableTools.groupAggregates(samples, (aggregate) => aggregate.data, [
-            ind => this.data[ind][HCDataCols.SurveyType],
-            ind => this.data[ind][HCDataCols.FoodName],
-            ind => this.data[ind][HCDataCols.Microorganism],
-        ]);
-
-        let denomGroupedSamples = TableTools.groupAggregates(denomSamples, (aggregate) => aggregate.data, [
-            ind => this.data[ind][HCDataCols.SurveyType],
-            ind => this.data[ind][HCDataCols.FoodName],
-            ind => this.data[ind][HCDataCols.Microorganism],
-        ]);
-
-        const microorganismTree = this.getMicroOrganismTree({page, tab});
-        denomSamples = this.getDenomSamples(denomGroupedSamples, microorganismTree);
+    getSummary({groupedSamples, denomGroupedSamples, page = undefined, tab = undefined} = {}) {
         const inputs = this.getInputs({page, tab});
+        const microorganismTree = this.getMicroOrganismTree({page, tab});
 
         const summary = {};
-        TableTools.forGroup(groupedSamples, ["surveyType", "foodName", "microorganism"], (keys, values) => {
+        TableTools.forGroup(groupedSamples, ["surveyType", "foodName", "microorganism", "timeGroup"], (keys, values) => {
             const microorganismInput = inputs[Inputs.MicroOrganism];
             if (microorganismInput !== undefined && !microorganismInput.has(keys.microorganism)) return;
 
-            const microorganismSamples = values.microorganism;
+            const microorganismSamples = values.timeGroup;
             const genus = microorganismTree.genuses[keys.microorganism];
             const microorganismSummary = {};
-            const foodSamples = denomSamples[keys.surveyType][keys.foodName];
+
+            let foodSamples = denomGroupedSamples[keys.surveyType][keys.foodName];
+            foodSamples = foodSamples[keys.microorganism] !== undefined ? foodSamples[keys.microorganism] : foodSamples[genus];
 
             let detected = new Set();
             let notTested = new Set();
@@ -1372,14 +1414,15 @@ export class Model {
                 if (sample.notTested.has(keys.microorganism)) notTested.add(sampleCode);
             }
 
-            microorganismSummary[SummaryAtts.Samples] = foodSamples[keys.microorganism] !== undefined ? foodSamples[keys.microorganism] : foodSamples[genus];
+            microorganismSummary[SummaryAtts.Samples] = foodSamples[keys.timeGroup];
             microorganismSummary[SummaryAtts.Detected] = detected;
             microorganismSummary[SummaryAtts.NotTested] = notTested;
             microorganismSummary[SummaryAtts.NotDetected] = SetTools.difference([microorganismSummary[SummaryAtts.Samples], detected, notTested], true);
 
             if (summary[keys.surveyType] === undefined) summary[keys.surveyType] = {};
             if (summary[keys.surveyType][keys.foodName] === undefined) summary[keys.surveyType][keys.foodName] = {};
-            summary[keys.surveyType][keys.foodName][keys.microorganism] = microorganismSummary;
+            if (summary[keys.surveyType][keys.foodName][keys.microorganism] === undefined) summary[keys.surveyType][keys.foodName][keys.microorganism] = {};
+            summary[keys.surveyType][keys.foodName][keys.microorganism][keys.timeGroup] = microorganismSummary;
         });
 
         return summary;
@@ -1398,8 +1441,8 @@ export class Model {
         return result;
     }
 
-    // computeTableData(summaryData): Retrieves the table data needed to be displayed on the website
-    computeTableData(summaryData, combineGraphType = undefined) {
+    // computeTableData(summaryData, overallDenomSamples, combineGraphType): Retrieves the table data needed to be displayed on the website
+    computeTableData(summaryData, overallDenomSamples, combineGraphType = undefined) {
         let tableData = {};
         const microorganismTree = this.getMicroOrganismTree();
         const nonSpeciated = Translation.translate("nonSpeciated");
@@ -1407,10 +1450,19 @@ export class Model {
         const allFoods = Translation.translate("allFoods");
 
         // get the table data
-        TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism"], (keys, values) => {
+        TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism", "timeGroup"], (keys, values) => {
             if (tableData[keys.foodName] === undefined) tableData[keys.foodName] = {};
-            const microorganismSummary = values.microorganism;
+            const microorganismSummary = structuredClone(values.timeGroup);
             const genus = microorganismTree.genuses[keys.microorganism];
+
+            let denomSample = overallDenomSamples[keys.surveyType][keys.foodName][keys.microorganism];
+            if (denomSample === undefined) {
+                denomSample = overallDenomSamples[keys.surveyType][keys.foodName][genus];
+            }
+
+            if (denomSample !== undefined) {
+                microorganismSummary[SummaryAtts.Samples] = structuredClone(denomSample);
+            }
 
             let microorganismKey = keys.microorganism;
             if (microorganismKey == genus) {
@@ -1443,6 +1495,7 @@ export class Model {
             if (combineGraphType == CombineGraphTypes.ByFood) {
                 if (tableData[allFoods] === undefined) tableData[allFoods] = {};
 
+                // for each microorganism
                 if (tableData[allFoods][microorganismKey] === undefined) {
                     let newTableData = structuredClone(microorganismSummary);
                     newTableData[SummaryAtts.FoodName] = allFoods;
@@ -1450,6 +1503,16 @@ export class Model {
                     tableData[allFoods][microorganismKey] = newTableData;
                 } else {
                     tableData[allFoods][microorganismKey] = this.combineSummaryData(tableData[allFoods][microorganismKey], microorganismSummary);
+                }
+
+                // for each genus
+                if (tableData[allFoods][genus] === undefined) {
+                    let newTableData = structuredClone(microorganismSummary);
+                    newTableData[SummaryAtts.FoodName] = allFoods;
+                    newTableData[SummaryAtts.Microorganism] = Model.getDisplayMicroorganism(genus);
+                    tableData[allFoods][genus] = newTableData;
+                } else {
+                    tableData[allFoods][genus] = this.combineSummaryData(tableData[allFoods][genus], microorganismSummary);
                 }
             
             // total row for combined microorganisms (Trends Over Time --> By Food)
@@ -1541,8 +1604,8 @@ export class Model {
         }
 
         let graphData = {};
-        TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism"], (keys, values) => {
-            const microorganismSummary = values.microorganism;
+        TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism", "timeGroup"], (keys, values) => {
+            const microorganismSummary = values.timeGroup;
             const summaryKey = keys[summaryKeyName];
 
             if (graphData[summaryKey] === undefined) {
@@ -1568,6 +1631,46 @@ export class Model {
         return graphData;
     }
 
+    // computeTrendsOverTimeGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay): Retireves the graph data for the trends over time page
+    computeTrendsOverTimeGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay) {
+        if (getSummaryKeyDisplay === undefined) {
+            getSummaryKeyDisplay = (summaryKey) => summaryKey;
+        }
+
+        let graphData = {};
+        TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism", "timeGroup"], (keys, values) => {
+            const microorganismSummary = values.timeGroup;
+            const summaryKey = keys[summaryKeyName];
+
+            if (graphData[summaryKey] === undefined) graphData[summaryKey] = {};
+            
+            if (graphData[summaryKey][keys.timeGroup] === undefined) {
+                let newGraphData = structuredClone(microorganismSummary);
+                newGraphData[summaryAtt] = getSummaryKeyDisplay(summaryKey);
+                graphData[summaryKey][keys.timeGroup] = newGraphData;
+            } else {
+                graphData[summaryKey][keys.timeGroup] = this.combineSummaryData(graphData[summaryKey][keys.timeGroup], microorganismSummary);
+            }
+        });
+
+        TableTools.forGroup(graphData, [summaryKeyName, "timeGroup"], (keys, values) => {
+            const currentData = values.timeGroup;
+            currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
+            currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
+            currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
+            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
+            currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
+            currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested]);
+            currentData[SummaryAtts.DateTime] = keys.timeGroup;
+        });
+
+        for (const keyName in graphData) {
+            graphData[keyName] = Object.values(graphData[keyName]);
+        }
+
+        return graphData;
+    }
+
     // updateVisualData(page, tab): Gets the updated data needed for the graphs/tables
     updateVisualData({page = undefined, tab = undefined} = {}) {
         if (page === undefined) {
@@ -1581,14 +1684,40 @@ export class Model {
         let samples = this.getFilteredData({page, tab});
         let denomSamples = this.getFilteredData({page, tab, forDenom: true});
 
-        const summaryData = this.getSummary({samples, denomSamples, page, tab});
+        const inputs = this.getInputs({page, tab});
+        const timeGroup = inputs[Inputs.TimeGroup];
+
+        let groupedSamples = TableTools.groupAggregates(samples, (aggregate) => aggregate.data, [
+            ind => this.data[ind][HCDataCols.SurveyType],
+            ind => this.data[ind][HCDataCols.FoodName],
+            ind => this.data[ind][HCDataCols.Microorganism],
+            ind => this.getTimeKey(ind, timeGroup)
+        ]);
+
+        let denomGroupedSamples = TableTools.groupAggregates(denomSamples, (aggregate) => aggregate.data, [
+            ind => this.data[ind][HCDataCols.SurveyType],
+            ind => this.data[ind][HCDataCols.FoodName],
+            ind => this.data[ind][HCDataCols.Microorganism],
+            ind => this.getTimeKey(ind, timeGroup)
+        ]);
+
+        console.log("GRUOPED 1", groupedSamples);
+        console.log("GROUPEDD 2: ", denomGroupedSamples);
+
+        const microorganismTree = this.getMicroOrganismTree({page, tab});
+        denomGroupedSamples = this.getDenomSamples(denomGroupedSamples, microorganismTree);
+        const overallDenomGroupedSamples = this.getOverallDenomSamples(denomGroupedSamples);
+
+        const summaryData = this.getSummary({groupedSamples, denomGroupedSamples, denomSamples, page, tab});
         this.summaryData[page][tab] = summaryData;
+
+        console.log("SUMMARY: ", summaryData);
 
         // get the data needed for the graphs and tables
         // Overview --> By Microorganism
         if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
             let graphData = this.computeOverviewGraphData("foodName", SummaryAtts.FoodName, summaryData);
-            let tableData = this.computeTableData(summaryData);
+            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples);
             let csvContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(denomSamples);
 
@@ -1600,7 +1729,7 @@ export class Model {
         // Overview --> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
             let graphData = this.computeOverviewGraphData("microorganism", SummaryAtts.Microorganism, summaryData, (summaryKey) => Model.getDisplayMicroorganism(summaryKey));
-            let tableData = this.computeTableData(summaryData);
+            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples);
             let tableCSVContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(denomSamples);
 
@@ -1611,24 +1740,31 @@ export class Model {
         
         // Trends Over Time --> By Microorganism
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {
-            let tableData = this.computeTableData(summaryData, CombineGraphTypes.ByFood);
+            let graphData = this.computeTrendsOverTimeGraphData("foodName", SummaryAtts.FoodName, summaryData);
+            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, CombineGraphTypes.ByFood);
             let csvContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(denomSamples);
 
+            this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
             this.tableCSV[page][tab] = csvContent;
             this.rawCSV[page][tab] = rawCSVContent;
         
         // Trends Over Time --> By Food
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
-            let tableData = this.computeTableData(summaryData, CombineGraphTypes.ByMicroorganism);
+            let graphData = this.computeTrendsOverTimeGraphData("microorganism", SummaryAtts.Microorganism, summaryData, (summaryKey) => Model.getDisplayMicroorganism(summaryKey));
+            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, CombineGraphTypes.ByMicroorganism);
             let csvContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(denomSamples);
 
+            this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
             this.tableCSV[page][tab] = csvContent;
             this.rawCSV[page][tab] = rawCSVContent;
         }
+
+        console.log("GRAPHER: ", this.graphData);
+        console.log("TABLED: ", this.tableData);
     }
 
     // clear(): Clears all the saved data in the backend

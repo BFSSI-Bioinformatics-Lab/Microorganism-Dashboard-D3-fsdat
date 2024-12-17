@@ -73,7 +73,8 @@ export const Inputs = {
     MicroOrganism: "Microorganism",
     SurveyType: "SurveyType",
     NumberView: "NumberView",
-    Year: "Year"
+    Year: "Year",
+    TimeGroup: "TimeGroup"
 };
 
 // Further groups the data for each tab apart from the grouping based on the tabs inputs
@@ -109,8 +110,8 @@ for (const page in FilterOrder) {
 export const TabInputs = {};
 TabInputs[Pages.TrendsOverTime] = {};
 TabInputs[Pages.Overview] = {};
-TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism]);
-TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood]);
+TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism].concat([Inputs.Year]));
+TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByMicroorganism] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByFood] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByFood].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByOrg] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByOrg].concat([Inputs.Year]));
@@ -232,7 +233,8 @@ export const SummaryAtts = {
     StateVal: "stateVal",
     SamplesWithConcentration: "samplesWithConcentrations",
     ConcentrationMean: "concentrationMean",
-    ConcentrationRange: "concentrationRange"
+    ConcentrationRange: "concentrationRange",
+    DateTime: "dateTime"
 }
 
 // Different ways of how to combine graphs
@@ -314,6 +316,13 @@ export const NoDataStates = {
     Doggy: "doggy",
     Kitty: "kitty"
 };
+
+// Different states for how to group the data by time
+export const TimeGroup = {
+    Months: "months",
+    Years: "years",
+    Overall: "overall"
+}
 
 // ############################################################
 // ################## THEMES ##################################
@@ -482,7 +491,8 @@ FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
     "surveyType": "2. Select Survey Type",
     "food": "3. Select Food(s)",
     "microorganism": "4. Select Microorganism",
-    "adjustGraph": "5. Adjust Graph"
+    "year": "5. Select Year",
+    "adjustGraph": "6. Adjust Graph"
 }
 
 // Filter names for "Trends Over Time" ==> "By Microorganism"
@@ -491,7 +501,8 @@ FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
     "surveyType": "2. Select Survey Type",
     "microorganism": "3. Select Microorganism",
     "food": "4. Select Food(s)",
-    "adjustGraph": "5. Adjust Graph"
+    "year": "5. Select Year",
+    "adjustGraph": "6. Adjust Graph"
 }
 
 // Filter names for "Overview" ==> "By Microorganism"
@@ -528,9 +539,15 @@ DataTypeNamesEN[MicroBioDataTypes.PresenceAbsence] = "Presence/Absence"
 DataTypeNamesEN[MicroBioDataTypes.Concentration] = "Concentration"
 
 // names for the percentage/number views
-const NumberViewEn = {};
-NumberViewEn[NumberView.Number] = "# positive";
-NumberViewEn[NumberView.Percentage] = "% positive";
+const NumberViewEN = {};
+NumberViewEN[NumberView.Number] = "# positive";
+NumberViewEN[NumberView.Percentage] = "% positive";
+
+// names for the time groups
+const TimeGroupEN = {};
+TimeGroupEN[TimeGroup.Months] = "Months";
+TimeGroupEN[TimeGroup.Years] = "Years";
+TimeGroupEN[TimeGroup.Overall] = "Overall";
 
 // name of the group for 'All Microorganisms' on the microroganism tree
 const allMicroorganismsEN = "All Microorganisms";
@@ -649,7 +666,8 @@ const LangEN = {
     surveyTypes: SurveyTypesEN,
     dataTypes: DataTypeNamesEN,
     qualitativeResults: QualitaiveResultsEN,
-    numberview: NumberViewEn,
+    numberview: NumberViewEN,
+    timegroup: TimeGroupEN,
 
     denomGenuses: denomGenusesEN,
 
@@ -958,6 +976,7 @@ FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
     "surveyType": REMPLACER_MOI,
     "food": REMPLACER_MOI,
     "microorganism": REMPLACER_MOI,
+    "year": REMPLACER_MOI,
     "adjustGraph": REMPLACER_MOI
 }
 
@@ -967,6 +986,7 @@ FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
     "surveyType": REMPLACER_MOI,
     "microorganism": REMPLACER_MOI,
     "food": REMPLACER_MOI,
+    "year": REMPLACER_MOI,
     "adjustGraph": REMPLACER_MOI
 }
 
@@ -1007,6 +1027,12 @@ DataTypeNamesFR[MicroBioDataTypes.Concentration] = REMPLACER_MOI;
 const NumberViewFR = {};
 NumberViewFR[NumberView.Number] = REMPLACER_MOI;
 NumberViewFR[NumberView.Percentage] = REMPLACER_MOI;
+
+// names for the time groups
+const TimeGroupFR = {};
+TimeGroupFR[TimeGroup.Months] = REMPLACER_MOI;
+TimeGroupFR[TimeGroup.Years] = REMPLACER_MOI;
+TimeGroupFR[TimeGroup.Overall] = REMPLACER_MOI;
 
 // name of the group for 'All Microorganisms' on the microroganism tree
 const allMicroorganismsFR = REMPLACER_MOI;
@@ -1062,7 +1088,7 @@ csvtableColsFR[SummaryAtts.ConcentrationRange] = REMPLACER_MOI;
 const NoDataDescFR = {};
 NoDataDescFR[NoDataStates.Normal] = "Le graphique est vide...";
 NoDataDescFR[NoDataStates.Doggy] = "C'est vide ici... Voici un petit chien pour vous accompagner!";
-NoDataDescFR[NoDataStates.Kitty] = "C'est vide ici... Voici un petit chat pour vous accompagner!";
+NoDataDescFR[NoDataStates.Kitty] = "C'est vide ici... Voici un petit chaton pour vous accompagner!";
 
 // title/labels in the Overview bar graph
 const overviewBarGraphFR = {
@@ -1127,6 +1153,7 @@ const LangFR = {
     qualitativeResults: QualitaiveResultsFR,
     denomGenuses: denomGenusesFR,
     numberview: NumberViewFR,
+    timegroup: TimeGroupFR,
 
     "tableTitle": REMPLACER_MOI,
     "csvTitle": {

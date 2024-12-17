@@ -740,6 +740,17 @@ class App {
             })
         }
 
+        // time group (months/years/overall/etc...)
+        if (inputs[Inputs.TimeGroup] !== undefined) {
+            this.updateRadioSelect({selectId: Inputs.TimeGroup, selections: selections[Inputs.TimeGroup], inputs: new Set([inputs[Inputs.TimeGroup]]),
+                                    translations: Translation.translate("timegroup", { returnObjects: true }),
+                                    onChange: (radioValue) => {
+                                        inputs[Inputs.TimeGroup] = radioValue;
+                                        this.updateTab({input: Inputs.TimeGroup});
+                                    }
+            })
+        }
+
         // year select
         if (inputs[Inputs.Year] !== undefined) {
             let inputRange = DateTimeTools.rangeToDate(inputs[Inputs.Year], ModelTimeZone, true);
@@ -913,7 +924,7 @@ class App {
             this.updateTable("#tempGraphTable", tableColInfo, graphData);
         }
 
-        if (graphData !== undefined) {
+        if (graphData !== undefined && this.model.pageName == Pages.Overview) {
             let overviewGraph = this.graphs[this.model.pageName][tab];
             if (overviewGraph === undefined) {
                 overviewGraph = new OverviewBarGraph(this.model, summaryAtt);

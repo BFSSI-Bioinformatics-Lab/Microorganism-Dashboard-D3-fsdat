@@ -271,6 +271,7 @@ export class OverviewBarGraph {
         toolTip.titleGroup = toolTip.group.append("text")
             .attr("font-size", Dims.overviewBarGraph.TooltipFontSize)
             .attr("font-weight", "bold")
+            .attr("fill", "var(--fontColour)")
             .attr("transform", `translate(${textGroupPosX}, ${currentTextGroupPosY})`);
 
         const titleDims = Visuals.drawText({textGroup: toolTip.titleGroup, text: groupName, fontSize: Dims.overviewBarGraph.TooltipFontSize, 
@@ -281,6 +282,7 @@ export class OverviewBarGraph {
         // draw the text
         toolTip.textGroup = toolTip.group.append("text")
             .attr("font-size", Dims.overviewBarGraph.TooltipFontSize)
+            .attr("fill", "var(--fontColour)")
             .attr("transform", `translate(${textGroupPosX}, ${currentTextGroupPosY})`);
 
         const textDims = Visuals.drawText({textGroup: toolTip.textGroup, text: lines, fontSize: Dims.overviewBarGraph.TooltipFontSize, 
