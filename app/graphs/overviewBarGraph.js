@@ -202,12 +202,16 @@ export class OverviewBarGraph {
     /* Creates tooltip for hovering over bars */
     hoverTooltip({data, state, numberView, hide = false} = {}){
         const groupName = data[0];
-        const stateValue = data[1].get(state)[SummaryAtts.StateVal];
+        const stateData = data[1].get(state);
+        const stateValue = stateData[SummaryAtts.StateVal];
+
         const colour = SampleStateColours[state];
 
         let numberDisplay = Translation.translateNum(`${stateValue}`);
         if (numberView == NumberView.Percentage) {
-            numberDisplay += "%"
+            numberDisplay += " %"
+        } else if(numberView == NumberView.Number) {
+            numberDisplay += " / " + Translation.translateNum(`${stateData[SummaryAtts.Samples]}`);
         }
 
         const lines = Translation.translate("overviewBarGraph.tooltip", { 
