@@ -1530,11 +1530,11 @@ export class Model {
 
         TableTools.forGroup(tableData, ["foodName", "microorganism"], (keys, values) => {
             const currentData = values.microorganism;
+            currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
             currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
             currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
             currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
-            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
-            currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
+            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Samples] - currentData[SummaryAtts.NotTested];
             currentData[SummaryAtts.PercentDetected] = `${NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested], 2)}%`;
             currentData[SummaryAtts.SamplesWithConcentration] = "";
             currentData[SummaryAtts.ConcentrationMean] = "";
@@ -1619,11 +1619,11 @@ export class Model {
         
         TableTools.forGroup(graphData, [summaryKeyName], (keys, values) => {
             const currentData = values[summaryKeyName];
+            currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
             currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
             currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
             currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
-            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
-            currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
+            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Samples] - currentData[SummaryAtts.NotTested];
             currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested]);
         });
 
@@ -1631,44 +1631,66 @@ export class Model {
         return graphData;
     }
 
-    // computeTrendsOverTimeGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay): Retireves the graph data for the trends over time page
-    computeTrendsOverTimeGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay) {
-        if (getSummaryKeyDisplay === undefined) {
-            getSummaryKeyDisplay = (summaryKey) => summaryKey;
-        }
+    // computeTrendsOverTimeGraphData(mainKeyName, mainAtt, subKeyName, subAtt, summaryData, timeGroup, getMainKeyDisplay, getSubKeyDisplay): Retireves the graph data for the trends over time page
+    computeTrendsOverTimeGraphData({mainKeyName, mainAtt, subKeyName, subAtt, summaryData, timeGroup,
+                                    getMainKeyDisplay = undefined, getSubKeyDisplay = undefined} = {}) {
+        if (getMainKeyDisplay === undefined) getMainKeyDisplay = (summaryKey) => summaryKey;
+        if (getSubKeyDisplay === undefined) getSubKeyDisplay = (summaryKey) => summaryKey;
 
         let graphData = {};
         TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism", "timeGroup"], (keys, values) => {
             const microorganismSummary = values.timeGroup;
-            const summaryKey = keys[summaryKeyName];
+            const mainKey = keys[mainKeyName];
+            const subKey = keys[subKeyName];
 
-            if (graphData[summaryKey] === undefined) graphData[summaryKey] = {};
+            if (graphData[mainKey] === undefined) graphData[mainKey] = {};
+            if (graphData[mainKey][keys.timeGroup] === undefined) graphData[mainKey][keys.timeGroup] = {};
             
-            if (graphData[summaryKey][keys.timeGroup] === undefined) {
+            if (graphData[mainKey][keys.timeGroup][subKey] === undefined) {
                 let newGraphData = structuredClone(microorganismSummary);
-                newGraphData[summaryAtt] = getSummaryKeyDisplay(summaryKey);
-                graphData[summaryKey][keys.timeGroup] = newGraphData;
+                newGraphData[mainAtt] = getMainKeyDisplay(mainKey);
+                newGraphData[subAtt] = getSubKeyDisplay(subKey);
+                graphData[mainKey][keys.timeGroup][subKey] = newGraphData;
             } else {
-                graphData[summaryKey][keys.timeGroup] = this.combineSummaryData(graphData[summaryKey][keys.timeGroup], microorganismSummary);
+                graphData[mainKey][keys.timeGroup][subKey] = this.combineSummaryData(graphData[mainKey][keys.timeGroup][subKey], microorganismSummary);
             }
         });
 
-        TableTools.forGroup(graphData, [summaryKeyName, "timeGroup"], (keys, values) => {
-            const currentData = values.timeGroup;
+        TableTools.forGroup(graphData, [mainKeyName, "timeGroup", subKeyName], (keys, values) => {
+            const currentData = values[subKeyName];
+            currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
             currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
             currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
             currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
-            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Detected] + currentData[SummaryAtts.NotDetected];
-            currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
+            currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Samples] - currentData[SummaryAtts.NotTested];
             currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested]);
+
+            // set the datetime
+            let dateTime = keys.timeGroup;
+            if (timeGroup == TimeGroup.Months) {
+                const dateParts = keys.timeGroup.split(" ");
+                const year = dateParts[0];
+                const month = dateParts[1];
+                dateTime = DateTimeTools.getMonthStart(year, month);
+
+            } else if (timeGroup == TimeGroup.Years) {
+                dateTime = DateTimeTools.getYearStart(keys.timeGroup);
+            } else {
+                dateTime = DateTimeTools.getToday();
+            }
+
             currentData[SummaryAtts.DateTime] = keys.timeGroup;
         });
 
-        for (const keyName in graphData) {
-            graphData[keyName] = Object.values(graphData[keyName]);
-        }
+        const result = {};
+        TableTools.forGroup(graphData, [mainKeyName, "timeGroup"], (keys, values) => {
+            const mainKey = keys[mainKeyName];
+            if (result[mainKey] === undefined) result[mainKey] = [];
+            
+            result[mainKey] = result[mainKey].concat(Object.values(values.timeGroup));
+        });
 
-        return graphData;
+        return result;
     }
 
     // updateVisualData(page, tab): Gets the updated data needed for the graphs/tables
@@ -1740,7 +1762,9 @@ export class Model {
         
         // Trends Over Time --> By Microorganism
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {
-            let graphData = this.computeTrendsOverTimeGraphData("foodName", SummaryAtts.FoodName, summaryData);
+            let graphData = this.computeTrendsOverTimeGraphData({mainKeyName: "foodName", mainAtt: SummaryAtts.FoodName, subKeyName: "microorganism", subAtt: SummaryAtts.Microorganism, 
+                                                                 summaryData, timeGroup, getSubKeyDisplay: (summaryKey) => Model.getDisplayMicroorganism(summaryKey)});
+
             let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, CombineGraphTypes.ByFood);
             let csvContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(denomSamples);
@@ -1752,7 +1776,8 @@ export class Model {
         
         // Trends Over Time --> By Food
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
-            let graphData = this.computeTrendsOverTimeGraphData("microorganism", SummaryAtts.Microorganism, summaryData, (summaryKey) => Model.getDisplayMicroorganism(summaryKey));
+            let graphData = this.computeTrendsOverTimeGraphData({mainKeyName: "microorganism", mainAtt: SummaryAtts.Microorganism, subKeyName: "foodName", subAtt: SummaryAtts.FoodName, 
+                                                                 summaryData, timeGroup, getMainKeyDisplay: (summaryKey) => Model.getDisplayMicroorganism(summaryKey)});
             let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, CombineGraphTypes.ByMicroorganism);
             let csvContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(denomSamples);

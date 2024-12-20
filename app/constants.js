@@ -158,9 +158,9 @@ export const DefaultDataTimeZone = "America/Toronto";
 export const ModelTimeZone = "UTC";
 export const TimeZone = {};
 TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
-TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
-TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
-TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.PHAC] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.CFIA] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.CFSIN] = DefaultDataTimeZone;
 
 // Columns in the Health Canada Data
 // Note: Copy the exact column names from "CANLINE Micro -no... .csv" except for the Columns with 3 stars (***)
@@ -218,6 +218,8 @@ export const SampleStateColours = {};
 SampleStateColours[SampleState.Detected] = "var(--detected)";
 SampleStateColours[SampleState.NotDetected] = "var(--notDetected)";
 SampleStateColours[SampleState.NotTested] = "var(--notTested)";
+
+export const MaxGraphColours = 50;
 
 // Attributes names for the summary data
 export const SummaryAtts = {
@@ -295,6 +297,19 @@ export const Dims = {
         TooltipBorderWidth: 3,
         TooltipFontSize: 14,
         TooltipTitleMarginBtm: 10,
+    },
+
+    trendsOverTimeGraph: {
+        HeadingFontSize: 28,
+        AxesFontSize: 20,
+        TickFontSize: 14,
+        minGraphWidth: 600,
+        GraphWidth: 900,
+        GraphTop: 120,
+        GraphBottom: 80,
+        GraphLeft: 220,
+        GraphRight: 200,
+        BarHeight: 60,
     }
 }
 
@@ -373,7 +388,52 @@ Themes[ThemeNames.Light] = {
     detected: "#C5705D",
     notDetected: "#41B3A2",
     notTested: "#cc9900",
-    unknown: "#cccccc"
+    unknown: "#cccccc",
+
+    graphColours: [
+        "#26374a",
+        "#335075",
+        "#d7faff",
+        "#444444",
+        "#753350",
+        "#269abc",
+        "#3B4B5C",
+        "#476182",
+        "#c1e1e5",
+        "#565656",
+        "#824761",
+        "#228aa9",
+        "#515F6E",
+        "#5b7290",
+        "#acc8cc",
+        "#696969",
+        "#905b72",
+        "#1e7b96",
+        "#677380",
+        "#70849e",
+        "#96afb2",
+        "#7c7c7c",
+        "#9e7084",
+        "#1a6b83",
+        "#7C8792",
+        "#8496ac",
+        "#819699",
+        "#8e8e8e",
+        "#ac8496",
+        "#165c70",
+        "#929BA4",
+        "#99a7ba",
+        "#6b7d7f",
+        "#a1a1a1",
+        "#ba99a7",
+        "#134d5e",
+        "#A8AFB6",
+        "#adb9c7",
+        "#566466",
+        "#b4b4b4",
+        "#c7adb9",
+        "#0f3d4b"
+    ]
 };
 
 Themes[ThemeNames.Dark] = {
@@ -406,7 +466,52 @@ Themes[ThemeNames.Dark] = {
     detected: "#C5705D",
     notDetected: "#41B3A2",
     notTested: "#cc9900",
-    unknown: "#cccccc"
+    unknown: "#cccccc",
+
+    graphColours: [
+        "#26374a",
+        "#335075",
+        "#d7faff",
+        "#444444",
+        "#753350",
+        "#269abc",
+        "#3B4B5C",
+        "#476182",
+        "#c1e1e5",
+        "#565656",
+        "#824761",
+        "#228aa9",
+        "#515F6E",
+        "#5b7290",
+        "#acc8cc",
+        "#696969",
+        "#905b72",
+        "#1e7b96",
+        "#677380",
+        "#70849e",
+        "#96afb2",
+        "#7c7c7c",
+        "#9e7084",
+        "#1a6b83",
+        "#7C8792",
+        "#8496ac",
+        "#819699",
+        "#8e8e8e",
+        "#ac8496",
+        "#165c70",
+        "#929BA4",
+        "#99a7ba",
+        "#6b7d7f",
+        "#a1a1a1",
+        "#ba99a7",
+        "#134d5e",
+        "#A8AFB6",
+        "#adb9c7",
+        "#566466",
+        "#b4b4b4",
+        "#c7adb9",
+        "#0f3d4b"
+    ]
 };
 
 // Primary ---> Mountain Haze Theme: https://www.canva.com/colors/color-palettes/mountain-haze/
@@ -441,7 +546,52 @@ Themes[ThemeNames.Blue] = {
     detected: "#cc6600",
     notDetected: "#009999",
     notTested: "#666699",
-    unknown: "#cccccc"
+    unknown: "#cccccc",
+
+    graphColours: [
+        "#26374a",
+        "#335075",
+        "#d7faff",
+        "#444444",
+        "#753350",
+        "#269abc",
+        "#3B4B5C",
+        "#476182",
+        "#c1e1e5",
+        "#565656",
+        "#824761",
+        "#228aa9",
+        "#515F6E",
+        "#5b7290",
+        "#acc8cc",
+        "#696969",
+        "#905b72",
+        "#1e7b96",
+        "#677380",
+        "#70849e",
+        "#96afb2",
+        "#7c7c7c",
+        "#9e7084",
+        "#1a6b83",
+        "#7C8792",
+        "#8496ac",
+        "#819699",
+        "#8e8e8e",
+        "#ac8496",
+        "#165c70",
+        "#929BA4",
+        "#99a7ba",
+        "#6b7d7f",
+        "#a1a1a1",
+        "#ba99a7",
+        "#134d5e",
+        "#A8AFB6",
+        "#adb9c7",
+        "#566466",
+        "#b4b4b4",
+        "#c7adb9",
+        "#0f3d4b"
+    ]
 };
 
 // ############################################################

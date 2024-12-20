@@ -1,14 +1,11 @@
-import {  SummaryAtts, SampleStateColours, SampleStateOrder, Dims, SampleState, TextWrap, Inputs, NumberView, SVGIcons, NoDataStates } from "../constants.js";
+import {  SummaryAtts, SampleStateColours, SampleStateOrder, Dims, SampleState, TextWrap, Inputs, NumberView } from "../constants.js";
 import { SetTools, Translation, Visuals, NumberTools } from "../tools.js";
+import { BaseGraph } from "./baseGraph.js";
 
-export class OverviewBarGraph {
+export class OverviewBarGraph extends BaseGraph {
     constructor(model, summaryAtt) {
-        this.model = model;
-        this.isDrawn = false;
-        this.noDataDrawn = false;
+        super(model);
         this.summaryAtt = summaryAtt;
-        this.title = "";
-        this.svg;
     }
 
     // getPercentageData(data): Converts the data to be used for the percentage view of the graph
@@ -116,25 +113,7 @@ export class OverviewBarGraph {
 
     // setup(): Initializes the graph
     setup() {
-        // create the SVG component
-        this.svg = d3.select(".visualGraph")
-            .html("")
-            .append("svg")
-            .attr("width", this.width)
-            .attr("height", this.height)
-            .attr("viewBox", [0, 0, this.width, this.height])
-            .classed("svgGraph", true)
-            .on("touchstart", (event) => {
-                if (this.shownTooltip === undefined) return;
-                this.hideTooltip(this.shownTooltip);
-                this.shownTooltip = undefined;
-            });
-
-        // create the background for the graph
-        this.background = this.svg.append("rect")
-        .attr("fill", "none")
-        .attr("width", this.width)
-        .attr("height", this.height);
+        super.setup();
 
         // add the heading
         this.heading = this.svg.append("g")
@@ -362,44 +341,7 @@ export class OverviewBarGraph {
 
         // Display the "No Data" text when no data is available
         if (data.length == 0 && !this.noDataDrawn) {
-            const noDataContainer = d3.select(".visualGraph")
-            .html("")
-            .append("div")
-            .classed("emptyGraphsContainer", true)
-            .append("div")
-            .classed("emptyGraphTextContainer", true);
-
-            // No Data available title
-            noDataContainer.append("h1")
-                .text(Translation.translate("noData"));
-
-            const descHitRate = NumberTools.randomInt(1, 100);
-
-            let noDataState = NoDataStates.Normal;
-            if (descHitRate <= 5) noDataState = NoDataStates.Doggy;
-            else if (descHitRate <= 10) noDataState = NoDataStates.Kitty;
-
-            noDataContainer.append("p")
-                .text(Translation.translate(`noDataDesc.${noDataState}`));
-
-            if (noDataState == NoDataStates.Normal) {
-                noDataContainer.append("svg")
-                .classed("emptyGraphIcon", true)
-                .attr("viewBox", "0 0 512 512")
-                .attr("width", "512")
-                .attr("height", "512")
-                .html(SVGIcons["MagnifyingGlass"]);
-            
-            // Easter Egg??!
-            } else {
-                const imgLink = noDataState == NoDataStates.Doggy ? "assets/puppy.png" : "assets/kitty.png";
-                noDataContainer.append("img")
-                    .classed("emptyGraphIcon", true)
-                    .attr("src", imgLink);
-            }
-
-            this.isDrawn = false;
-            this.noDataDrawn = true;
+            this.drawNoData();
         }
 
         if (data.length == 0) return;
@@ -429,7 +371,7 @@ export class OverviewBarGraph {
         const graphContainerDims = graphContainer.getBoundingClientRect();
         Dims.overviewBarGraph.GraphWidth = Math.max(Dims.overviewBarGraph.minGraphWidth, graphContainerDims.width - Dims.overviewBarGraph.GraphLeft - Dims.overviewBarGraph.GraphRight); 
 
-        // Compute the height from the number of stacks.
+        // Compute the height from the number of stacks and compute the width based off the screen.
         const prevWidth = this.width;
         this.height = series[0].length * Dims.overviewBarGraph.BarHeight + Dims.overviewBarGraph.GraphTop + Dims.overviewBarGraph.GraphBottom;
         this.width = Dims.overviewBarGraph.GraphLeft + Dims.overviewBarGraph.GraphWidth + Dims.overviewBarGraph.GraphRight;
