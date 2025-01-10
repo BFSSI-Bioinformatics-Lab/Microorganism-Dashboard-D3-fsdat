@@ -301,15 +301,22 @@ export const Dims = {
 
     trendsOverTimeGraph: {
         HeadingFontSize: 28,
-        AxesFontSize: 20,
+        AxesFontSize: 16,
         TickFontSize: 14,
-        minGraphWidth: 600,
+        minGraphWidth: 50,
+        OrigGraphWidth: 900,
         GraphWidth: 900,
         GraphTop: 120,
         GraphBottom: 80,
-        GraphLeft: 220,
+        GraphLeft: 240,
         GraphRight: 200,
-        BarHeight: 60,
+        SubGraphMarginTop: 40,
+        SubGraphMarginBottom: 40,
+        SubGraphHeight: 200,
+        SubGraphKeyFontSize: 12,
+        SubGraphKeyWidth: 170,
+        SubGraphBarWidth: 10,
+        SubGraphBarGroupMargin: 5,
     }
 }
 
@@ -726,6 +733,17 @@ const overviewBarGraphXAxisEN = {};
 overviewBarGraphXAxisEN[NumberView.Number] = "Count";
 overviewBarGraphXAxisEN[NumberView.Percentage] = "Percentage";
 
+// labels for the x-axis of the TrendsOverTime graph
+const trendsOverTimeXAxisEN = {};
+trendsOverTimeXAxisEN[TimeGroup.Months] = "Months";
+trendsOverTimeXAxisEN[TimeGroup.Years] = "Years";
+trendsOverTimeXAxisEN[TimeGroup.Overall] = "Overall";
+
+// labels for the y-axis of the TrendsOverTime graph
+const trendsOverTimeYAxisEN = {};
+trendsOverTimeYAxisEN[NumberView.Number] = "# Detected";
+trendsOverTimeYAxisEN[NumberView.Percentage] = "% Detected";
+
 // names for the columns on the table
 const tableColsEN = {};
 tableColsEN[SummaryAtts.FoodName] = "Food Name";
@@ -773,6 +791,20 @@ overviewBarGraphEN[SummaryAtts.Microorganism] = {
     "xAxis": overviewBarGraphXAxisEN,
     "yAxis": "Microorganism"
 };
+
+// title/labels in the TrendsOverTime graph
+const trendsOverTimeGraphEN = {};
+trendsOverTimeGraphEN[SummaryAtts.FoodName] = {
+    "graphTitle": "Microorganisms Detected in Food",
+    "xAxis": trendsOverTimeXAxisEN,
+    "yAxis": trendsOverTimeYAxisEN
+}
+
+trendsOverTimeGraphEN[SummaryAtts.FoodName] = {
+    "graphTitle": "Microorganisms Detected in Food",
+    "xAxis": trendsOverTimeXAxisEN,
+    "yAxis": trendsOverTimeYAxisEN
+}
 
 const LangEN = {
     Number: "{{num, number}}",
@@ -829,6 +861,7 @@ const LangEN = {
     tableCols: tableColsEN,
     csvTableCols: csvtableColsEN,
     overviewBarGraph: overviewBarGraphEN,
+    trendsOverTimeGraph: trendsOverTimeGraphEN,
     "graphSourceText": "Source: Health Canada, Food Surveillance Data Analytics Tool – Microbiology",
 
     "downloadGraph": "Download Graph",
@@ -1211,6 +1244,17 @@ const overviewBarGraphXAxisFR = {};
 overviewBarGraphXAxisFR[NumberView.Number] = REMPLACER_MOI;
 overviewBarGraphXAxisFR[NumberView.Percentage] = REMPLACER_MOI;
 
+// labels for the x-axis of the TrendsOverTime graph
+const trendsOverTimeXAxisFR = {};
+trendsOverTimeXAxisFR[TimeGroup.Months] = REMPLACER_MOI;
+trendsOverTimeXAxisFR[TimeGroup.Years] = REMPLACER_MOI;
+trendsOverTimeXAxisFR[TimeGroup.Overall] = REMPLACER_MOI;
+
+// labels for the y-axis of the TrendOverTime graph
+const trendsOverTimeYAxisFR = {};
+trendsOverTimeYAxisFR[NumberView.Number] = REMPLACER_MOI;
+trendsOverTimeYAxisFR[NumberView.Percentage] = REMPLACER_MOI;
+
 // names for the columns on the table
 const tableColsFR = {};
 tableColsFR[SummaryAtts.FoodName] = REMPLACER_MOI;
@@ -1258,6 +1302,20 @@ overviewBarGraphFR[SummaryAtts.Microorganism] = {
     "xAxis": overviewBarGraphXAxisFR,
     "yAxis": REMPLACER_MOI
 };
+
+// title/labels in the TrendsOverTime graph
+const trendsOverTimeGraphFR = {};
+trendsOverTimeGraphFR[SummaryAtts.FoodName] = {
+    "graphTitle": REMPLACER_MOI,
+    "xAxis": trendsOverTimeXAxisFR,
+    "yAxis": trendsOverTimeYAxisFR
+}
+
+trendsOverTimeGraphFR[SummaryAtts.FoodName] = {
+    "graphTitle": REMPLACER_MOI,
+    "xAxis": trendsOverTimeXAxisFR,
+    "yAxis": trendsOverTimeYAxisFR
+}
 
 const LangFR = {
     Number: "{{num, number}}",
@@ -1313,6 +1371,7 @@ const LangFR = {
     tableCols: tableColsFR,
     csvTableCols: csvtableColsFR,
     overviewBarGraph: overviewBarGraphFR,
+    trendsOverTimeGraph: trendsOverTimeGraphFR,
     "graphSourceText": REMPLACER_MOI,
 
     "downloadGraph": REMPLACER_MOI,

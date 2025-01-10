@@ -33,6 +33,8 @@ class App {
         this.graphs[Pages.Overview] = {};
         this.graphs[Pages.TrendsOverTime] = {};
 
+        this.windowResizeHandlers = {};
+
         this.tableDownloadURLObjId = undefined;
         this.RawDownloadURLObjId = undefined;
     }
@@ -52,6 +54,14 @@ class App {
         this.setTheme();
 
         this.loadMainPage(page);
+
+        // when resizing of the window occurs
+        $(window).on("resize", () => {
+            for (const handlerId in this.windowResizeHandlers) {
+                const handler = this.windowResizeHandlers[handlerId];
+                handler();
+            }
+        });
     }
 
     // =================== HEADER/FOOTER ===============================

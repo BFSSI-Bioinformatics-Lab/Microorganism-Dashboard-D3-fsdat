@@ -61,7 +61,7 @@ export class BaseGraph {
 
     setup() {
         // create the SVG component
-        this.svg = d3.select(".visualGraph")
+        this.svg = this.graph
             .html("")
             .append("svg")
             .attr("width", this.width)
@@ -82,6 +82,7 @@ export class BaseGraph {
     }
 
     update() {
-
+        this.graph = d3.select(".visualGraph")
+            .attr("position", "inherit");
     }
 }

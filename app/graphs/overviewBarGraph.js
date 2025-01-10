@@ -336,6 +336,7 @@ export class OverviewBarGraph extends BaseGraph {
 
     // reference: https://observablehq.com/@d3/stacked-horizontal-bar-chart/2
     update() {
+        super.update();
         let data = structuredClone(this.model.getGraphData());
         const inputs = this.model.getInputs();
 

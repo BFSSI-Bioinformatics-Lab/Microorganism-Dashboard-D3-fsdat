@@ -1344,7 +1344,6 @@ export class Model {
             }
         });
 
-        console.log("DENOMS SAMPLES: ", result);
         return result;
     }
 
@@ -1362,7 +1361,6 @@ export class Model {
             }
         });
 
-        console.log("OVERALL DENOMS: ", result);
         return result;   
     }
 
@@ -1373,7 +1371,7 @@ export class Model {
         const rowDateTime = this.data[dataInd][HCDataCols.SampleDate];
         if (timeGroup == TimeGroup.Years) return rowDateTime.year()
         else if (timeGroup == TimeGroup.Months) {
-             return `${rowDateTime.year()} ${rowDateTime.month()}`
+            return `${rowDateTime.year()} ${rowDateTime.month() + 1}`
         }
     }
 
@@ -1679,7 +1677,7 @@ export class Model {
                 dateTime = DateTimeTools.getToday();
             }
 
-            currentData[SummaryAtts.DateTime] = keys.timeGroup;
+            currentData[SummaryAtts.DateTime] = dateTime.toDate();
         });
 
         const result = {};
@@ -1723,17 +1721,12 @@ export class Model {
             ind => this.getTimeKey(ind, timeGroup)
         ]);
 
-        console.log("GRUOPED 1", groupedSamples);
-        console.log("GROUPEDD 2: ", denomGroupedSamples);
-
         const microorganismTree = this.getMicroOrganismTree({page, tab});
         denomGroupedSamples = this.getDenomSamples(denomGroupedSamples, microorganismTree);
         const overallDenomGroupedSamples = this.getOverallDenomSamples(denomGroupedSamples);
 
         const summaryData = this.getSummary({groupedSamples, denomGroupedSamples, denomSamples, page, tab});
         this.summaryData[page][tab] = summaryData;
-
-        console.log("SUMMARY: ", summaryData);
 
         // get the data needed for the graphs and tables
         // Overview --> By Microorganism
@@ -1787,9 +1780,6 @@ export class Model {
             this.tableCSV[page][tab] = csvContent;
             this.rawCSV[page][tab] = rawCSVContent;
         }
-
-        console.log("GRAPHER: ", this.graphData);
-        console.log("TABLED: ", this.tableData);
     }
 
     // clear(): Clears all the saved data in the backend
