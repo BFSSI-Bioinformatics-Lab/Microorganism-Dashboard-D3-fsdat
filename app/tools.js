@@ -120,6 +120,17 @@ export class DateTimeTools {
         return moment.tz(`${year}-12-31 23:59`, timezone);
     }
 
+    // getMonthStart(year, month, timezone): Retrieves the datetime for the start of a month
+    static getMonthStart(year, month, timezone = ModelTimeZone) {
+        if (month < 10) month = `0${month}`;
+        return moment.tz(`${year}-${month}-01 00:00`, timezone);
+    }
+
+    // getToday(timezone): Retrieves the current datetime
+    static getToday(timezone = ModelTimeZone) {
+        return moment.tz(moment(), timezone);
+    }
+
     // datetimeStrCmpFunc(datetimeStr1, datetimeStr2): Compare function for 2 datetimes that
     //   are represented using a string
     static datetimeStrCmpFunc(datetimeStr1, datetimeStr2) {

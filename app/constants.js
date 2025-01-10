@@ -73,7 +73,8 @@ export const Inputs = {
     MicroOrganism: "Microorganism",
     SurveyType: "SurveyType",
     NumberView: "NumberView",
-    Year: "Year"
+    Year: "Year",
+    TimeGroup: "TimeGroup"
 };
 
 // Further groups the data for each tab apart from the grouping based on the tabs inputs
@@ -109,8 +110,8 @@ for (const page in FilterOrder) {
 export const TabInputs = {};
 TabInputs[Pages.TrendsOverTime] = {};
 TabInputs[Pages.Overview] = {};
-TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism]);
-TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood]);
+TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism].concat([Inputs.Year]));
+TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByMicroorganism] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByFood] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByFood].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByOrg] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByOrg].concat([Inputs.Year]));
@@ -157,9 +158,9 @@ export const DefaultDataTimeZone = "America/Toronto";
 export const ModelTimeZone = "UTC";
 export const TimeZone = {};
 TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
-TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
-TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
-TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.PHAC] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.CFIA] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.CFSIN] = DefaultDataTimeZone;
 
 // Columns in the Health Canada Data
 // Note: Copy the exact column names from "CANLINE Micro -no... .csv" except for the Columns with 3 stars (***)
@@ -218,6 +219,8 @@ SampleStateColours[SampleState.Detected] = "var(--detected)";
 SampleStateColours[SampleState.NotDetected] = "var(--notDetected)";
 SampleStateColours[SampleState.NotTested] = "var(--notTested)";
 
+export const MaxGraphColours = 50;
+
 // Attributes names for the summary data
 export const SummaryAtts = {
     FoodName: "foodName",
@@ -232,7 +235,8 @@ export const SummaryAtts = {
     StateVal: "stateVal",
     SamplesWithConcentration: "samplesWithConcentrations",
     ConcentrationMean: "concentrationMean",
-    ConcentrationRange: "concentrationRange"
+    ConcentrationRange: "concentrationRange",
+    DateTime: "dateTime"
 }
 
 // Different ways of how to combine graphs
@@ -293,6 +297,26 @@ export const Dims = {
         TooltipBorderWidth: 3,
         TooltipFontSize: 14,
         TooltipTitleMarginBtm: 10,
+    },
+
+    trendsOverTimeGraph: {
+        HeadingFontSize: 28,
+        AxesFontSize: 16,
+        TickFontSize: 14,
+        minGraphWidth: 50,
+        OrigGraphWidth: 900,
+        GraphWidth: 900,
+        GraphTop: 120,
+        GraphBottom: 80,
+        GraphLeft: 240,
+        GraphRight: 200,
+        SubGraphMarginTop: 40,
+        SubGraphMarginBottom: 40,
+        SubGraphHeight: 200,
+        SubGraphKeyFontSize: 12,
+        SubGraphKeyWidth: 170,
+        SubGraphBarWidth: 10,
+        SubGraphBarGroupMargin: 5,
     }
 }
 
@@ -314,6 +338,13 @@ export const NoDataStates = {
     Doggy: "doggy",
     Kitty: "kitty"
 };
+
+// Different states for how to group the data by time
+export const TimeGroup = {
+    Months: "months",
+    Years: "years",
+    Overall: "overall"
+}
 
 // ############################################################
 // ################## THEMES ##################################
@@ -364,7 +395,52 @@ Themes[ThemeNames.Light] = {
     detected: "#C5705D",
     notDetected: "#41B3A2",
     notTested: "#cc9900",
-    unknown: "#cccccc"
+    unknown: "#cccccc",
+
+    graphColours: [
+        "#26374a",
+        "#335075",
+        "#d7faff",
+        "#444444",
+        "#753350",
+        "#269abc",
+        "#3B4B5C",
+        "#476182",
+        "#c1e1e5",
+        "#565656",
+        "#824761",
+        "#228aa9",
+        "#515F6E",
+        "#5b7290",
+        "#acc8cc",
+        "#696969",
+        "#905b72",
+        "#1e7b96",
+        "#677380",
+        "#70849e",
+        "#96afb2",
+        "#7c7c7c",
+        "#9e7084",
+        "#1a6b83",
+        "#7C8792",
+        "#8496ac",
+        "#819699",
+        "#8e8e8e",
+        "#ac8496",
+        "#165c70",
+        "#929BA4",
+        "#99a7ba",
+        "#6b7d7f",
+        "#a1a1a1",
+        "#ba99a7",
+        "#134d5e",
+        "#A8AFB6",
+        "#adb9c7",
+        "#566466",
+        "#b4b4b4",
+        "#c7adb9",
+        "#0f3d4b"
+    ]
 };
 
 Themes[ThemeNames.Dark] = {
@@ -397,7 +473,52 @@ Themes[ThemeNames.Dark] = {
     detected: "#C5705D",
     notDetected: "#41B3A2",
     notTested: "#cc9900",
-    unknown: "#cccccc"
+    unknown: "#cccccc",
+
+    graphColours: [
+        "#26374a",
+        "#335075",
+        "#d7faff",
+        "#444444",
+        "#753350",
+        "#269abc",
+        "#3B4B5C",
+        "#476182",
+        "#c1e1e5",
+        "#565656",
+        "#824761",
+        "#228aa9",
+        "#515F6E",
+        "#5b7290",
+        "#acc8cc",
+        "#696969",
+        "#905b72",
+        "#1e7b96",
+        "#677380",
+        "#70849e",
+        "#96afb2",
+        "#7c7c7c",
+        "#9e7084",
+        "#1a6b83",
+        "#7C8792",
+        "#8496ac",
+        "#819699",
+        "#8e8e8e",
+        "#ac8496",
+        "#165c70",
+        "#929BA4",
+        "#99a7ba",
+        "#6b7d7f",
+        "#a1a1a1",
+        "#ba99a7",
+        "#134d5e",
+        "#A8AFB6",
+        "#adb9c7",
+        "#566466",
+        "#b4b4b4",
+        "#c7adb9",
+        "#0f3d4b"
+    ]
 };
 
 // Primary ---> Mountain Haze Theme: https://www.canva.com/colors/color-palettes/mountain-haze/
@@ -432,7 +553,52 @@ Themes[ThemeNames.Blue] = {
     detected: "#cc6600",
     notDetected: "#009999",
     notTested: "#666699",
-    unknown: "#cccccc"
+    unknown: "#cccccc",
+
+    graphColours: [
+        "#26374a",
+        "#335075",
+        "#d7faff",
+        "#444444",
+        "#753350",
+        "#269abc",
+        "#3B4B5C",
+        "#476182",
+        "#c1e1e5",
+        "#565656",
+        "#824761",
+        "#228aa9",
+        "#515F6E",
+        "#5b7290",
+        "#acc8cc",
+        "#696969",
+        "#905b72",
+        "#1e7b96",
+        "#677380",
+        "#70849e",
+        "#96afb2",
+        "#7c7c7c",
+        "#9e7084",
+        "#1a6b83",
+        "#7C8792",
+        "#8496ac",
+        "#819699",
+        "#8e8e8e",
+        "#ac8496",
+        "#165c70",
+        "#929BA4",
+        "#99a7ba",
+        "#6b7d7f",
+        "#a1a1a1",
+        "#ba99a7",
+        "#134d5e",
+        "#A8AFB6",
+        "#adb9c7",
+        "#566466",
+        "#b4b4b4",
+        "#c7adb9",
+        "#0f3d4b"
+    ]
 };
 
 // ############################################################
@@ -482,7 +648,8 @@ FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
     "surveyType": "2. Select Survey Type",
     "food": "3. Select Food(s)",
     "microorganism": "4. Select Microorganism",
-    "adjustGraph": "5. Adjust Graph"
+    "year": "5. Select Year",
+    "adjustGraph": "6. Adjust Graph"
 }
 
 // Filter names for "Trends Over Time" ==> "By Microorganism"
@@ -491,7 +658,8 @@ FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
     "surveyType": "2. Select Survey Type",
     "microorganism": "3. Select Microorganism",
     "food": "4. Select Food(s)",
-    "adjustGraph": "5. Adjust Graph"
+    "year": "5. Select Year",
+    "adjustGraph": "6. Adjust Graph"
 }
 
 // Filter names for "Overview" ==> "By Microorganism"
@@ -528,9 +696,15 @@ DataTypeNamesEN[MicroBioDataTypes.PresenceAbsence] = "Presence/Absence"
 DataTypeNamesEN[MicroBioDataTypes.Concentration] = "Concentration"
 
 // names for the percentage/number views
-const NumberViewEn = {};
-NumberViewEn[NumberView.Number] = "# positive";
-NumberViewEn[NumberView.Percentage] = "% positive";
+const NumberViewEN = {};
+NumberViewEN[NumberView.Number] = "# positive";
+NumberViewEN[NumberView.Percentage] = "% positive";
+
+// names for the time groups
+const TimeGroupEN = {};
+TimeGroupEN[TimeGroup.Months] = "Months";
+TimeGroupEN[TimeGroup.Years] = "Years";
+TimeGroupEN[TimeGroup.Overall] = "Overall";
 
 // name of the group for 'All Microorganisms' on the microroganism tree
 const allMicroorganismsEN = "All Microorganisms";
@@ -558,6 +732,17 @@ QualitaiveResultsEN[SampleState.InConclusive] = "inconclusive";
 const overviewBarGraphXAxisEN = {};
 overviewBarGraphXAxisEN[NumberView.Number] = "Count";
 overviewBarGraphXAxisEN[NumberView.Percentage] = "Percentage";
+
+// labels for the x-axis of the TrendsOverTime graph
+const trendsOverTimeXAxisEN = {};
+trendsOverTimeXAxisEN[TimeGroup.Months] = "Months";
+trendsOverTimeXAxisEN[TimeGroup.Years] = "Years";
+trendsOverTimeXAxisEN[TimeGroup.Overall] = "Overall";
+
+// labels for the y-axis of the TrendsOverTime graph
+const trendsOverTimeYAxisEN = {};
+trendsOverTimeYAxisEN[NumberView.Number] = "# Detected";
+trendsOverTimeYAxisEN[NumberView.Percentage] = "% Detected";
 
 // names for the columns on the table
 const tableColsEN = {};
@@ -607,6 +792,20 @@ overviewBarGraphEN[SummaryAtts.Microorganism] = {
     "yAxis": "Microorganism"
 };
 
+// title/labels in the TrendsOverTime graph
+const trendsOverTimeGraphEN = {};
+trendsOverTimeGraphEN[SummaryAtts.FoodName] = {
+    "graphTitle": "Microorganisms Detected in Food",
+    "xAxis": trendsOverTimeXAxisEN,
+    "yAxis": trendsOverTimeYAxisEN
+}
+
+trendsOverTimeGraphEN[SummaryAtts.FoodName] = {
+    "graphTitle": "Microorganisms Detected in Food",
+    "xAxis": trendsOverTimeXAxisEN,
+    "yAxis": trendsOverTimeYAxisEN
+}
+
 const LangEN = {
     Number: "{{num, number}}",
 
@@ -649,7 +848,8 @@ const LangEN = {
     surveyTypes: SurveyTypesEN,
     dataTypes: DataTypeNamesEN,
     qualitativeResults: QualitaiveResultsEN,
-    numberview: NumberViewEn,
+    numberview: NumberViewEN,
+    timegroup: TimeGroupEN,
 
     denomGenuses: denomGenusesEN,
 
@@ -661,6 +861,7 @@ const LangEN = {
     tableCols: tableColsEN,
     csvTableCols: csvtableColsEN,
     overviewBarGraph: overviewBarGraphEN,
+    trendsOverTimeGraph: trendsOverTimeGraphEN,
     "graphSourceText": "Source: Health Canada, Food Surveillance Data Analytics Tool – Microbiology",
 
     "downloadGraph": "Download Graph",
@@ -958,6 +1159,7 @@ FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
     "surveyType": REMPLACER_MOI,
     "food": REMPLACER_MOI,
     "microorganism": REMPLACER_MOI,
+    "year": REMPLACER_MOI,
     "adjustGraph": REMPLACER_MOI
 }
 
@@ -967,6 +1169,7 @@ FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = {
     "surveyType": REMPLACER_MOI,
     "microorganism": REMPLACER_MOI,
     "food": REMPLACER_MOI,
+    "year": REMPLACER_MOI,
     "adjustGraph": REMPLACER_MOI
 }
 
@@ -1008,6 +1211,12 @@ const NumberViewFR = {};
 NumberViewFR[NumberView.Number] = REMPLACER_MOI;
 NumberViewFR[NumberView.Percentage] = REMPLACER_MOI;
 
+// names for the time groups
+const TimeGroupFR = {};
+TimeGroupFR[TimeGroup.Months] = REMPLACER_MOI;
+TimeGroupFR[TimeGroup.Years] = REMPLACER_MOI;
+TimeGroupFR[TimeGroup.Overall] = REMPLACER_MOI;
+
 // name of the group for 'All Microorganisms' on the microroganism tree
 const allMicroorganismsFR = REMPLACER_MOI;
 
@@ -1034,6 +1243,17 @@ QualitaiveResultsFR[SampleState.InConclusive] = "inconclusive";
 const overviewBarGraphXAxisFR = {};
 overviewBarGraphXAxisFR[NumberView.Number] = REMPLACER_MOI;
 overviewBarGraphXAxisFR[NumberView.Percentage] = REMPLACER_MOI;
+
+// labels for the x-axis of the TrendsOverTime graph
+const trendsOverTimeXAxisFR = {};
+trendsOverTimeXAxisFR[TimeGroup.Months] = REMPLACER_MOI;
+trendsOverTimeXAxisFR[TimeGroup.Years] = REMPLACER_MOI;
+trendsOverTimeXAxisFR[TimeGroup.Overall] = REMPLACER_MOI;
+
+// labels for the y-axis of the TrendOverTime graph
+const trendsOverTimeYAxisFR = {};
+trendsOverTimeYAxisFR[NumberView.Number] = REMPLACER_MOI;
+trendsOverTimeYAxisFR[NumberView.Percentage] = REMPLACER_MOI;
 
 // names for the columns on the table
 const tableColsFR = {};
@@ -1062,7 +1282,7 @@ csvtableColsFR[SummaryAtts.ConcentrationRange] = REMPLACER_MOI;
 const NoDataDescFR = {};
 NoDataDescFR[NoDataStates.Normal] = "Le graphique est vide...";
 NoDataDescFR[NoDataStates.Doggy] = "C'est vide ici... Voici un petit chien pour vous accompagner!";
-NoDataDescFR[NoDataStates.Kitty] = "C'est vide ici... Voici un petit chat pour vous accompagner!";
+NoDataDescFR[NoDataStates.Kitty] = "C'est vide ici... Voici un petit chaton pour vous accompagner!";
 
 // title/labels in the Overview bar graph
 const overviewBarGraphFR = {
@@ -1082,6 +1302,20 @@ overviewBarGraphFR[SummaryAtts.Microorganism] = {
     "xAxis": overviewBarGraphXAxisFR,
     "yAxis": REMPLACER_MOI
 };
+
+// title/labels in the TrendsOverTime graph
+const trendsOverTimeGraphFR = {};
+trendsOverTimeGraphFR[SummaryAtts.FoodName] = {
+    "graphTitle": REMPLACER_MOI,
+    "xAxis": trendsOverTimeXAxisFR,
+    "yAxis": trendsOverTimeYAxisFR
+}
+
+trendsOverTimeGraphFR[SummaryAtts.FoodName] = {
+    "graphTitle": REMPLACER_MOI,
+    "xAxis": trendsOverTimeXAxisFR,
+    "yAxis": trendsOverTimeYAxisFR
+}
 
 const LangFR = {
     Number: "{{num, number}}",
@@ -1127,6 +1361,7 @@ const LangFR = {
     qualitativeResults: QualitaiveResultsFR,
     denomGenuses: denomGenusesFR,
     numberview: NumberViewFR,
+    timegroup: TimeGroupFR,
 
     "tableTitle": REMPLACER_MOI,
     "csvTitle": {
@@ -1136,6 +1371,7 @@ const LangFR = {
     tableCols: tableColsFR,
     csvTableCols: csvtableColsFR,
     overviewBarGraph: overviewBarGraphFR,
+    trendsOverTimeGraph: trendsOverTimeGraphFR,
     "graphSourceText": REMPLACER_MOI,
 
     "downloadGraph": REMPLACER_MOI,

@@ -15,6 +15,7 @@ import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, De
 import { Translation, DateTimeTools, Visuals } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
+import { TrendsOverTimeGraph } from "./graphs/trendsOverTimeGraph.js";
 
 
 // App: The class for the overall application
@@ -31,6 +32,8 @@ class App {
         this.graphs = {};
         this.graphs[Pages.Overview] = {};
         this.graphs[Pages.TrendsOverTime] = {};
+
+        this.windowResizeHandlers = {};
 
         this.tableDownloadURLObjId = undefined;
         this.RawDownloadURLObjId = undefined;
@@ -51,6 +54,14 @@ class App {
         this.setTheme();
 
         this.loadMainPage(page);
+
+        // when resizing of the window occurs
+        $(window).on("resize", () => {
+            for (const handlerId in this.windowResizeHandlers) {
+                const handler = this.windowResizeHandlers[handlerId];
+                handler();
+            }
+        });
     }
 
     // =================== HEADER/FOOTER ===============================
@@ -173,6 +184,14 @@ class App {
         const themeObj = Themes[this.theme];
         for (const themeKey in themeObj) {
             const themeColour = themeObj[themeKey];
+            
+            if (themeColour.constructor === Array) {
+                themeColour.forEach((colour, ind) => {
+                    this.themeVars.style.setProperty(`--${themeKey}${ind}`, colour);
+                });
+                continue;
+            } 
+
             this.themeVars.style.setProperty(`--${themeKey}`, themeColour);
         }
     }
@@ -740,6 +759,17 @@ class App {
             })
         }
 
+        // time group (months/years/overall/etc...)
+        if (inputs[Inputs.TimeGroup] !== undefined) {
+            this.updateRadioSelect({selectId: Inputs.TimeGroup, selections: selections[Inputs.TimeGroup], inputs: new Set([inputs[Inputs.TimeGroup]]),
+                                    translations: Translation.translate("timegroup", { returnObjects: true }),
+                                    onChange: (radioValue) => {
+                                        inputs[Inputs.TimeGroup] = radioValue;
+                                        this.updateTab({input: Inputs.TimeGroup});
+                                    }
+            })
+        }
+
         // year select
         if (inputs[Inputs.Year] !== undefined) {
             let inputRange = DateTimeTools.rangeToDate(inputs[Inputs.Year], ModelTimeZone, true);
@@ -886,10 +916,12 @@ class App {
 
         const graphData = this.model.getGraphData();
         const tab = this.model.getActiveTab();
-        let summaryAtt;
+        let summaryAtt, subSummaryAtt;
 
         if (graphData !== undefined && tab == Tabs[Pages.Overview].ByMicroorganism) {
             summaryAtt = SummaryAtts.FoodName;
+            subSummaryAtt = SummaryAtts.Microorganism;
+
             const tableColInfo = [
                 {title: "Food Name", data: SummaryAtts.FoodName},
                 {title: "# of Samples", data: SummaryAtts.Samples},
@@ -900,8 +932,10 @@ class App {
 
             this.updateTable("#tempGraphTable", tableColInfo, graphData);
 
-        } else if (tab == Tabs[Pages.Overview].ByFood) {
+        } else if (graphData !== undefined && tab == Tabs[Pages.Overview].ByFood) {
             summaryAtt = SummaryAtts.Microorganism;
+            subSummaryAtt = SummaryAtts.FoodName;
+
             const tableColInfo = [
                 {title: "Microorganism", data: SummaryAtts.Microorganism},
                 {title: "# of Samples", data: SummaryAtts.Samples},
@@ -913,7 +947,9 @@ class App {
             this.updateTable("#tempGraphTable", tableColInfo, graphData);
         }
 
-        if (graphData !== undefined) {
+        if (graphData === undefined) return;
+
+        if (this.model.pageName == Pages.Overview) {
             let overviewGraph = this.graphs[this.model.pageName][tab];
             if (overviewGraph === undefined) {
                 overviewGraph = new OverviewBarGraph(this.model, summaryAtt);
@@ -921,6 +957,14 @@ class App {
             }
 
             overviewGraph.update();
+        } else if (this.model.pageName == Pages.TrendsOverTime) {
+            let trendsOverTimeGraph = this.graphs[this.model.pageName][tab];
+            if (trendsOverTimeGraph === undefined) {
+                trendsOverTimeGraph = new TrendsOverTimeGraph(this, this.model, summaryAtt, subSummaryAtt);
+                this.graphs[this.model.pageName][tab] = trendsOverTimeGraph;
+            }
+
+            trendsOverTimeGraph.update();
         }
     }
 
