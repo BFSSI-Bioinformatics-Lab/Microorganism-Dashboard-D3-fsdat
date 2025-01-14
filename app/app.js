@@ -604,10 +604,13 @@ class App {
         let dropdown = $(dropdownSelector);
         dropdown.selectpicker('destroy');
 
+        const orderedSelections = Array.from(selections);
+        orderedSelections.sort();
+
         tab.select(dropdownSelector)
             .html("")
             .selectAll("option")
-            .data(selections)
+            .data(orderedSelections)
             .enter()
             .append("option")
             .text((d) => d);
