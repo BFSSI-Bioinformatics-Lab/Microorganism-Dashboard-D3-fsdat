@@ -251,7 +251,7 @@ export const SummaryTableCols = [
     SummaryAtts.Microorganism,
     SummaryAtts.PercentDetected,
     SummaryAtts.Detected,
-    SummaryAtts.Samples,
+    SummaryAtts.Tested,
     SummaryAtts.ConcentrationMean,
     SummaryAtts.ConcentrationRange,
     SummaryAtts.SamplesWithConcentration
@@ -750,7 +750,7 @@ tableColsEN[SummaryAtts.FoodName] = "Food Name";
 tableColsEN[SummaryAtts.Microorganism] = "Pathogen Branch";
 tableColsEN[SummaryAtts.PercentDetected] = "% Detected";
 tableColsEN[SummaryAtts.Detected] = "# Detected";
-tableColsEN[SummaryAtts.Samples] = "# Samples";
+tableColsEN[SummaryAtts.Tested] = "# Tested Samples";
 tableColsEN[SummaryAtts.SamplesWithConcentration] = "# Samples with Conc. Data"
 tableColsEN[SummaryAtts.ConcentrationMean] = "Conc. Mean (cfu/g)"
 tableColsEN[SummaryAtts.ConcentrationRange] = "Conc. Range (cfu/g)"
@@ -1261,7 +1261,7 @@ tableColsFR[SummaryAtts.FoodName] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.Microorganism] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.PercentDetected] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.Detected] = REMPLACER_MOI;
-tableColsFR[SummaryAtts.Samples] = REMPLACER_MOI;
+tableColsFR[SummaryAtts.Tested] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.SamplesWithConcentration] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.ConcentrationMean] = REMPLACER_MOI;
 tableColsFR[SummaryAtts.ConcentrationRange] = REMPLACER_MOI;
