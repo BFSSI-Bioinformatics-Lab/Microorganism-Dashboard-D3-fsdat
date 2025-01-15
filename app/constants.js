@@ -718,7 +718,11 @@ const denomGenusesEN = [[allMicroorganismsEN, "Bacteria", "Vibrio"].join(Phyloge
                          [allMicroorganismsEN, "Virus", "Hepatovirus"].join(PhylogeneticDelim),
                          [allMicroorganismsEN, "Virus", "Norovirus"].join(PhylogeneticDelim),
                          [allMicroorganismsEN, "Virus", "Orthohepevirus"].join(PhylogeneticDelim),
-                         [allMicroorganismsEN, "Virus", "Rotavirus"].join(PhylogeneticDelim)];
+                         [allMicroorganismsEN, "Virus", "Rotavirus"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Parasite", "Cryptosporidium"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Parasite", "Cyclospora"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Parasite", "Giardia"].join(PhylogeneticDelim),
+                         [allMicroorganismsEN, "Parasite", "Toxoplasma"].join(PhylogeneticDelim)];
 
 // Different options for the qualitative results
 // Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
