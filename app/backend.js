@@ -1562,14 +1562,32 @@ export class Model {
     }
 
     // computeRawCSV(sampleData): Computes the CSV content for the raw data table
-    computeRawCSV(sampleData) {
+    computeRawCSV(sampleData, page = undefined, tab = undefined) {
+        const inputs = this.getInputs({page, tab});
+        const inputMicroorganisms = structuredClone(inputs[Inputs.MicroOrganism]);
+
+        const microorganismTree = this.getMicroOrganismTree({page, tab});
+        const denomGenuses = new Set(Translation.translate("denomGenuses", { returnObjects: true }));
+
+        for (const microorganism of inputMicroorganisms) {
+            const genus = microorganismTree.genuses[microorganism];
+            if (denomGenuses.has(genus)) {
+                inputMicroorganisms.add(genus);
+            }
+        }
+
         // get the row indices to the data
         let rowInds = new Set();
         for (const sampleName in sampleData) {
             const sample = sampleData[sampleName];
 
             for (const sampleInd of sample.data) {
-                rowInds.add(sampleInd);
+                const row = this.data[sampleInd];
+                const microorganism = row[HCDataCols.Microorganism];
+
+                if (inputMicroorganisms.has(microorganism)) {
+                    rowInds.add(sampleInd);
+                }
             }
         }
 
@@ -1734,7 +1752,7 @@ export class Model {
             let graphData = this.computeOverviewGraphData("foodName", SummaryAtts.FoodName, summaryData);
             let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples);
             let csvContent = this.computeTableCSV(tableData);
-            let rawCSVContent = this.computeRawCSV(denomSamples);
+            let rawCSVContent = this.computeRawCSV(denomSamples, page, tab);
 
             this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
@@ -1746,7 +1764,7 @@ export class Model {
             let graphData = this.computeOverviewGraphData("microorganism", SummaryAtts.Microorganism, summaryData, (summaryKey) => Model.getDisplayMicroorganism(summaryKey));
             let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples);
             let tableCSVContent = this.computeTableCSV(tableData);
-            let rawCSVContent = this.computeRawCSV(denomSamples);
+            let rawCSVContent = this.computeRawCSV(denomSamples, page, tab);
 
             this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
@@ -1760,7 +1778,7 @@ export class Model {
 
             let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, CombineGraphTypes.ByFood);
             let csvContent = this.computeTableCSV(tableData);
-            let rawCSVContent = this.computeRawCSV(denomSamples);
+            let rawCSVContent = this.computeRawCSV(denomSamples, page, tab);
 
             this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
@@ -1773,7 +1791,7 @@ export class Model {
                                                                  summaryData, timeGroup, getMainKeyDisplay: (summaryKey) => Model.getDisplayMicroorganism(summaryKey)});
             let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, CombineGraphTypes.ByMicroorganism);
             let csvContent = this.computeTableCSV(tableData);
-            let rawCSVContent = this.computeRawCSV(denomSamples);
+            let rawCSVContent = this.computeRawCSV(denomSamples, page, tab);
 
             this.graphData[page][tab] = graphData;
             this.tableData[page][tab] = tableData;
