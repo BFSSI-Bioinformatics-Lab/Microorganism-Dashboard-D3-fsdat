@@ -123,8 +123,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
         // Append the X-axis
         scrollableSubGraph.append("g")
             .attr("transform", `translate(${-this.graphLeftPos} , ${graphBottom})`)
-            .call(d3.axisBottom(fx).tickSizeOuter(0))
-            .call(g => g.selectAll(".domain").remove());
+            .call(d3.axisBottom(fx).tickSizeOuter(0));
 
         subGraph.append("text").attr("font-size", Dims.trendsOverTimeGraph.AxesFontSize)
             .attr("x", this.width / 2)
@@ -135,8 +134,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
         // Append the Y-axis
         subGraph.append("g")
             .attr("transform", `translate(${this.graphLeftPos},0)`)
-            .call(d3.axisLeft(yAxisScale).ticks(null, "s"))
-            .call(g => g.selectAll(".domain").remove());
+            .call(d3.axisLeft(yAxisScale).ticks(null, "s"));
 
         subGraph.append("text").attr("font-size", Dims.trendsOverTimeGraph.AxesFontSize)
             .attr("transform", "rotate(-90)")
