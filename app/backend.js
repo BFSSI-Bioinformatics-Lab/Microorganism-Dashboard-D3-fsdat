@@ -947,6 +947,8 @@ export class Model {
         // Trends Over Time ==> By Food
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
             let selections = this.selections[page][tab];
+            selections[Inputs.MicroOrganism] = new Set();
+            this.updateMicroorganismTree({microorganisms: selections[Inputs.MicroOrganism], page, tab});
             selections[Inputs.NumberView] = new Set(Object.values(NumberView));
 
         // Overview ==> By Microorganism
@@ -958,6 +960,7 @@ export class Model {
         // Overview ==> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
             let selections = this.selections[page][tab];
+            selections[Inputs.SurveyType] = new Set();
             selections[Inputs.NumberView] = new Set(Object.values(NumberView));
         }
     }
@@ -1075,7 +1078,7 @@ export class Model {
             inputs[Inputs.DataType] = new Set([MicroBioDataTypes.PresenceAbsence]);
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
             inputs[Inputs.FoodGroup] = structuredClone(selections[Inputs.FoodGroup]);
-            inputs[Inputs.Food] = structuredClone(selections[Inputs.Food]);
+            inputs[Inputs.Food] = new Set();
             inputs[Inputs.MicroOrganism] = new Set();
             inputs[Inputs.NumberView] = NumberView.Number;
             inputs[Inputs.TimeGroup] = TimeGroup.Months;
@@ -1094,7 +1097,7 @@ export class Model {
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
             let selections = this.selections[Pages.Overview][OverviewTabs.ByFood];
             inputs[Inputs.FoodGroup] = structuredClone(selections[Inputs.FoodGroup]);
-            inputs[Inputs.Food] = structuredClone(selections[Inputs.Food]);
+            inputs[Inputs.Food] = new Set();
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
             inputs[Inputs.Year] = structuredClone(selections[Inputs.Year]);
             inputs[Inputs.NumberView] = NumberView.Number;
@@ -1125,7 +1128,12 @@ export class Model {
         // update the inputs where their corresponding selections have been updated
         for (let i = inputInd + 1; i < filterOrder.length; ++i) {
             const currentInput = filterOrder[i];
-            inputs[currentInput] = SetTools.intersection(inputs[currentInput], selections[currentInput]);
+
+            if (currentInput == Inputs.SurveyType) {
+                inputs[currentInput] = structuredClone(selections[currentInput]);
+            } else {
+                inputs[currentInput] = SetTools.intersection(inputs[currentInput], selections[currentInput]);
+            }
 
             // update the microorganism tree
             if (microorganismInputInd == i) {
@@ -1136,21 +1144,12 @@ export class Model {
         }
 
         // update the year input
-        if (inputs[Inputs.Year] !== undefined && !selections[Inputs.Year] !== undefined) {
+        if (inputs[Inputs.Year] !== undefined && selections[Inputs.Year] !== undefined) {
             const selection = selections[Inputs.Year];
             const input = inputs[Inputs.Year];
 
-            if (selection.min !== undefined && !selection.has(input.min, DateTimeTools.datetimeStrCmpFunc)) {
-                input.min = selection.min;
-            } else if (selection.min === undefined) {
-                input.min = undefined;
-            }
-
-            if (selection.max !== undefined && !selection.has(input.max, DateTimeTools.datetimeStrCmpFunc)) {
-                input.max = selection.max;
-            } else if (selection.max === undefined) {
-                input.max = undefined;
-            }
+            input.min = selection.min;
+            input.max = selection.max;
         }
     }
 
@@ -1565,14 +1564,16 @@ export class Model {
     computeRawCSV(sampleData, page = undefined, tab = undefined) {
         const inputs = this.getInputs({page, tab});
         const inputMicroorganisms = structuredClone(inputs[Inputs.MicroOrganism]);
-
-        const microorganismTree = this.getMicroOrganismTree({page, tab});
-        const denomGenuses = new Set(Translation.translate("denomGenuses", { returnObjects: true }));
-
-        for (const microorganism of inputMicroorganisms) {
-            const genus = microorganismTree.genuses[microorganism];
-            if (denomGenuses.has(genus)) {
-                inputMicroorganisms.add(genus);
+        
+        if (inputMicroorganisms !== undefined) {
+            const microorganismTree = this.getMicroOrganismTree({page, tab});
+            const denomGenuses = new Set(Translation.translate("denomGenuses", { returnObjects: true }));
+    
+            for (const microorganism of inputMicroorganisms) {
+                const genus = microorganismTree.genuses[microorganism];
+                if (denomGenuses.has(genus)) {
+                    inputMicroorganisms.add(genus);
+                }
             }
         }
 
@@ -1585,7 +1586,7 @@ export class Model {
                 const row = this.data[sampleInd];
                 const microorganism = row[HCDataCols.Microorganism];
 
-                if (inputMicroorganisms.has(microorganism)) {
+                if (inputMicroorganisms === undefined || inputMicroorganisms.has(microorganism)) {
                     rowInds.add(sampleInd);
                 }
             }

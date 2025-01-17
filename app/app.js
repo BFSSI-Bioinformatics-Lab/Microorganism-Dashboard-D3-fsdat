@@ -579,7 +579,7 @@ class App {
 
         rangeSlider.parent().removeClass("d-none");
         rangeSlider.slider({ id: innerSliderId, min: selection.min, max: selection.max, range: true, value: [input.min, input.max] });
-        rangeSlider.slider('refresh', { useCurrentValue: true });
+        rangeSlider.slider('refresh');
         rangeSlider.on("slideStop", (event) => {
             // This is a bug with the bootstrap-slider library from firing 3 events
             //  after the slider stops moving
@@ -871,7 +871,7 @@ class App {
         // food selection
         if (inputOrderInds[Inputs.Food] !== undefined && inputOrderInds[Inputs.Food] > inputInd) {
             this.updateDropdownSelect({selectId: Inputs.Food, selections: selections[Inputs.Food], inputs: inputs[Inputs.Food], 
-                                       noneSelectedText: Translation.translate("allFoods"),
+                                       noneSelectedText: Translation.translate("selectFoods"),
                                        onChange: (selectedOptions) => {
                                             inputs[Inputs.Food] = new Set(selectedOptions);
                                             this.updateTab({input: Inputs.Food});
