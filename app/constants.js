@@ -317,6 +317,7 @@ export const Dims = {
         SubGraphKeyWidth: 170,
         SubGraphBarWidth: 10,
         SubGraphBarGroupMargin: 5,
+        SubGraphMinBarGroupWidth: 50
     }
 }
 
@@ -830,7 +831,7 @@ const LangEN = {
     filterNames: FilterNamesEN,
 
     "allFoodGroups": "All Food Groups",
-    "allFoods": "All Foods",
+    "selectFoods": "Select Foods",
     "allMicroorganisms": allMicroorganismsEN,
     "nonSpeciated": "Non Speciated",
     "selectAll": "Select All",
@@ -1341,7 +1342,7 @@ const LangFR = {
     filterNames: FilterNamesFR,
 
     "allFoodGroups": REMPLACER_MOI,
-    "allFoods": REMPLACER_MOI,
+    "selectFoods": REMPLACER_MOI,
     "allMicroorganisms": allMicroorganismsFR,
     "nonSpeciated": REMPLACER_MOI,
     "selectAll": REMPLACER_MOI,
