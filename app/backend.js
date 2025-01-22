@@ -136,8 +136,8 @@ export class MicroorganismTree {
         }
     }
 
-    // expandNode(nodeId): Displays the children nodes of the node
-    expandNode(nodeId) {
+    // expandNode(nodeId, value): Displays the children nodes of the node
+    expandNode(nodeId, value = true) {
         const node = this.nodes[nodeId];
         let states = node.state;
         if (states === undefined) {
@@ -145,7 +145,7 @@ export class MicroorganismTree {
             node.state = states;
         }
 
-        states.expanded = true;
+        states.expanded = value;
     }
 
     // isChecked(node): Determines whether a node is checked off
@@ -358,9 +358,8 @@ export class MicroorganismTree {
         }
 
         // expand the node if it has a checked children in its subtree and not all its direct children are checked
-        if (hasCheckedChildren && directChildrenIds.length > checkedDirectChildrenIds.length) {
-            this.expandNode(nodeId);
-        }
+        const expandNode = hasCheckedChildren && directChildrenIds.length > checkedDirectChildrenIds.length;
+        this.expandNode(nodeId, expandNode);
 
         return hasCheckedChildren;
     }
@@ -1441,16 +1440,41 @@ export class Model {
     // computeTableData(summaryData, overallDenomSamples, combineGraphType): Retrieves the table data needed to be displayed on the website
     computeTableData(summaryData, overallDenomSamples, combineGraphType = undefined) {
         let tableData = {};
+        const inputs = this.getInputs();
+
         const microorganismTree = this.getMicroOrganismTree();
+        const genuses = new Set(Object.values(microorganismTree.genuses));
         const nonSpeciated = Translation.translate("nonSpeciated");
         const allMicroorganisms = Translation.translate("allMicroorganisms");
         const allFoods = Translation.translate("allFoods");
+
+        let inputMicroorganisms = inputs[Inputs.MicroOrganism];
+        if (inputMicroorganisms !== undefined) {
+            inputMicroorganisms = Array.from(inputMicroorganisms).map((microorganism) => {
+                return genuses.has(microorganism) ? `${microorganism}${PhylogeneticDelim}${nonSpeciated}` : microorganism;
+            });
+        }
+        
+        // get the full genuses that were selected by the user
+        microorganismTree.uncheckMicroorganisms();
+        microorganismTree.checkMicroorganisms(inputMicroorganisms);
+        microorganismTree.minimalExpand();
+        const selectedGenuses = new Set();
+
+        for (const genus of genuses) {
+            const nodeId = microorganismTree.getNodeId(genus);
+            const node = microorganismTree.nodes[nodeId];
+
+            if (node.state !== undefined && node.state.expanded !== undefined && node.state.expanded) continue;
+            selectedGenuses.add(genus);
+        }
 
         // get the table data
         TableTools.forGroup(summaryData, ["surveyType", "foodName", "microorganism", "timeGroup"], (keys, values) => {
             if (tableData[keys.foodName] === undefined) tableData[keys.foodName] = {};
             const microorganismSummary = structuredClone(values.timeGroup);
             const genus = microorganismTree.genuses[keys.microorganism];
+            const showGenus = selectedGenuses.has(genus);
 
             let denomSample = overallDenomSamples[keys.surveyType][keys.foodName][keys.microorganism];
             if (denomSample === undefined) {
@@ -1477,12 +1501,12 @@ export class Model {
             }
 
             // for each food/genus combination
-            if (tableData[keys.foodName][genus] === undefined) {
+            if (showGenus && tableData[keys.foodName][genus] === undefined) {
                 let newTableData = structuredClone(microorganismSummary);
                 newTableData[SummaryAtts.FoodName] = keys.foodName;
                 newTableData[SummaryAtts.Microorganism] = Model.getDisplayMicroorganism(genus);
                 tableData[keys.foodName][genus] = newTableData;
-            } else {
+            } else if (showGenus) {
                 tableData[keys.foodName][genus] = this.combineSummaryData(tableData[keys.foodName][genus], microorganismSummary);
             }
 
@@ -1503,12 +1527,12 @@ export class Model {
                 }
 
                 // for each genus
-                if (tableData[allFoods][genus] === undefined) {
+                if (showGenus && tableData[allFoods][genus] === undefined) {
                     let newTableData = structuredClone(microorganismSummary);
                     newTableData[SummaryAtts.FoodName] = allFoods;
                     newTableData[SummaryAtts.Microorganism] = Model.getDisplayMicroorganism(genus);
                     tableData[allFoods][genus] = newTableData;
-                } else {
+                } else if (showGenus) {
                     tableData[allFoods][genus] = this.combineSummaryData(tableData[allFoods][genus], microorganismSummary);
                 }
             
