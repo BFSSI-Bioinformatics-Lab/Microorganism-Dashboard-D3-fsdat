@@ -57,6 +57,24 @@ export class Translation {
     }
 }
 
+
+// TextTools: Utility class for handling text
+export class TextTools {
+
+    // capitalizeFirstLetter(txt): Capitalize the first letter of a text
+    static capitalizeFirstLetter(txt) {
+        if (!txt) return txt;
+        return String(txt).charAt(0).toUpperCase() + String(txt).slice(1);
+    }
+
+    // capitalizeOnlyFirstLetter(txt): Only make the first letter of a text capital
+    static capitalizeOnlyFirstLetter(txt) {
+        txt = txt.toLowerCase();
+        return TextTools.capitalizeFirstLetter(txt);
+    }
+}
+
+
 // Range: Class for a range of values
 export class Range {
     constructor(min, max) {
