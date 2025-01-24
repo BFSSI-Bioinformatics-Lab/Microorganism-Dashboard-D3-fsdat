@@ -812,14 +812,27 @@ export class Model {
 
         if (this.groupings[page] !== undefined && this.groupings[page][tab] === undefined) {
             this.setupGrouping(page, tab);
-            this.setupSelections(page, tab);
-            this.setupInputs(page, tab);
-            this.updateInputDependents({page, tab});
-            this.updateVisualData({page, tab});
+            this.clearTab({page, tab});
             setupDone = true;
         }
 
         return setupDone;
+    }
+
+    // clearTab(page, tab): Resets the filters for a tab
+    clearTab({page = null, tab = null} = {}) {
+        if (page === null) {
+            page = this.pageName;
+        }
+
+        if (tab === null) {
+            tab = this.activeTabs[page];
+        }
+
+        this.setupSelections(page, tab);
+        this.setupInputs(page, tab);
+        this.updateInputDependents({page, tab});
+        this.updateVisualData({page, tab});
     }
 
     // updateTab(input, page, tab): Updates the data for the tabs

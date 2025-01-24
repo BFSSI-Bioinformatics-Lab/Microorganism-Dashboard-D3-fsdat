@@ -463,10 +463,26 @@ class App {
         });
     }
 
+    updateClearFilter(btn) {
+        const btnText = Translation.translate("clearFilters");
+        const btnIcon = SVGIcons["GarbargeBin"]; 
+
+        btn.select("span").text(btnText);
+        btn.select("svg").html(btnIcon);
+        
+        btn.on("click", (event) => {
+            this.model.clearTab();
+            this.updateTab();
+        });
+    }
+
     // updateMenuNames(): Updates the names within the menu
     updateMenuNames() {
         const menuCollapseBtn = this.page.select("#menuCollapseBtn");
         this.updateMenuCollapse(menuCollapseBtn);
+
+        const clearFiltersBtn = this.page.select("#clearFiltersBtn");
+        this.updateClearFilter(clearFiltersBtn);
 
         // translate names of the filters
         this.page.selectAll(".menuTab").each((tabData, tabInd, tabElements) => {

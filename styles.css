@@ -155,10 +155,30 @@ body {
     transition: var(--defaultTransition);
 }
 
+.btn-danger {
+    --bs-btn-color: var(--onPrimary);
+    --bs-btn-bg: var(--error);
+    --bs-btn-border-color: var(--primaryBorderColour);
+    --bs-btn-hover-color: var(--error);
+    --bs-btn-hover-bg: var(--onPrimaryHover);
+    --bs-btn-hover-border-color: var(--primaryBorderColour);
+    --bs-btn-active-color: var(--error);
+    --bs-btn-active-bg: var(--primaryHover);
+    --bs-btn-active-border-color: var(--primaryBorderColour);
+    --bs-btn-disabled-color: var(--onPrimary);
+    --bs-btn-disabled-bg: var(--error);
+    --bs-btn-disabled-border-color: var(--primaryBorderColour);
+    transition: var(--defaultTransition);
+}
+
 /* ==================================================== */
 /* =========== SVG Icons ============================== */
 
 .svgOnPrimaryIconPath {
+    fill: var(--onPrimary);
+}
+
+.svgOnErrorIconPath {
     fill: var(--onPrimary);
 }
 
@@ -168,6 +188,10 @@ body {
 
 .btn:hover .svgOnPrimaryIconPath {
     fill: var(--primaryHover);
+}
+
+.btn:hover .svgOnErrorIconPath {
+    fill: var(--error);
 }
 
 /* ==================================================== */
@@ -920,7 +944,7 @@ body {
 /* =================================================== */
 /* =========== Menu for the graphs =================== */
 
-#menuCollapseBtnIcon {
+.menuBtnIcon {
     max-height: 1.5em;
     width: auto;
 }
