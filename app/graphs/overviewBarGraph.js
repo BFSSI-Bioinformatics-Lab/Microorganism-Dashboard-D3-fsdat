@@ -1,5 +1,5 @@
 import {  SummaryAtts, SampleStateColours, SampleStateOrder, Dims, SampleState, TextWrap, Inputs, NumberView } from "../constants.js";
-import { SetTools, Translation, Visuals, NumberTools } from "../tools.js";
+import { SetTools, Translation, Visuals, NumberTools, TextTools } from "../tools.js";
 import { BaseGraph } from "./baseGraph.js";
 
 export class OverviewBarGraph extends BaseGraph {
@@ -535,7 +535,8 @@ export class OverviewBarGraph extends BaseGraph {
 
         const legendColours = {};
         for (const state of legendStates) {
-            legendColours[Translation.translate(`qualitativeResults.${state}`)] = SampleStateColours[state];
+            const legendText = TextTools.capitalizeFirstLetter(Translation.translate(`qualitativeResults.${state}`));
+            legendColours[legendText] = SampleStateColours[state];
         }
 
         // draw the legend
