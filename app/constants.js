@@ -194,6 +194,11 @@ export const HCDataCols = {
     Microorganism: "Microorganism", // ***
 }
 
+// Columns in the CFIA data
+export const CFIADataCols = {
+    EColiCategory: "Ecoli CFIA Category"
+}
+
 // Different types of operators for the quantitative results
 export const QuantitativeOps = {
     Eq: "=",
@@ -286,7 +291,7 @@ export const Dims = {
         GraphBottom: 80,
         GraphLeft: 220,
         GraphRight: 200,
-        BarHeight: 60,
+        BarHeight: 80,
         YAxisTickNameWidth: 140,
         XAxisNumOfTicks: 10,
         LegendSquareSize: 12,
