@@ -10,7 +10,7 @@
 
 import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes } from "./constants.js"
 import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState } from "./constants.js"
-import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols, CombineGraphTypes, TimeGroup } from "./constants.js"
+import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols, CombineGraphTypes, TimeGroup, CFIADataCols } from "./constants.js"
 import { Translation, SetTools, MapTools, TableTools, NumberTools, Range, DateTimeTools } from "./tools.js";
 
 
@@ -403,7 +403,9 @@ export class MicroorganismTree {
         for (const miccroorganism in nonSpeciatedDict) {
             const nodeId = this.getNodeId(miccroorganism);
             const nonSpeciatedNodeId = this.createNode(nonSpeciatedStr);
+
             this.addChild(nodeId, nonSpeciatedNodeId);
+            this.microorganisms.add(nonSpeciatedDict[miccroorganism]);
         }
     }
 
@@ -616,9 +618,11 @@ export class Model {
     // getMicroorganism(dataRow): Retrieves the microorganism name
     getMicroorganism(dataRow) {
         let result = [dataRow[HCDataCols.Agent], dataRow[HCDataCols.Genus], dataRow[HCDataCols.Species], dataRow[HCDataCols.Subspecies], 
-                      dataRow[HCDataCols.Subgenotype], dataRow[HCDataCols.Serotype], dataRow[HCDataCols.OtherTyping]];
+                      dataRow[HCDataCols.Subgenotype], dataRow[HCDataCols.Serotype], dataRow[HCDataCols.OtherTyping], dataRow[CFIADataCols.EColiCategory]];
+        
+        result = result.filter((nodeName) => nodeName !== undefined && nodeName != "");
+        result = result.map((nodeName) => String(nodeName));
 
-        result = result.filter((nodeName) => nodeName != "");
         result.unshift(Translation.translate("allMicroorganisms"));
         result = result.join(PhylogeneticDelim);
         return result;
@@ -713,7 +717,9 @@ export class Model {
             }
 
             const quantitativeOp = Model.cleanTxt(row[HCDataCols.QuantitativeOperator]);
-            const isolateCode = Model.cleanTxt(row[HCDataCols.IsolateCode]);
+            let isolateCode = row[HCDataCols.IsolateCode];
+            isolateCode = isolateCode === undefined ? "" : Model.cleanTxt(isolateCode);
+
             const isolateCodeIsEmpty = isolateCode === "";
 
             if (qualitativeIsEmpty && !quantitativeIsEmpty && 
@@ -788,6 +794,7 @@ export class Model {
         for (const row of data) {
             row[HCDataCols.SurveyType] = this.getSurveyType(row);
             row[HCDataCols.QuantitativeResult] = parseFloat(row[HCDataCols.QuantitativeResult]);
+            row[CFIADataCols.EColiCategory] = "";
             row[HCDataCols.Microorganism] = this.getMicroorganism(row);
             row[HCDataCols.SampleDate] = moment.tz(moment.tz(row[HCDataCols.SampleDate], TimeZone[row[HCDataCols.SurveyType]]), ModelTimeZone);
             this.data.push(row);
@@ -796,7 +803,14 @@ export class Model {
 
     // loadCFIA(): Loads the CSV data that comes from CFIA
     async loadCFIA() {
-        
+        let data = await d3.csv(`data/CFIA Data-${i18next.language}.csv`);
+        for (const row of data) {
+            row[HCDataCols.SurveyType] = SurveyTypes.CFIA;
+            row[HCDataCols.QuantitativeResult] = parseFloat(row[HCDataCols.QuantitativeResult]);
+            row[HCDataCols.Microorganism] = this.getMicroorganism(row);
+            row[HCDataCols.SampleDate] = moment.tz(moment.tz(row[HCDataCols.SampleDate], ['M/D/YYYY', "YYYY-MM-DD HH:mm:ss"], TimeZone[row[HCDataCols.SurveyType]]), ModelTimeZone);
+            this.data.push(row);
+        }
     }
 
     // setupTab(page, tab): Setup the needed data for a particular tabs
@@ -1464,7 +1478,15 @@ export class Model {
         let inputMicroorganisms = inputs[Inputs.MicroOrganism];
         if (inputMicroorganisms !== undefined) {
             inputMicroorganisms = Array.from(inputMicroorganisms).map((microorganism) => {
-                return genuses.has(microorganism) ? `${microorganism}${PhylogeneticDelim}${nonSpeciated}` : microorganism;
+                const isGenus = genuses.has(microorganism);
+                const nodeId = microorganismTree.getNodeId(microorganism);
+                const children = microorganismTree.children[nodeId];
+
+                if (!isGenus || children === undefined || Object.keys(children).length == 0) {
+                    return microorganism;
+                }
+
+                return `${microorganism}${PhylogeneticDelim}${nonSpeciated}`;
             });
         }
         

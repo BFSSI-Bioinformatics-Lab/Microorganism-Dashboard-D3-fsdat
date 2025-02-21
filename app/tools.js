@@ -260,7 +260,12 @@ export class TableTools {
 
             // clean up the text for each cell
             for (let i = 0; i < colLen; ++i) {
-                let cleanedText = `${row[i]}`.replace(/"/g, "'").replace('"', "'");
+                let cell = row[i];
+                if (Number.isNaN(cell)) {
+                    cell = "";
+                }
+
+                let cleanedText = `${cell}`.replace(/"/g, "'").replace('"', "'");
                 cleanedText = `"${cleanedText}"`;
                 csvRow.push(cleanedText);
             }
