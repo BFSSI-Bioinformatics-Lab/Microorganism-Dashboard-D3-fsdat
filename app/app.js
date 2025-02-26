@@ -946,7 +946,8 @@ class App {
                 {title: "# of Samples", data: SummaryAtts.Samples},
                 {title: "# of Detected", data: SummaryAtts.Detected},
                 {title: "# of Not Detected", data: SummaryAtts.NotDetected},
-                {title: "# of Not Tested", data: SummaryAtts.NotTested}
+                {title: "# of Not Tested", data: SummaryAtts.NotTested},
+                {title: "# of Tested", data: SummaryAtts.Tested}
             ];
 
             this.updateTable("#tempGraphTable", tableColInfo, graphData);
@@ -960,7 +961,8 @@ class App {
                 {title: "# of Samples", data: SummaryAtts.Samples},
                 {title: "# of Detected", data: SummaryAtts.Detected},
                 {title: "# of Not Detected", data: SummaryAtts.NotDetected},
-                {title: "# of Not Tested", data: SummaryAtts.NotTested}
+                {title: "# of Not Tested", data: SummaryAtts.NotTested},
+                {title: "# of Tested", data: SummaryAtts.Tested}
             ];
 
             this.updateTable("#tempGraphTable", tableColInfo, graphData);
