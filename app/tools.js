@@ -261,7 +261,7 @@ export class TableTools {
             // clean up the text for each cell
             for (let i = 0; i < colLen; ++i) {
                 let cell = row[i];
-                if (Number.isNaN(cell)) {
+                if (Number.isNaN(cell) || cell === undefined || cell === null) {
                     cell = "";
                 }
 
