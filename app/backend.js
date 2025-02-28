@@ -1265,25 +1265,54 @@ export class Model {
 
         // add in the other microrganisms for the genuses in Health Canada data
         const microorganismInputs = inputs[Inputs.MicroOrganism];
+        let healthCanadaMicroorganismsToRemove = new Set();
+        let cfiaMicrorganismsToRemove = new Set();
         forDenom = forDenom && microorganismInputs !== undefined;
+
+        
         if (forDenom) {
             denomGenuses = new Set(Translation.translate("denomGenuses", { returnObjects: true }));
             microorganismTree = this.microorganismTrees[page][tab];
+
+            const eColiCategories = new Set();
+            for (const microorganism of microorganismTree.microorganisms) {
+                const eColiCategory = this.eColiCategories[microorganism];
+                if (eColiCategory !== undefined) {
+                    eColiCategories.add(eColiCategory);
+                }
+            }
+
             inputs = structuredClone(inputs);
             
             for (const microorganism of microorganismTree.microorganisms) {
+                if (microorganismInputs.has(microorganism)) continue;
+
                 const genus = microorganismTree.genuses[microorganism];
                 if (denomGenuses.has(genus)) {
                     inputs[Inputs.MicroOrganism].add(microorganism);
+                    cfiaMicrorganismsToRemove.add(microorganism);
+                }
+
+                const eColiCategory = this.eColiCategories[microorganism];
+                if (eColiCategory !== undefined && eColiCategories.has(eColiCategory)) {
+                    inputs[Inputs.MicroOrganism].add(microorganism);
+                    healthCanadaMicroorganismsToRemove.add(microorganism);
                 }
             }
+
+            // only want to remove the genuses that Health Canada references from CFIA
+            const microorganismsToKeep = SetTools.intersection(cfiaMicrorganismsToRemove, healthCanadaMicroorganismsToRemove);
+            cfiaMicrorganismsToRemove = SetTools.difference([cfiaMicrorganismsToRemove, microorganismsToKeep]);
+            healthCanadaMicroorganismsToRemove = SetTools.difference([healthCanadaMicroorganismsToRemove, microorganismsToKeep]);
         }
 
-        // get the filtered data
         const grouping = this.groupings[page][tab];
         const filterInnerKey = filterOrder.at(-1);
+
+        // get the filtered data
         TableTools.forFilteredGroup(grouping, filterOrder, inputs, (keys, values) => {
             const sampleGroup = values[filterInnerKey];
+
             for (const sampleId in sampleGroup) {
                 if (result[sampleId] !== undefined) continue;
                 result[sampleId] = sampleGroup[sampleId];
@@ -1320,11 +1349,18 @@ export class Model {
         sampleNamesToRemove.clear();
         for (const sampleName in result) {
             const sample = result[sampleName];
+    
             const notHealthCanadaSurveyTypes = SetTools.difference([sample.surveyTypes, healthCanadaSurveyTypes], true);
-            if (notHealthCanadaSurveyTypes.size == 0) continue;
+            const isCFIA = sample.surveyTypes.has(SurveyTypes.CFIA);
+            if (notHealthCanadaSurveyTypes.size == 0 && !isCFIA) continue;
 
-            const sampleUserMicroorganisms = SetTools.intersection(microorganismInputs, new Set(Object.keys(sample.states)));
+            const sampleMicroorganisms = new Set(Object.keys(sample.states));
+            const sampleUserMicroorganisms = SetTools.intersection(microorganismInputs, sampleMicroorganisms);
             if (sampleUserMicroorganisms.size > 0) continue;
+
+            const microorganismsToRemove = isCFIA ? cfiaMicrorganismsToRemove : healthCanadaMicroorganismsToRemove;
+            const sampleMicroorganismsToRemove = SetTools.intersection(microorganismsToRemove, sampleMicroorganisms);
+            if (sampleMicroorganismsToRemove.size == 0) continue;
 
             sampleNamesToRemove.add(sampleName);
         }
