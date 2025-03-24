@@ -809,7 +809,7 @@ export class Model {
 
     // loadHealthCanada(): Loads the CSV data that comes from Health Canada
     async loadHealthCanada() {
-        let data = await d3.csv(`data/CANLINE Micro w quant data - no protB values- export 2022-09-14-${i18next.language}.csv`);
+        let data = await d3.csv(`data/Health Canada Data-${i18next.language}.csv`);
         for (const row of data) {
             row[HCDataCols.SurveyType] = this.getSurveyType(row);
             row[HCDataCols.QuantitativeResult] = parseFloat(row[HCDataCols.QuantitativeResult]);
