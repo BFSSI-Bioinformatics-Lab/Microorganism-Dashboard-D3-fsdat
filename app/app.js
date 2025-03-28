@@ -658,10 +658,17 @@ class App {
 
     // selectParents(event, node, tree, selectNodeFunc, checkNodeFunc, isSelectedFunc, allChildrenSelectedFunc): Selects/unselects the parent
     //  nodes of the selected node depending on whether the children of the parent are selected/unselected
-    selectParents(event, node, tree, selectNodeFunc, checkNodeFunc, isSelectedFunc, allChildrenSelectedFunc) {
+    selectParents(event, node, tree, selectNodeFunc, checkNodeFunc, isSelectedFunc, allChildrenSelectedFunc, processChildFunc = undefined) {
         let parent = tree.data("treeview").getParent(node.nodeId);
         while (parent !== undefined) {
             let children = parent.nodes;
+
+            if (processChildFunc !== undefined) {
+                for (const child of children) {
+                    processChildFunc(child);
+                }
+            }
+
             let selectedChildren = children.filter((child) => isSelectedFunc(child));
 
             if (allChildrenSelectedFunc(children, selectedChildren)) {
@@ -678,8 +685,9 @@ class App {
         const microorganismTree = this.model.getMicroOrganismTree();
         const treeData = microorganismTree.toTreeSelectData();
         let tabName = this.model.getActiveTab();
-
-        let tree = $(`.menuTab[value="${tabName}"] #${selectId}`);
+        
+        const treeSelector = `.menuTab[value="${tabName}"] #${selectId}`;
+        let tree = $(treeSelector);
         if (!tree.is(':empty')) {
             tree.treeview('remove');
         }
@@ -702,6 +710,14 @@ class App {
                        levels: 1
         });
 
+        // hide the Typed EColi that are not Virulent
+        const notVirulentKeyword = Translation.translate("notVirulent");
+        tree.data('treeview').search(notVirulentKeyword, {
+            ignoreCase: false,
+            exactMatch: true,
+            revealResults: false
+        });
+
         tree.on('nodeChecked', (event, node) => {
             this.selectSubTree(event, node,  tree.data("treeview").selectNode,  tree.data("treeview").checkNode);
             this.selectParents(event, node, tree, tree.data("treeview").selectNode, tree.data("treeview").checkNode, 
@@ -718,7 +734,12 @@ class App {
             this.selectSubTree(event, node,  tree.data("treeview").unselectNode,  tree.data("treeview").uncheckNode);
             this.selectParents(event, node, tree, tree.data("treeview").unselectNode, tree.data("treeview").uncheckNode, 
                               (child) => child.state !== undefined && child.state["checked"], 
-                              (children, selectedChildren) => children.length > selectedChildren.length);
+                              (children, selectedChildren) => children.length > selectedChildren.length,
+                              (child) => {
+                                if (child.state !== undefined && child.state["hidden"]) {
+                                    tree.data("treeview").unselectNode(child);
+                                }
+                              });
 
             const selected = tree.data("treeview").getSelected();
             if (onChange !== undefined) {

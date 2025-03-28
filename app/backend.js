@@ -71,7 +71,8 @@ export class MicroorganismTree {
     //   text: str,
     //   state: {
     //         checked: bool,
-    //         selected: bool
+    //         selected: bool,
+    //         hidden: bool
     //   }
     // }
     //
@@ -113,14 +114,22 @@ export class MicroorganismTree {
         this.parents[childNodeId] = parentNodeId;
     }
 
-    // checkNode(nodeId): Checks off a node
-    checkNode(nodeId) {
-        const node = this.nodes[nodeId];
+    // getNodestate(node): Retrieves the state of the node and initializes the
+    //  node's state if the state is undefined
+    getNodeState(node) {
         let states = node.state;
         if (states === undefined) {
             states = {};
             node.state = states;
         }
+
+        return states;
+    }
+
+    // checkNode(nodeId): Checks off a node
+    checkNode(nodeId) {
+        const node = this.nodes[nodeId];
+        let states = this.getNodeState(node);
 
         states.checked  = true;
         states.selected = true;
@@ -139,21 +148,34 @@ export class MicroorganismTree {
     // expandNode(nodeId, value): Displays the children nodes of the node
     expandNode(nodeId, value = true) {
         const node = this.nodes[nodeId];
-        let states = node.state;
-        if (states === undefined) {
-            states = {};
-            node.state = states;
-        }
+        let states = this.getNodeState(node);
 
         states.expanded = value;
     }
 
-    // isChecked(node): Determines whether a node is checked off
+    // hideNode(nodeId): Hides a node from being displayed
+    hideNode(nodeId) {
+        const node = this.nodes[nodeId];
+        let states = this.getNodeState(node);
+
+        states.hidden = true;
+        states.disabled = true;
+    }
+
+    // isChecked(nodeId): Determines whether a node is checked off
     isChecked(nodeId) {
         const node = this.nodes[nodeId];
         return (node.state !== undefined && 
                 node.state.checked !== undefined &&
                 node.state.checked);
+    }
+
+    // isHidden(nodeId): Determines whether a node is hiddens
+    isHidden(nodeId) {
+        const node = this.nodes[nodeId];
+        return (node.state !== undefined && 
+                node.state.hidden !== undefined &&
+                node.state.hidden);
     }
 
     // checkSubTree(nodeId): Checks/unchecks all the nodes in the subtree with the root being the current node
@@ -196,13 +218,16 @@ export class MicroorganismTree {
         return nodeId === undefined ? null : nodeId;
     }
 
-    // addPath(namePath): Adds a microorganism's full name into the phylogenetic tree
-    addPath(namePath) {
+    // addPath(namePath, hidden): Adds a microorganism's full name into the phylogenetic tree
+    addPath(namePath, hidden = false) {
         let currentNodeId = this.rootNodeId;
         const allMicroorganismStr = Translation.translate("allMicroorganisms");
+        const namePathLen = namePath.length;
 
-        for (const namePart of namePath) {
+        for (let i = 0; i < namePathLen; ++i) {
+            const namePart = namePath[i];
             if (namePart == allMicroorganismStr) continue;
+
             let children = this.getChildren(currentNodeId, true);
             let nextNodeId = children[namePart];
 
@@ -213,6 +238,12 @@ export class MicroorganismTree {
             }
 
             currentNodeId = nextNodeId;
+        }
+
+        // hide the leaf node of the microorganism
+        let children = this.getChildren(currentNodeId, false);
+        if (hidden && (children === undefined || $.isEmptyObject(children))) {
+            this.hideNode(currentNodeId);
         }
 
         const microorganismName = namePath.join(PhylogeneticDelim);
@@ -429,7 +460,12 @@ export class MicroorganismTree {
 
         result.push(treeSelectNode);
 
-        if (children === undefined) {
+        const isHidden = this.isHidden(nodeId);
+        const isLeaf = children === undefined;
+
+        if (isLeaf && isHidden) {
+            return 0;
+        } else if (isLeaf) {
             return 1;
         }
 
@@ -485,7 +521,7 @@ export class Sample {
         const ByMicroorganism = MapTools.toDict(d3.group(sampleRowInds, ind => model.data[ind][HCDataCols.Microorganism]));
 
         const ByEcoli = MapTools.toDict(d3.group(sampleRowInds, ind => {
-            const ecoliCategory = model.data[ind][CFIADataCols.EColiCategory];
+            const ecoliCategory = model.data[ind][HCDataCols.EColiTyped];
             return ecoliCategory !== undefined ? ecoliCategory : "";
         }));
 
@@ -504,7 +540,7 @@ export class Sample {
             }
         }
 
-        // retrieve the microorganisms for the CFIA E-coli cateogries
+        // retrieve the microorganisms for the CFIA E-coli typed
         const eColiCategories = model.eColiCategories;
         for (const category in ByEcoli) {
             if (category == "") continue;
@@ -637,6 +673,13 @@ export class Model {
     getMicroorganism(dataRow) {
         let result = [dataRow[HCDataCols.Agent], dataRow[HCDataCols.Genus], dataRow[HCDataCols.Species], dataRow[HCDataCols.Subspecies], 
                       dataRow[HCDataCols.Subgenotype], dataRow[HCDataCols.Serotype], dataRow[HCDataCols.OtherTyping]];
+
+        const eColiTyped = dataRow[HCDataCols.EColiTyped];
+        if (eColiTyped) {
+            const virulent = dataRow[HCDataCols.EColiVirulent];
+            result = result.slice(0, -2);
+            result = result.concat([eColiTyped, virulent]);
+        }
         
         result = result.filter((nodeName) => nodeName !== undefined && nodeName != "");
         result = result.map((nodeName) => String(nodeName));
@@ -1237,10 +1280,14 @@ export class Model {
         const microorganismTree = this.getMicroOrganismTree({page, tab});
         microorganismTree.clear();
 
+        const hiddenMicroorganisms = new Set(Translation.translate("hiddenMicroorganisms", { returnObjects: true }));
+
         // construct the new microorganism tree
         for (const microorganism of microorganisms) {
             const microoranismParts = microorganism.split(PhylogeneticDelim);
-            microorganismTree.addPath(microoranismParts);
+            const isHidden = hiddenMicroorganisms.has(microorganism);
+
+            microorganismTree.addPath(microoranismParts, isHidden);
         }
 
         // add the non speciated microorganisms into the tree
@@ -1391,7 +1438,7 @@ export class Model {
     //  For Health Canada Data:
     //      - denominators of some microorganisms are based off the genus of the selected food
     //      - for other microorganisms, the denominator is based off the exact name of the microorganism of the selected food
-    getDenomSamples(groupedSamples, microorganismTree) {
+    getDenomSamples(groupedSamples, microorganismTree) {   
         const result = {}
         const genuses = new Set(Translation.translate("denomGenuses", { returnObjects: true }));
 

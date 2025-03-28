@@ -179,7 +179,7 @@ export const HCDataCols = {
     Genotype: "Genotype",
     Subgenotype: "Subgenotype",
     Serotype: "Serotype",
-    OtherTyping: "Other typing",
+    OtherTyping: "Other Typing",
     FoodGroup: "Food Group",
     FoodName: "Food Name",
     ProjectCode: "Project Code",
@@ -190,13 +190,15 @@ export const HCDataCols = {
     QuantitativeUnit: "Quantitative Result Unit",
     IsolateCode: "Isolate Code",
     SampleDate: "Sample Collection Date",
+    EColiTyped: "Ecoli Typed",
+    EColiVirulent: "EColi Virulent",
     SurveyType: "Survey Type", // ***
     Microorganism: "Microorganism", // ***
 }
 
 // Columns in the CFIA data
 export const CFIADataCols = {
-    EColiCategory: "Ecoli CFIA Category"
+    EColiCategory: "Ecoli CFIA Category",
 }
 
 // Different types of operators for the quantitative results
@@ -737,6 +739,12 @@ const denomGenusesEN = [[allMicroorganismsEN, "Bacteria", "Vibrio"].join(Phyloge
                          [allMicroorganismsEN, "Parasite", "Giardia"].join(PhylogeneticDelim),
                          [allMicroorganismsEN, "Parasite", "Toxoplasma"].join(PhylogeneticDelim)];
 
+// Unique keyword to search for the microorganism tree for Typed EColi that are not Virulent
+const NotVirulentEN = "Not Virulent";
+
+// microorganisms that are hidden from the tree select
+const hiddenMicroorganismsEN = [[allMicroorganismsEN, "Bacteria", "Escherichia", "coli", "Typed", NotVirulentEN].join(PhylogeneticDelim)];
+
 // Different options for the qualitative results
 // Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
 const QualitaiveResultsEN = {};
@@ -847,6 +855,7 @@ const LangEN = {
     "selectFoods": "Select Foods",
     "allMicroorganisms": allMicroorganismsEN,
     "nonSpeciated": "Non Speciated",
+    "notVirulent": NotVirulentEN,
     "selectAll": "Select All",
     "deselectAll": "Deselect All",
     "noResultsFound": "No results matched {0}",
@@ -870,6 +879,7 @@ const LangEN = {
     timegroup: TimeGroupEN,
 
     denomGenuses: denomGenusesEN,
+    hiddenMicroorganisms: hiddenMicroorganismsEN,
 
     "tableTitle": "Statistical Summary",
     "csvTitle": {
@@ -1249,6 +1259,12 @@ const denomGenusesFR = [[allMicroorganismsFR, "Bacteria", "Vibrio"].join(Phyloge
                          [allMicroorganismsFR, "Virus", "Orthohepevirus"].join(PhylogeneticDelim),
                          [allMicroorganismsFR, "Virus", "Rotavirus"].join(PhylogeneticDelim)];
 
+// Unique keyword to search for the microorganism tree for Typed EColi that are not Virulent
+const NotVirulentFR = "Not Virulent";
+
+// microorganisms that are hidden from the tree select
+const hiddenMicroorganismsFR = [[allMicroorganismsEN, "Bacteria", "Escherichia", "coli", "Typed", NotVirulentFR].join(PhylogeneticDelim)];
+
 // Different options for the qualitative results
 // Note: Copy the exact value from the "Qualitative Result" column in "CANLINE Micro -no... .csv", then convert the name to lowercase without any trailing/leading spaces
 const QualitaiveResultsFR = {};
@@ -1359,6 +1375,7 @@ const LangFR = {
     "selectFoods": REMPLACER_MOI,
     "allMicroorganisms": allMicroorganismsFR,
     "nonSpeciated": REMPLACER_MOI,
+    "notVirulent": NotVirulentFR,
     "selectAll": REMPLACER_MOI,
     "deselectAll": REMPLACER_MOI,
     "noResultsFound": `${REMPLACER_MOI_AVEC_ARGUMENTS} {0}`,
@@ -1379,6 +1396,8 @@ const LangFR = {
     dataTypes: DataTypeNamesFR,
     qualitativeResults: QualitaiveResultsFR,
     denomGenuses: denomGenusesFR,
+    hiddenMicroorganisms: hiddenMicroorganismsFR,
+
     numberview: NumberViewFR,
     timegroup: TimeGroupFR,
 

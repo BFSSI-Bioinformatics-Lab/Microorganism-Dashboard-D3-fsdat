@@ -963,6 +963,11 @@ body {
     border-radius: 0 var(--borderRadius) var(--borderRadius) var(--borderRadius);
 }
 
+/* Microorganisms to hide from the tree select */
+#Microorganism .list-group-item.search-result {
+    display: none;
+}
+
 
 /* ****** Menu Tabs ****** */
 
