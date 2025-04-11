@@ -317,21 +317,40 @@ export const Dims = {
         HeadingFontSize: 28,
         AxesFontSize: 16,
         TickFontSize: 14,
-        minGraphWidth: 50,
+        minGraphWidth: 500,
         OrigGraphWidth: 900,
         GraphWidth: 900,
         GraphTop: 120,
         GraphBottom: 80,
-        GraphLeft: 240,
-        GraphRight: 200,
+        GraphLeft: 220,
+        GraphRight: 350,
         SubGraphMarginTop: 40,
         SubGraphMarginBottom: 40,
-        SubGraphHeight: 200,
+        SubGraphHeight: 240,
         SubGraphKeyFontSize: 12,
         SubGraphKeyWidth: 170,
         SubGraphBarWidth: 10,
         SubGraphBarGroupMargin: 5,
-        SubGraphMinBarGroupWidth: 50
+        SubGraphMinBarGroupWidth: 50,
+        SubGraphMinKeyWidth: 80,
+        SubGraphMaxKeyWidth: 500,
+        SubGraphLeftYAxisLabelLeft: 170,
+        SubGraphRightYAxisLabelLeft: 60,
+        SubGraphXAxisLabelSmallestMaxWidth: 180,
+        SubGraphYAxisLabelMaxWidth: 200,
+        LegendSquareSize: 12,
+        LegendLeftMargin: 100,
+        LegendFontSize: 12,
+        LegendTextMaxWidth: 180,
+        TooltipMinWidth: 140,
+        TooltipHeight: 50,
+        TooltipPaddingVert: 8,
+        TooltipPaddingHor: 10,
+        TooltipTextPaddingVert: 3,
+        TooltipTextPaddingHor: 5,
+        TooltipBorderWidth: 3,
+        TooltipFontSize: 14,
+        TooltipTitleMarginBtm: 10,
     }
 }
 
@@ -412,6 +431,9 @@ Themes[ThemeNames.Light] = {
     notTested: "#cc9900",
     unknown: "#cccccc",
 
+    trendsOverTimeLine: "#69b3a2",
+    trendsOverTimePoint: "red",
+
     graphColours: [
         "#26374a",
         "#335075",
@@ -489,6 +511,9 @@ Themes[ThemeNames.Dark] = {
     notDetected: "#41B3A2",
     notTested: "#cc9900",
     unknown: "#cccccc",
+
+    trendsOverTimeLine: "#69b3a2",
+    trendsOverTimePoint: "red",
 
     graphColours: [
         "#26374a",
@@ -569,6 +594,9 @@ Themes[ThemeNames.Blue] = {
     notDetected: "#009999",
     notTested: "#666699",
     unknown: "#cccccc",
+
+    trendsOverTimeLine: "#69b3a2",
+    trendsOverTimePoint: "red",
 
     graphColours: [
         "#26374a",
@@ -822,13 +850,27 @@ const trendsOverTimeGraphEN = {};
 trendsOverTimeGraphEN[SummaryAtts.FoodName] = {
     "graphTitle": "Microorganisms Detected in Food",
     "xAxis": trendsOverTimeXAxisEN,
-    "yAxis": trendsOverTimeYAxisEN
+    "yAxis": trendsOverTimeYAxisEN,
+    "yAxisRight": "# Samples",
+
+    "barTooltip": [
+        "Microorganism: {{ subKey }}",
+        "Datetime: {{ dateTime }}",
+        "Detected: {{ number }}"
+    ],
 }
 
-trendsOverTimeGraphEN[SummaryAtts.FoodName] = {
-    "graphTitle": "Microorganisms Detected in Food",
+trendsOverTimeGraphEN[SummaryAtts.Microorganism] = {
+    "graphTitle": "Food Detected in Microorganisms",
     "xAxis": trendsOverTimeXAxisEN,
-    "yAxis": trendsOverTimeYAxisEN
+    "yAxis": trendsOverTimeYAxisEN,
+    "yAxisRight": "# Samples",
+    
+    "barTooltip": [
+        "Food: {{ subKey }}",
+        "Datetime: {{ dateTime }}",
+        "Detected: {{ number }}"
+    ],
 }
 
 const LangEN = {
@@ -1334,21 +1376,40 @@ overviewBarGraphFR[SummaryAtts.FoodName] = {
 overviewBarGraphFR[SummaryAtts.Microorganism] = {
     "graphTitle": REMPLACER_MOI,
     "xAxis": overviewBarGraphXAxisFR,
-    "yAxis": REMPLACER_MOI
+    "yAxis": REMPLACER_MOI,
+    "yAxisRight": REMPLACER_MOI 
 };
 
 // title/labels in the TrendsOverTime graph
-const trendsOverTimeGraphFR = {};
+const trendsOverTimeGraphFR = {
+    "barTooltip": [
+        "Datetime: {{ dateTime }}",
+        "Detected: {{ number }}"
+    ],
+};
 trendsOverTimeGraphFR[SummaryAtts.FoodName] = {
     "graphTitle": REMPLACER_MOI,
     "xAxis": trendsOverTimeXAxisFR,
-    "yAxis": trendsOverTimeYAxisFR
+    "yAxis": trendsOverTimeYAxisFR,
+    "yAxisRight": REMPLACER_MOI,
+
+    "barTooltip": [
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ subKey }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ number }}`
+    ],
 }
 
-trendsOverTimeGraphFR[SummaryAtts.FoodName] = {
+trendsOverTimeGraphFR[SummaryAtts.Microorganism] = {
     "graphTitle": REMPLACER_MOI,
     "xAxis": trendsOverTimeXAxisFR,
-    "yAxis": trendsOverTimeYAxisFR
+    "yAxis": trendsOverTimeYAxisFR,
+
+    "barTooltip": [
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ subKey }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ number }}`
+    ],
 }
 
 const LangFR = {
