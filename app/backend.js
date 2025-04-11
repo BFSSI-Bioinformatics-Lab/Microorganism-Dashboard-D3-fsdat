@@ -9,7 +9,7 @@
 
 
 import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes } from "./constants.js"
-import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState } from "./constants.js"
+import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, DownloadDataColOrder } from "./constants.js"
 import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols, CombineGraphTypes, TimeGroup, CFIADataCols } from "./constants.js"
 import { Translation, SetTools, MapTools, TableTools, NumberTools, Range, DateTimeTools } from "./tools.js";
 
@@ -1783,19 +1783,12 @@ export class Model {
         if (rowInds.size == 0) return TableTools.createCSVContent([]);
         
         let result = [];
-        let heading = null;
+        let heading = structuredClone(DownloadDataColOrder);
+        result.push(heading);
 
         // add the rows for the CSV content
         for (const ind of rowInds) {
             const row = this.data[ind];
-            
-            // add the header for the CSV content
-            // TODO: When CFIA data comes, what columns should we display? (union of Health Canada and CFIA?)
-            if (heading === null) {
-                heading = Object.keys(row);
-                result.push(heading);
-            }
-
             result.push(heading.map((colHeading) => row[colHeading]));
         }
 
