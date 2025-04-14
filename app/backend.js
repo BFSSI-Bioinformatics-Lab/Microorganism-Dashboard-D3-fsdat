@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes } from "./constants.js"
+import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, CFIASurveyTypes, HealthCanadaSurveyTypes } from "./constants.js"
 import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, DownloadDataColOrder } from "./constants.js"
 import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols, CombineGraphTypes, TimeGroup, CFIADataCols } from "./constants.js"
 import { Translation, SetTools, MapTools, TableTools, NumberTools, Range, DateTimeTools } from "./tools.js";
@@ -699,6 +699,16 @@ export class Model {
         return dataRow[HCDataCols.ProjectCode].startsWith("BMH.FoodNet");
     }
 
+    // isCIFANNP(dataRow): Determines if a data row has been surveyed by CFIA NNMP
+    static isCFIANMMP(dataRow) {
+        return dataRow[HCDataCols.ProjectCode].startsWith("CFIA.NMMP");
+    }
+
+    // isCFIATargeted(dataRow): Determines if a data row has been surveyed by CFIA Targeted
+    static isCFIATargeted(dataRow) {
+        return dataRow[HCDataCols.ProjectCode].startsWith("CFIA.Targeted");
+    }
+
     // getDisplayMicroorganism(microorganism): Retrieves the name of the microorganism to be displayed
     //  on the website
     static getDisplayMicroorganism(microorganism) {
@@ -728,8 +738,8 @@ export class Model {
     getNeedsRerender({page = undefined, tab = undefined} = {}) { return this.getTabbedElement(this.needsRerender, page, tab); }
     getActiveTab(page) { return this.activeTabs[page === undefined ? this.pageName : page]; };
 
-    // getSurveyType(dataRow): Determines where the data has been surveyed
-    getSurveyType(dataRow) {
+    // getHealthCanadaSurveyType(dataRow): Determines where the data has been surveyed for Health Canada data
+    getHealthCanadaSurveyType(dataRow) {
         if (Model.isHC(dataRow)) {
             return SurveyTypes.HC;
         } else if (Model.isPHAC(dataRow)) {
@@ -737,6 +747,17 @@ export class Model {
         }
 
         return "";
+    }
+
+    // getCFIASurveyType(dataRow): Determines where the data has been surveyed for CFIA data
+    getCFIASurveyType(dataRow) {
+        if (Model.isCFIANMMP(dataRow)) {
+            return SurveyTypes.CFIANMMP;
+        } else if (Model.isCFIATargeted(dataRow)) {
+            return SurveyTypes.CFIATargeted;
+        }
+
+        return SurveyTypes.CFIAOther;
     }
 
     // cleanTxt(txt): Normalizes the text
@@ -854,7 +875,7 @@ export class Model {
     async loadHealthCanada() {
         let data = await d3.csv(`data/Health Canada Data-${i18next.language}.csv`);
         for (const row of data) {
-            row[HCDataCols.SurveyType] = this.getSurveyType(row);
+            row[HCDataCols.SurveyType] = this.getHealthCanadaSurveyType(row);
             row[HCDataCols.QuantitativeResult] = parseFloat(row[HCDataCols.QuantitativeResult]);
             row[CFIADataCols.EColiCategory] = "";
             row[HCDataCols.Microorganism] = this.getMicroorganism(row);
@@ -867,7 +888,7 @@ export class Model {
     async loadCFIA() {
         let data = await d3.csv(`data/CFIA Data-${i18next.language}.csv`);
         for (const row of data) {
-            row[HCDataCols.SurveyType] = SurveyTypes.CFIA;
+            row[HCDataCols.SurveyType] = this.getCFIASurveyType(row);
             row[HCDataCols.QuantitativeResult] = parseFloat(row[HCDataCols.QuantitativeResult]);
             row[HCDataCols.Microorganism] = this.getMicroorganism(row);
             row[HCDataCols.SampleDate] = moment.tz(moment.tz(row[HCDataCols.SampleDate], ['M/D/YYYY', "YYYY-MM-DD HH:mm:ss"], TimeZone[row[HCDataCols.SurveyType]]), ModelTimeZone);
@@ -1389,7 +1410,6 @@ export class Model {
             return result;
         }
 
-        let healthCanadaSurveyTypes = new Set([SurveyTypes.HC, SurveyTypes.PHAC]);
         inputs = this.inputs[page][tab];
 
         // remove samples of not Health Canada data that the user did not select from the denominator calculations
@@ -1397,8 +1417,10 @@ export class Model {
         for (const sampleName in result) {
             const sample = result[sampleName];
     
-            const notHealthCanadaSurveyTypes = SetTools.difference([sample.surveyTypes, healthCanadaSurveyTypes], true);
-            const isCFIA = sample.surveyTypes.has(SurveyTypes.CFIA);
+            const notHealthCanadaSurveyTypes = SetTools.difference([sample.surveyTypes, HealthCanadaSurveyTypes], true);
+            const cfiaSurveyTypes = SetTools.intersection(sample.surveyTypes, CFIASurveyTypes);
+            const isCFIA = cfiaSurveyTypes.size > 0;
+
             if (notHealthCanadaSurveyTypes.size == 0 && !isCFIA) continue;
 
             const sampleMicroorganisms = new Set(Object.keys(sample.states));
@@ -1456,7 +1478,7 @@ export class Model {
 
             const genus = microorganismTree.genuses[keys.microorganism];
             const isHealthCanada = keys.surveyType == SurveyTypes.HC || keys.surveyType == SurveyTypes.PHAC;
-            const isCFIA = keys.surveyType == SurveyTypes.CFIA;
+            const isCFIA = CFIASurveyTypes.has(keys.surveyType);
 
             if (result[keys.surveyType] === undefined) result[keys.surveyType] = {};
             if (result[keys.surveyType][keys.foodName] == undefined) result[keys.surveyType][keys.foodName] = {};
@@ -1538,7 +1560,7 @@ export class Model {
             const microorganismSummary = {};
 
             const isHealthCanada = keys.surveyType == SurveyTypes.HC || keys.surveyType == SurveyTypes.PHAC;
-            const isCFIA = keys.surveyType == SurveyTypes.CFIA;
+            const isCFIA = CFIASurveyTypes.has(keys.surveyType);
 
             let foodSamples = denomGroupedSamples[keys.surveyType][keys.foodName];
             const microorganismInDenom = foodSamples[keys.microorganism] !== undefined;

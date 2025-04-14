@@ -148,11 +148,15 @@ export const MicroBioDataTypes = {
 
 // Survey Types
 export const SurveyTypes = {
-    HC: "HC Targeted Surveys",
+    HC: "HC Surveys",
     PHAC: "PHAC FoodNet",
-    CFIA: "CFIA Surveys",
-    CFSIN: "CFSIN"
+    CFIANMMP: "CFIA NMMP",
+    CFIATargeted: "CFIA Targeted Surveys",
+    CFIAOther: "CFIA Other Surveys",
 };
+
+export const HealthCanadaSurveyTypes = new Set([SurveyTypes.HC, SurveyTypes.PHAC]);
+export const CFIASurveyTypes = new Set([SurveyTypes.CFIANMMP, SurveyTypes.CFIATargeted, SurveyTypes.CFIAOther]);
 
 // Delimeter for joining each node in the Phylogentic tree
 export const PhylogeneticDelim = "==>"
@@ -166,8 +170,9 @@ export const ModelTimeZone = "UTC";
 export const TimeZone = {};
 TimeZone[SurveyTypes.HC] = DefaultDataTimeZone;
 TimeZone[SurveyTypes.PHAC] = DefaultDataTimeZone;
-TimeZone[SurveyTypes.CFIA] = DefaultDataTimeZone;
-TimeZone[SurveyTypes.CFSIN] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.CFIANMMP] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.CFIATargeted] = DefaultDataTimeZone;
+TimeZone[SurveyTypes.CFIAOther] = DefaultDataTimeZone;
 
 // Columns in the Health Canada Data
 // Note: Copy the exact column names from "CANLINE Micro -no... .csv" except for the Columns with 3 stars (***)
@@ -834,10 +839,11 @@ FilterNamesEN[Pages.Overview][OverviewTabs.ByOrg] = {
 
 // Survey Types
 const SurveyTypesEN = {};
-SurveyTypesEN[SurveyTypes.HC] = "HC Targeted Surveys";
+SurveyTypesEN[SurveyTypes.HC] = "HC Surveys";
 SurveyTypesEN[SurveyTypes.PHAC] = "PHAC FoodNet";
-SurveyTypesEN[SurveyTypes.CFIA] = "CFIA Surveys";
-SurveyTypesEN[SurveyTypes.CFSIN] = "CFSIN";
+SurveyTypesEN[SurveyTypes.CFIANMMP] = "CFIA NMMP";
+SurveyTypesEN[SurveyTypes.CFIATargeted] = "CFIA Targeted Surveys";
+SurveyTypesEN[SurveyTypes.CFIAOther] = "CFIA Other Surveys";
 
 // names for the Data Types
 const DataTypeNamesEN = {};
@@ -1372,10 +1378,11 @@ FilterNamesFR[Pages.Overview][OverviewTabs.ByOrg] = {
 
 // Survey Types
 const SurveyTypesFR = {};
-SurveyTypesFR[SurveyTypes.HC] = REMPLACER_MOI;
-SurveyTypesFR[SurveyTypes.PHAC] = REMPLACER_MOI;
-SurveyTypesFR[SurveyTypes.CFIA] = REMPLACER_MOI;
-SurveyTypesFR[SurveyTypes.CFSIN] = REMPLACER_MOI;
+SurveyTypesFR[SurveyTypes.HC] = `${REMPLACER_MOI} HC`;
+SurveyTypesFR[SurveyTypes.PHAC] = `${REMPLACER_MOI} PHAC`;
+SurveyTypesFR[SurveyTypes.CFIANMMP] = `${REMPLACER_MOI} CFIANNMP`;
+SurveyTypesFR[SurveyTypes.CFIATargeted] = `${REMPLACER_MOI} CFIATargeted`;
+SurveyTypesFR[SurveyTypes.CFIAOther] = `${REMPLACER_MOI} CFIAOther`;
 
 // names for the Data Types
 const DataTypeNamesFR = {};
