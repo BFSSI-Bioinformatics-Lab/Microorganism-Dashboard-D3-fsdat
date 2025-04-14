@@ -44,7 +44,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
         this.subgraphs = this.svgGraphContainer.append("g")
             .attr("transform", `translate(0, ${Dims.trendsOverTimeGraph.GraphTop})`);
 
-        this.prevZoomFactor = {};
+        this.prevTransform = {};
         this.zoomFuncs = {};
 
         this.barContainerClsName = "trendsOverTimeBarContainer";
@@ -479,7 +479,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .range([graphBottom, graphTop])
             .nice();
 
-        subGraph.append("g")
+        const rightYAxis = subGraph.append("g")
             .attr("transform", `translate(${graphRight},0)`)
             .call(d3.axisRight(rightY));
 
@@ -544,14 +544,12 @@ export class TrendsOverTimeGraph extends BaseGraph {
 
         // Set the zoom and Pan features: how much you can zoom, on which part, and what to do when there is a zooms
         // API Reference: https://d3js.org/d3-zoom
-        this.zoomFuncs[mainKey] = (event) => {
-            const transform = event.transform;
-
+        this.zoomFuncs[mainKey] = (transform) => {
             // zooming capability for discrete domains
             // reference: https://stackoverflow.com/questions/49334856/scaleband-with-zoom
             const scaleFactor = transform.k; 
             const isLarger = scaleFactor >= 1;
-            const isZoomIn = scaleFactor > this.prevZoomFactor[mainKey];
+            const isZoomIn = scaleFactor > this.prevTransform[mainKey].k;
 
             const xAxisStrokeWidthZoom = Math.max(1/transform.k, 0.3);
             const xAxisTickZoom = isLarger ? d3.zoomIdentity.scale(1/transform.k) : null;
@@ -567,23 +565,41 @@ export class TrendsOverTimeGraph extends BaseGraph {
             const xAxisRightPos = xAxisLineZoom.applyX(this.fullWidth);
             const xAxisLeftPos = xAxisLineZoom.applyX(Dims.trendsOverTimeGraph.GraphLeft);
             const xAxisWidth = xAxisRightPos - xAxisLeftPos;
+            let graphWidthHasShrank = false;
 
+            // anchor x-axis to the right
             if (xAxisRightPos < graphRight && (isLarger || (xAxisLeftPos < graphLeft && xAxisWidth > graphWidth))) {
                 xAxisLineZoom.x += (graphRight - xAxisRightPos);
                 barContainerZoom.x += (graphRight - xAxisRightPos);
-                event.transform.x += (graphRight - xAxisRightPos);
+                transform.x += (graphRight - xAxisRightPos);
+
+            // anchor x-axis to the left when zooming out
             } else if (!isLarger && xAxisWidth <= graphWidth) {
                 xAxisLineZoom.x = xAxisZoomOutLeft;
                 barContainerZoom.x = xAxisZoomOutLeft;
-                event.transform.x = xAxisZoomOutLeft;
+                transform.x = xAxisZoomOutLeft;
+                graphWidthHasShrank = true;
+
+            // anchor x-axis to the left
+            } else if (xAxisLeftPos > graphLeft) {
+                xAxisLineZoom.x += (graphLeft - xAxisLeftPos);
+                barContainerZoom.x += (graphLeft - xAxisLeftPos);
+                transform.x += (graphLeft - xAxisLeftPos);
             }
 
             // update the x-axis
             xAxisContainer.attr("transform", xAxisLineZoom);
             xAxisContainer.selectAll("text").attr("transform", xAxisTickZoom);
             xAxisContainer.selectAll("line").attr("transform", xAxisTickZoom);
-            xAxisContainer.selectAll("path")
-                .attr("stroke-width", xAxisStrokeWidthZoom);
+            xAxisContainer.selectAll("path").attr("stroke-width", xAxisStrokeWidthZoom);
+
+            // update the position of the right y-axis
+            const rightYAxisXPos = graphWidthHasShrank ? xAxisLineZoom.applyX(this.fullWidth) : graphRight;
+            rightYAxis.attr("transform", `translate(${rightYAxisXPos},0)`);
+            rightYAxisLabel.attr("transform", `rotate(90) translate(${subGraphYPos + Dims.trendsOverTimeGraph.SubGraphHeight / 2}, ${-(rightYAxisXPos + Dims.trendsOverTimeGraph.SubGraphRightYAxisLabelLeft)})`)
+
+            const xAxisLabelXPos = graphWidthHasShrank ? xAxisLineZoom.applyX(this.fullWidth / 2) : this.width / 2;
+            xAxisLabel.attr("transform", `translate(${xAxisLabelXPos}, ${ graphBottom + Dims.trendsOverTimeGraph.AxesFontSize * 2})`);
 
             // update the bars
             subGraphContent.selectAll(`.${this.barContainerClsName}`).attr("transform", `translate(${barContainerZoom.x}, ${barContainerZoom.invertY(0)}) scale(${barContainerZoom.k})`);
@@ -609,19 +625,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
             subGraphContent.selectAll(`.${this.linePointsClsName}`)
                 .attr("transform", barContainerZoomInv)
                 .attr("cx", (d) => fx(d.dateTime) + newKeyWidth / 2);
-
-            this.prevZoomFactor[mainKey] = scaleFactor;
         }
-
-        // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
-        subGraph.append("rect")
-            .attr("x", graphLeft)
-            .attr("y", graphTop)
-            .attr("width", graphWidth)
-            .attr("height", graphHeight)
-            .style("fill", "none")
-            .style("pointer-events", "all")
-            .call(this.svgZoom);
     }
 
     update() {
@@ -715,7 +719,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
 
         this.subgraphs.selectAll("*").remove();
         this.zoomFuncs = {};
-        this.prevZoomFactor = {};
+        this.prevTransform = {};
         this.barTooltips = {};
 
         // Controls the zooming and panning of the graph
@@ -726,7 +730,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .extent([[Dims.trendsOverTimeGraph.GraphLeft, Dims.trendsOverTimeGraph.GraphTop], [this.width, this.height]])
             .on("zoom", (event) => {
                 for (const key in this.zoomFuncs) {
-                    this.zoomFuncs[key](event);
+                    this.zoomFuncs[key](event.transform);
                 }
             });
 
@@ -735,12 +739,22 @@ export class TrendsOverTimeGraph extends BaseGraph {
         const displayMainKey = this.mainSummaryAtt == SummaryAtts.Microorganism ? Model.getDisplayMicroorganism : null;
 
         for (const mainKey in data) {
-            this.prevZoomFactor[mainKey] = 1;
+            this.prevTransform[mainKey] = new d3.ZoomTransform(1, 0, 0);
             this.buildSubGraph({mainKey, mainKeyInd, data: data[mainKey], timeRange, timeGroup, subAttColours: legendColours, 
                                 numberView, maxDetected, maxSamples, subGraphYPos: currentSubGraphYPos, displayMainKey});
 
             currentSubGraphYPos += Dims.trendsOverTimeGraph.SubGraphHeight;
             mainKeyInd += 1;
         }
+
+        // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
+        this.svgGraphContainer.append("rect")
+            .attr("x", Dims.trendsOverTimeGraph.GraphLeft)
+            .attr("y", Dims.trendsOverTimeGraph.GraphTop)
+            .attr("width", this.width - Dims.trendsOverTimeGraph.GraphRight)
+            .attr("height", this.height - Dims.trendsOverTimeGraph.GraphBottom)
+            .style("fill", "none")
+            .style("pointer-events", "all")
+            .call(this.svgZoom);
     }
 }
