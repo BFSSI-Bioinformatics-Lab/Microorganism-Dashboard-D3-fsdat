@@ -751,7 +751,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
         this.svgGraphContainer.append("rect")
             .attr("x", Dims.trendsOverTimeGraph.GraphLeft)
             .attr("y", Dims.trendsOverTimeGraph.GraphTop)
-            .attr("width", this.width - Dims.trendsOverTimeGraph.GraphRight)
+            .attr("width", this.width - Dims.trendsOverTimeGraph.GraphRight - Dims.trendsOverTimeGraph.GraphLeft)
             .attr("height", this.height - Dims.trendsOverTimeGraph.GraphBottom)
             .style("fill", "none")
             .style("pointer-events", "all")
