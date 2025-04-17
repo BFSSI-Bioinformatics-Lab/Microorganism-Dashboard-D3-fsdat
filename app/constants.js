@@ -162,6 +162,10 @@ export const CFIASurveyTypes = new Set([SurveyTypes.CFIANMMP, SurveyTypes.CFIATa
 export const PhylogeneticDelim = "==>"
 export const TablePhylogenticDelim = " > "
 
+
+// Concentration keyword when the concentration is not available
+export const ConcentrationNotApplicable = "Not Applicable";
+
 // the timezones used for each type of data
 // See the link below for all the available timezones in Moment.js
 // https://gist.github.com/diogocapela/12c6617fc87607d11fd62d2a4f42b02a
@@ -239,6 +243,8 @@ export const HCDataCols = {
     ProjectName: "Project Name",
     ProjectDescription: "Project Description",
     Organization: "Organization",
+    ConcentrationValue: "Concentration Value",
+    ConcentrationNumber: "Concentration Number",
     SurveyType: "Survey Type", // ***
     Microorganism: "Microorganism", // ***
 }
@@ -1006,6 +1012,7 @@ const LangEN = {
     filterNames: FilterNamesEN,
 
     "allFoodGroups": "All Food Groups",
+    "allFoods": "All Foods",
     "selectFoods": "Select Foods",
     "allMicroorganisms": allMicroorganismsEN,
     "nonSpeciated": "Non Speciated",
@@ -1546,6 +1553,7 @@ const LangFR = {
     filterNames: FilterNamesFR,
 
     "allFoodGroups": REMPLACER_MOI,
+    "allFoods": REMPLACER_MOI,
     "selectFoods": REMPLACER_MOI,
     "allMicroorganisms": allMicroorganismsFR,
     "nonSpeciated": REMPLACER_MOI,

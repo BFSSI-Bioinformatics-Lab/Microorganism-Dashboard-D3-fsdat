@@ -9,7 +9,7 @@
 
 
 import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, CFIASurveyTypes, HealthCanadaSurveyTypes } from "./constants.js"
-import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, DownloadDataColOrder } from "./constants.js"
+import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, DownloadDataColOrder, ConcentrationNotApplicable } from "./constants.js"
 import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols, CombineGraphTypes, TimeGroup, CFIADataCols } from "./constants.js"
 import { Translation, SetTools, MapTools, TableTools, NumberTools, Range, DateTimeTools } from "./tools.js";
 
@@ -507,6 +507,12 @@ export class MicroorganismTree {
 //
 // sampleDate: Range[Moment]
 //    The range of dates when this sample was collected/sampled
+//
+// concentration: Dict[str, int]
+//    The concentraion value of each microorganism for the sample
+//
+// isNAConcentration: Dict[str, bool]
+//    Whether each microorganism has its concentration as not applicable
 export class Sample {
     constructor(model, sampleRowInds) {
         this.data = sampleRowInds
@@ -514,6 +520,8 @@ export class Sample {
         this.detected = new Set();
         this.notTested = new Set();
         this.ecoliCategory = {};
+        this.concentration = {};
+        this.isNAConcentration = {};
 
         const BySurveyType = MapTools.toDict(d3.group(sampleRowInds, ind => model.data[ind][HCDataCols.SurveyType]));
         this.surveyTypes = new Set(Object.keys(BySurveyType));
@@ -525,9 +533,10 @@ export class Sample {
             return ecoliCategory !== undefined ? ecoliCategory : "";
         }));
 
-        // retrieve the states (detected, not detected, not tested) of each microorganism
         for (const microorganism in ByMicroorganism) {
             const sampleMicroorganismRowInds = ByMicroorganism[microorganism];
+
+            // retrieve the states (detected, not detected, not tested) of each microorganism
             const sampleMicroorganismState = model.getSampleState(sampleMicroorganismRowInds);
 
             this.states[microorganism] = sampleMicroorganismState;
@@ -538,6 +547,11 @@ export class Sample {
             if (sampleMicroorganismState == SampleState.NotTested) {
                 this.notTested.add(microorganism);
             }
+
+            // retrieve the concentration of each microorganism
+            const sampleConcentrationData = model.getSampleConcentration(sampleMicroorganismRowInds);
+            this.concentration[microorganism] = sampleConcentrationData.value;
+            this.isNAConcentration[microorganism] = sampleConcentrationData.isNotApplicable;
         }
 
         // retrieve the microorganisms for the CFIA E-coli typed
@@ -558,8 +572,6 @@ export class Sample {
         const minDate = moment.min(sampleDates);
         const maxDate = moment.max(sampleDates);
         this.sampleDate = new Range(minDate, maxDate);
-
-        //this.graphed = this.isGraphed(sampleRowInds);
     }
 }
 
@@ -832,26 +844,23 @@ export class Model {
         return result;
     }
 
-    // isGraphed(sampleRows): Determines whether the data should be displayed on the graph
-    isGraphed(sampleRowInds) {
-        let isBlank = true;
+    // getSampleConcentration(sampleRowInds): Gets the concentration value for some sample
+    getSampleConcentration(sampleRowInds) {
+        let sum = 0;
+        let isNotApplicable = true;
 
-        // check if all the sample rows are blank
         for (const ind of sampleRowInds) {
             const row = this.data[ind];
-            const qualitative = Model.cleanTxt(row[HCDataCols.QualitativeResult]);
+            const concentrationNumber =  parseFloat(row[HCDataCols.ConcentrationNumber]);
+            const concentrationValue = row[HCDataCols.ConcentrationValue];
+            const currentIsNotApplicable = concentrationValue == ConcentrationNotApplicable;
 
-            // check if one of the rows have the "inconclusive" qualitative result
-            if (qualitative == Translation.translate(`qualitativeResults.${SampleState.InConclusives}`)) {
-                return false;
-            }
-
-            if (qualitative !== "" && isBlank) {
-                isBlank = false;
-            }
+            sum += concentrationNumber;
+            isNotApplicable &= currentIsNotApplicable;
         }
 
-        return !isBlank;
+        const average = sampleRowInds.length > 0 ? sum / sampleRowInds.length : 0;
+        return { value: average, isNotApplicable};
     }
 
     async load() {
@@ -1535,6 +1544,60 @@ export class Model {
         }
     }
 
+    // getConcentration
+    getConcentrationSummary(samples, summary, microorganisms) {
+        const sampleIds = summary[SummaryAtts.Samples];
+        let sum = 0;
+        let count = sampleIds.size;
+        let min = null;
+        let max = 0;
+        let hasConcentration = 0;
+
+        sampleIds.forEach((sampleId) => {
+            const sample = samples[sampleId];
+            const sampleConcentration = sample.concentration;
+            const sampleConcentrationIsNA = sample.isNAConcentration;
+
+            let concentration = 0;
+            let concentrationLen = 0;
+            let isConcentrationNA = true;
+
+            // retrieve the concentration for the sample
+            microorganisms.forEach((microorganism) => {
+                const currentConcentration = sampleConcentration[microorganism];
+                const currentConcentrationIsNA = sampleConcentrationIsNA[microorganism];
+
+                if (currentConcentration !== undefined) {
+                    concentration += currentConcentration;
+                    concentrationLen += 1;
+                }
+
+                if (currentConcentrationIsNA !== undefined) {
+                    isConcentrationNA &= currentConcentrationIsNA;
+                }
+            });
+
+            concentration = concentrationLen > 0 ? concentration / concentrationLen : 0;
+
+            // accumulate the concentration of the sample
+            sum += concentration;
+            min = min === null ? concentration : Math.min(min, concentration);
+            max = Math.max(max, concentration);
+            
+            if (!isConcentrationNA) {
+                hasConcentration += 1;
+            }
+        });
+
+        const average = count > 0 ? sum / count : 0;
+
+        const result = {};
+        result[SummaryAtts.SamplesWithConcentration] = hasConcentration;
+        result[SummaryAtts.ConcentrationMean] = NumberTools.round(average, 2);
+        result[SummaryAtts.ConcentrationRange] = `${NumberTools.round(min, 2)} - ${NumberTools.round(max, 2)}`;
+        return result;
+    }
+
     // getSummary(groupedSamples, denomGroupedSamples, page, tab): Creates the summary for samples detected/not detected/not tested for
     //  each food 
     // 
@@ -1616,8 +1679,8 @@ export class Model {
         return result;
     }
 
-    // computeTableData(summaryData, overallDenomSamples, combineGraphType): Retrieves the table data needed to be displayed on the website
-    computeTableData(summaryData, overallDenomSamples, combineGraphType = undefined) {
+    // computeTableData(summaryData, overallDenomSamples, denomSamples, combineGraphType): Retrieves the table data needed to be displayed on the website
+    computeTableData(summaryData, overallDenomSamples, denomSamples, combineGraphType = undefined) {
         let tableData = {};
         const inputs = this.getInputs();
 
@@ -1742,15 +1805,18 @@ export class Model {
 
         TableTools.forGroup(tableData, ["foodName", "microorganism"], (keys, values) => {
             const currentData = values.microorganism;
+
+            const concentrationResults = this.getConcentrationSummary(denomSamples, currentData, new Set([keys.microorganism]));
+
             currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
             currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
             currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
             currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
             currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Tested].size;
             currentData[SummaryAtts.PercentDetected] = `${NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested], 2)}%`;
-            currentData[SummaryAtts.SamplesWithConcentration] = "";
-            currentData[SummaryAtts.ConcentrationMean] = "";
-            currentData[SummaryAtts.ConcentrationRange] = "";
+            currentData[SummaryAtts.SamplesWithConcentration] = concentrationResults[SummaryAtts.SamplesWithConcentration];
+            currentData[SummaryAtts.ConcentrationMean] = concentrationResults[SummaryAtts.ConcentrationMean];
+            currentData[SummaryAtts.ConcentrationRange] = concentrationResults[SummaryAtts.ConcentrationRange];
         });
 
         tableData = Object.values(tableData).map((microorganismRows) => Object.values(microorganismRows));
@@ -1817,8 +1883,9 @@ export class Model {
         return TableTools.createCSVContent(result);
     }
 
-    // computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay): Retrieves the graph data for the overview page
-    computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, getSummaryKeyDisplay) {
+    // computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, denomSamples, getSummaryKeyDisplay): Retrieves the graph data for the overview page
+    computeOverviewGraphData(summaryKeyName, summaryAtt, summaryData, denomSamples, getSummaryKeyDisplay) {
+        const inputs = this.getInputs();
         if (getSummaryKeyDisplay === undefined) {
             getSummaryKeyDisplay = (summaryKey) => summaryKey;
         }
@@ -1839,20 +1906,28 @@ export class Model {
         
         TableTools.forGroup(graphData, [summaryKeyName], (keys, values) => {
             const currentData = values[summaryKeyName];
+    
+            // concentration data
+            const microorganisms = summaryKeyName == "microorganism" ? new Set([keys[summaryKeyName]]) : inputs[Inputs.MicroOrganism];
+            const concentrationResults = this.getConcentrationSummary(denomSamples, currentData, microorganisms);
+
             currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
             currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
             currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
             currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
             currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Samples] - currentData[SummaryAtts.NotTested];
             currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested]);
+            currentData[SummaryAtts.SamplesWithConcentration] = concentrationResults[SummaryAtts.SamplesWithConcentration];
+            currentData[SummaryAtts.ConcentrationMean] = concentrationResults[SummaryAtts.ConcentrationMean];
+            currentData[SummaryAtts.ConcentrationRange] = concentrationResults[SummaryAtts.ConcentrationRange];
         });
 
         graphData = Object.values(graphData);
         return graphData;
     }
 
-    // computeTrendsOverTimeGraphData(mainKeyName, mainAtt, subKeyName, subAtt, summaryData, timeGroup, getMainKeyDisplay, getSubKeyDisplay): Retireves the graph data for the trends over time page
-    computeTrendsOverTimeGraphData({mainKeyName, mainAtt, subKeyName, subAtt, summaryData, timeGroup,
+    // computeTrendsOverTimeGraphData(mainKeyName, mainAtt, subKeyName, subAtt, summaryData, timeGroup, denomSamples, getMainKeyDisplay, getSubKeyDisplay): Retireves the graph data for the trends over time page
+    computeTrendsOverTimeGraphData({mainKeyName, mainAtt, subKeyName, subAtt, summaryData, timeGroup, denomSamples,
                                     getMainKeyDisplay = undefined, getSubKeyDisplay = undefined} = {}) {
         if (getMainKeyDisplay === undefined) getMainKeyDisplay = (summaryKey) => summaryKey;
         if (getSubKeyDisplay === undefined) getSubKeyDisplay = (summaryKey) => summaryKey;
@@ -1878,12 +1953,20 @@ export class Model {
 
         TableTools.forGroup(graphData, [mainKeyName, "timeGroup", subKeyName], (keys, values) => {
             const currentData = values[subKeyName];
+
+            // concentration data
+            const microorganisms = new Set([mainKeyName == SummaryAtts.Microorganism ? keys[mainKeyName] : keys[subKeyName]]);
+            const concentrationResults = this.getConcentrationSummary(denomSamples, currentData, microorganisms);
+
             currentData[SummaryAtts.Samples] = currentData[SummaryAtts.Samples].size;
             currentData[SummaryAtts.Detected] = currentData[SummaryAtts.Detected].size;
             currentData[SummaryAtts.NotDetected] = currentData[SummaryAtts.NotDetected].size;
             currentData[SummaryAtts.NotTested] = currentData[SummaryAtts.NotTested].size;
             currentData[SummaryAtts.Tested] = currentData[SummaryAtts.Samples] - currentData[SummaryAtts.NotTested];
             currentData[SummaryAtts.PercentDetected] = NumberTools.toPercent(currentData[SummaryAtts.Detected], currentData[SummaryAtts.Tested]);
+            currentData[SummaryAtts.SamplesWithConcentration] = concentrationResults[SummaryAtts.SamplesWithConcentration];
+            currentData[SummaryAtts.ConcentrationMean] = concentrationResults[SummaryAtts.ConcentrationMean];
+            currentData[SummaryAtts.ConcentrationRange] = concentrationResults[SummaryAtts.ConcentrationRange];
 
             // set the datetime
             let dateTime = keys.timeGroup;
@@ -1955,8 +2038,8 @@ export class Model {
         // get the data needed for the graphs and tables
         // Overview --> By Microorganism
         if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {
-            let graphData = this.computeOverviewGraphData("foodName", SummaryAtts.FoodName, summaryData);
-            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples);
+            let graphData = this.computeOverviewGraphData("foodName", SummaryAtts.FoodName, summaryData, denomSamples);
+            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, denomSamples);
             let csvContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(page, tab);
 
@@ -1967,7 +2050,7 @@ export class Model {
         
         // Overview --> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
-            let graphData = this.computeOverviewGraphData("microorganism", SummaryAtts.Microorganism, summaryData, (summaryKey) => {
+            let graphData = this.computeOverviewGraphData("microorganism", SummaryAtts.Microorganism, summaryData, denomSamples, (summaryKey) => {
                 const nonSpeciatedName = `${summaryKey}${PhylogeneticDelim}${nonSpeciatedStr}`;
                 if (microorganismTree.microorganisms.has(nonSpeciatedName)) {
                     summaryKey = nonSpeciatedName;
@@ -1976,7 +2059,7 @@ export class Model {
                 return Model.getDisplayMicroorganism(summaryKey)
             });
 
-            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples);
+            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, denomSamples);
             let tableCSVContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(page, tab);
 
@@ -1988,9 +2071,9 @@ export class Model {
         // Trends Over Time --> By Microorganism
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByMicroorganism) {
             let graphData = this.computeTrendsOverTimeGraphData({mainKeyName: "foodName", mainAtt: SummaryAtts.FoodName, subKeyName: "microorganism", subAtt: SummaryAtts.Microorganism, 
-                                                                 summaryData, timeGroup, getSubKeyDisplay: (summaryKey) => Model.getDisplayMicroorganism(summaryKey)});
+                                                                 summaryData, timeGroup, denomSamples, getSubKeyDisplay: (summaryKey) => Model.getDisplayMicroorganism(summaryKey)});
 
-            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, CombineGraphTypes.ByFood);
+            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, denomSamples, CombineGraphTypes.ByFood);
             let csvContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(page, tab);
 
@@ -2002,8 +2085,8 @@ export class Model {
         // Trends Over Time --> By Food
         } else if (page == Pages.TrendsOverTime && tab == TrendsOverTimeTabs.ByFood) {
             let graphData = this.computeTrendsOverTimeGraphData({mainKeyName: "microorganism", mainAtt: SummaryAtts.Microorganism, subKeyName: "foodName", subAtt: SummaryAtts.FoodName, 
-                                                                 summaryData, timeGroup, getMainKeyDisplay: (summaryKey) => Model.getDisplayMicroorganism(summaryKey)});
-            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, CombineGraphTypes.ByMicroorganism);
+                                                                 summaryData, timeGroup, denomSamples, getMainKeyDisplay: (summaryKey) => Model.getDisplayMicroorganism(summaryKey)});
+            let tableData = this.computeTableData(summaryData, overallDenomGroupedSamples, denomSamples, CombineGraphTypes.ByMicroorganism);
             let csvContent = this.computeTableCSV(tableData);
             let rawCSVContent = this.computeRawCSV(page, tab);
 
