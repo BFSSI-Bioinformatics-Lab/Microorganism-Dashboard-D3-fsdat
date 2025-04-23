@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons, Tabs, SummaryTableCols} from "./constants.js"
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons, Tabs, SummaryTableCols, MicroBioDataTypes} from "./constants.js"
 import { Translation, DateTimeTools, Visuals } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
@@ -514,7 +514,7 @@ class App {
     }
 
     // updateRadioSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the radio select widget
-    updateRadioSelect({selectId, selections, inputs, onChange = undefined, translations = undefined} = {}) {
+    updateRadioSelect({selectId, selections, inputs, onChange = undefined, translations = undefined, disabled = undefined} = {}) {
         let tab = this.getActiveTab();
         let tabName = this.model.getActiveTab();
         const radioSelections = tab.select(`.menuTab[value="${tabName}"] #${selectId}`)
@@ -533,6 +533,7 @@ class App {
             .attr("name", `${tabName}_${selectId}`)
             .attr("value", d => `${d}`)
             .attr("checked", d => inputs.has(d) ? true : null)
+            .property("disabled", d => disabled !== undefined && !disabled.has(d))
             .on("click", (event) => {
                 const radioInput = d3.select(event.target);
                 const radioValue = radioInput.attr("value");
@@ -867,7 +868,8 @@ class App {
                                     onChange: (checkedVal) => {
                                         inputs[Inputs.DataType] = new Set([checkedVal]);
                                         this.updateTab({input: Inputs.DataType});
-                                    }});
+                                    },
+                                    disabled: new Set(MicroBioDataTypes.Concentration)}); // TODO: remove the "disabled" argument once the concentration data is added to the Trends Over time graph
         }
 
         // survey type filter

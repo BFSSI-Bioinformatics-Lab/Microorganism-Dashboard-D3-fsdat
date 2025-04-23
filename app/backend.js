@@ -1955,6 +1955,10 @@ export class Model {
             const currentData = values[subKeyName];
 
             // concentration data
+            //
+            // TODO: What should the Trends Over Time graph show when "Concentration" is selected as the Data Type?
+            //     Concentration Mean?
+            //     # of Samples with Concentration Data?
             const microorganisms = new Set([mainKeyName == SummaryAtts.Microorganism ? keys[mainKeyName] : keys[subKeyName]]);
             const concentrationResults = this.getConcentrationSummary(denomSamples, currentData, microorganisms);
 
