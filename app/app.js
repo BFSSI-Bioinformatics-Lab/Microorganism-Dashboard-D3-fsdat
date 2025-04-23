@@ -957,11 +957,14 @@ class App {
         const graphData = this.model.getGraphData();
         const tab = this.model.getActiveTab();
         let summaryAtt, subSummaryAtt;
-
+        
         if (graphData !== undefined && tab == Tabs[Pages.Overview].ByMicroorganism) {
             summaryAtt = SummaryAtts.FoodName;
             subSummaryAtt = SummaryAtts.Microorganism;
-
+            
+            // Uncomment the below if you want to display the table showing the calculations
+            //  results for the Overview graph by Microorganism
+            /*
             const tableColInfo = [
                 {title: "Food Name", data: SummaryAtts.FoodName},
                 {title: "# of Samples", data: SummaryAtts.Samples},
@@ -971,12 +974,15 @@ class App {
                 {title: "# of Tested", data: SummaryAtts.Tested}
             ];
 
-            this.updateTable("#tempGraphTable", tableColInfo, graphData);
+            this.updateTable("#tempGraphTable", tableColInfo, graphData);*/
 
         } else if (graphData !== undefined && tab == Tabs[Pages.Overview].ByFood) {
             summaryAtt = SummaryAtts.Microorganism;
             subSummaryAtt = SummaryAtts.FoodName;
 
+            // Uncomment the below if you want to display the table showing the calculations
+            //  results for the Overview graph by Microorganism
+            /*
             const tableColInfo = [
                 {title: "Microorganism", data: SummaryAtts.Microorganism},
                 {title: "# of Samples", data: SummaryAtts.Samples},
@@ -986,7 +992,7 @@ class App {
                 {title: "# of Tested", data: SummaryAtts.Tested}
             ];
 
-            this.updateTable("#tempGraphTable", tableColInfo, graphData);
+            this.updateTable("#tempGraphTable", tableColInfo, graphData);*/
         }
 
         if (graphData === undefined) return;
