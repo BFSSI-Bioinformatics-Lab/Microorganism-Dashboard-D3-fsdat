@@ -1,6 +1,6 @@
 import { SummaryAtts, Themes, Dims, Inputs, TimeGroup, NumberView, TextWrap } from "../constants.js";
 import { BaseGraph } from "./baseGraph.js";
-import { Visuals, Translation } from "../tools.js";
+import { Visuals, Translation, NumberTools } from "../tools.js";
 import { Model } from "../backend.js";
 
 
@@ -40,6 +40,8 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .attr("y", Dims.trendsOverTimeGraph.HeadingFontSize * 1.25)
             .attr("fill", "var(--fontColour)");
 
+        this.hoverDetect = this.svgGraphContainer.append("rect");
+
         // subgraphs
         this.subgraphs = this.svgGraphContainer.append("g")
             .attr("transform", `translate(0, ${Dims.trendsOverTimeGraph.GraphTop})`);
@@ -58,8 +60,23 @@ export class TrendsOverTimeGraph extends BaseGraph {
         this.legendId = "trendsOverTimeLegend";
 
         // tooltips
+        this.shownTooltip;
         this.barTooltips = {};
         this.tooltipGroup = this.svg.append("g");
+    }
+
+    // getPercentageData(data): Converts the data to be used for the percentage view of the graph
+    getPercentageData(data) {
+        for (const mainKey in data) {
+            const mainKeyData = data[mainKey];
+            for (const row of mainKeyData) {
+                const numOfSamples = row[SummaryAtts.Samples] - row[SummaryAtts.NotTested];
+                row[SummaryAtts.Detected] = NumberTools.toPercent(row[SummaryAtts.Detected], numOfSamples);
+                row[SummaryAtts.NotDetected] = NumberTools.toPercent(row[SummaryAtts.NotDetected], numOfSamples);
+            }
+        }
+
+        return data;
     }
 
     // formatMonth(dateMoment): Retrieves the pretty string for displaying months
@@ -352,6 +369,61 @@ export class TrendsOverTimeGraph extends BaseGraph {
         return result;
     }
 
+    // showTooltip(event, tooltip): Shows the tooltip
+    showTooltip(event, tooltip, mouseX, mouseY) {
+        if (tooltip === undefined) return;
+
+        if (this.shownTooltip !== undefined) {
+            this.shownTooltip.group
+                .attr("opacity", 0)
+                .style("pointer-events", "none");
+        }
+
+        const mousePos = d3.pointer(event);
+
+        const transform = d3.select(event.target.parentElement).attr("transform");
+        const transformX = parseFloat(transform.match(/(?<=\().*(?=,)/g));
+        console.log("MOUS POS: ", mousePos, " AND ", event, " BNAD ", transform);
+
+        tooltip.group
+            .attr("opacity", 1)
+            .attr("transform", `translate(${transformX + mousePos[0]}, ${mousePos[1]})`)
+            .style("pointer-events", "auto");
+
+        d3.select(event.target).style("cursor", "pointer");
+        this.shownTooltip = tooltip;
+    }
+
+    // onBarHover(event, data): Show the tooltip when the user hovers over the bar
+    onBarHover(event, data, timeGroup) {
+        console.log("DATA: ", data);
+
+        const mainKey = data[this.mainSummaryAtt];
+        const subKey = data[this.subSummaryAtt];
+        const time = this.getTimeGroupName(timeGroup, data[SummaryAtts.DateTime]);
+
+        if (this.barTooltips[mainKey] === undefined || this.barTooltips[mainKey][time] === undefined) return;
+        const tooltip = this.barTooltips[mainKey][time][subKey];
+
+        this.showTooltip(event, tooltip);
+    }
+
+    // onBarUnHover(event, data): Hides the tooltip when the user unhovers from the bar
+    onBarUnHover(event, data, timeGroup){
+        const mainKey = data[this.mainSummaryAtt];
+        const subKey = data[this.subSummaryAtt];
+        const time = this.getTimeGroupName(timeGroup, data[SummaryAtts.DateTime]);
+
+        if (this.barTooltips[mainKey] === undefined || this.barTooltips[mainKey][time] === undefined) return;
+        const tooltip = this.barTooltips[mainKey][time][subKey];
+
+        if (tooltip === undefined) return;
+        this.hideTooltip(tooltip);
+
+        d3.select(event.target).style("cursor", "default");
+        this.shownTooltip = undefined;
+    }
+
     // buildSubGraph(mainKey, mainKeyInd, data, timeRange, timeGroup, subAttColours
     //               numberView, maxDetected, maxSamples, subGraphYPos, displayMainKey)
     // Constructs the subgraph for a particular main key
@@ -435,11 +507,18 @@ export class TrendsOverTimeGraph extends BaseGraph {
 
             for (const row of dataByTime) {
                 const subKey = row[this.subSummaryAtt];
+
+                let detectedNum = Translation.translateNum(`${row[SummaryAtts.Detected]}`, null);
+                if (numberView == NumberView.Percentage) {
+                    detectedNum += "%";
+                }
+
                 const descriptionLines = Translation.translate(`trendsOverTimeGraph.${this.mainSummaryAtt}.barTooltip`, {
                     returnObjects: true, 
                     subKey,
                     dateTime: time,
-                    number: row[SummaryAtts.Detected]
+                    detectedNum,
+                    testedNum: Translation.translateNum(row[SummaryAtts.Tested], null)
                 });
 
                 this.barTooltips[mainKey][time][subKey] = this.hoverTooltip({title: subGraphName, descriptionLines, colour: subAttColours[subKey], hide: true});
@@ -464,7 +543,11 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .attr("y", d => leftY(d[SummaryAtts.Detected]))
             .attr("width", x.bandwidth())
             .attr("height", d => leftY(0) - leftY(d[SummaryAtts.Detected]))
-            .attr("fill", d => color(d[this.subSummaryAtt]));
+            .attr("fill", d => color(d[this.subSummaryAtt]))
+            .on("mouseover", (event, d) => this.onBarHover(event, d, timeGroup))
+            .on("mousemove", (event, d) => this.onBarHover(event, d, timeGroup))
+            .on("mouseenter", (event, d) => this.onBarHover(event, d, timeGroup))
+            .on("mouseleave", (event, d) => this.onBarUnHover(event, d, timeGroup));
         
         // get the sample points needed for the line graph
         const samplePoints = this.getSamplePoints(data, timeGroup);
@@ -634,7 +717,6 @@ export class TrendsOverTimeGraph extends BaseGraph {
         let data = structuredClone(this.model.getGraphData());
         const inputs = this.model.getInputs();
         const timeGroup = inputs[Inputs.TimeGroup];
-        const numberView = inputs[Inputs.NumberView];
 
         const dataEmpty = $.isEmptyObject(data);
 
@@ -672,6 +754,12 @@ export class TrendsOverTimeGraph extends BaseGraph {
         this.svgGraphContainer
              .attr("width", this.width)
              .attr("height", this.height);
+
+        // update the data to percentage view
+        const numberView = inputs[Inputs.NumberView];
+        if (numberView !== undefined && numberView == NumberView.Percentage) {
+            data = this.getPercentageData(data, numberView);
+        }
 
         const timeRange = this.getTimeRange(timeGroup, data);
         let subKeys = this.getSubKeys(data);
@@ -748,7 +836,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
         }
 
         // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
-        this.svgGraphContainer.append("rect")
+        this.hoverDetect
             .attr("x", Dims.trendsOverTimeGraph.GraphLeft)
             .attr("y", Dims.trendsOverTimeGraph.GraphTop)
             .attr("width", this.width - Dims.trendsOverTimeGraph.GraphRight - Dims.trendsOverTimeGraph.GraphLeft)

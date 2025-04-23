@@ -972,9 +972,10 @@ trendsOverTimeGraphEN[SummaryAtts.FoodName] = {
     "yAxisRight": "# Samples",
 
     "barTooltip": [
-        "Microorganism: {{ subKey }}",
-        "Datetime: {{ dateTime }}",
-        "Detected: {{ number }}"
+        "{{ subKey }}",
+        "{{ detectedNum }} detected samples",
+        "{{ testedNum }} tested samples",
+        "{{ dateTime }}"
     ],
 }
 
@@ -985,9 +986,10 @@ trendsOverTimeGraphEN[SummaryAtts.Microorganism] = {
     "yAxisRight": "# Samples",
     
     "barTooltip": [
-        "Food: {{ subKey }}",
-        "Datetime: {{ dateTime }}",
-        "Detected: {{ number }}"
+        "{{ subKey }}",
+        "{{ detectedNum }} detected samples",
+        "{{ testedNum }} tested samples",
+        "{{ dateTime }}"
     ],
 }
 
@@ -1515,8 +1517,9 @@ trendsOverTimeGraphFR[SummaryAtts.FoodName] = {
 
     "barTooltip": [
         `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ subKey }}`,
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`,
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ number }}`
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ detectedNum }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ testedNum }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`
     ],
 }
 
@@ -1527,8 +1530,9 @@ trendsOverTimeGraphFR[SummaryAtts.Microorganism] = {
 
     "barTooltip": [
         `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ subKey }}`,
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`,
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ number }}`
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ detectedNum }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ testedNum }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`
     ],
 }
 
