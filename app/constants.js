@@ -1057,6 +1057,7 @@ const LangEN = {
     "downloadGraph": "Download Graph",
     "downloadTable": "Download Table",
     "downloadData": "Download Data",
+    "downloadDataInfo": "Note: file contains all results for genus",
 
     // reference: https://datatables.net/plug-ins/i18n/English.html
     // note:
@@ -1588,6 +1589,7 @@ const LangFR = {
     "downloadGraph": REMPLACER_MOI,
     "downloadTable": REMPLACER_MOI,
     "downloadData": REMPLACER_MOI,
+    "downloadDataInfo": REMPLACER_MOI,
 
     // references: https://datatables.net/plug-ins/i18n/French.html
     // note:

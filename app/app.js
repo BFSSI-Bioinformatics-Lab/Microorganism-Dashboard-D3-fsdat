@@ -370,8 +370,10 @@ class App {
         });
 
         // when the user presses the download data button
-        const downloadDataBtn = d3.select("#downloadDataBtn");
-        downloadDataBtn.on("click", () => {
+        const downloadBtnId = "#downloadDataBtn";
+        let downloadDataBtn = d3.select(downloadBtnId);
+        downloadDataBtn
+            .on("click", () => {
             const graph = this.getGraph();
             const rawCSV = this.model.getRawCSV();
             if (!rawCSV || graph === undefined || !graph.isDrawn) {
@@ -389,6 +391,14 @@ class App {
             this.RawDownloadURLObjId = Visuals.downloadCSV({csvContent: rawCSV, fileName: csvTitle});
         });
 
+        // add a tooltip hover for the download data button
+        const tooltipPlacement = "bottom";
+        downloadDataBtn.attr("title", Translation.translate("downloadDataInfo"))
+            .attr("data-bs-html", "true")
+            .attr("data-toggle", "tooltip")
+            .attr("data-placement", tooltipPlacement);
+        
+        downloadDataBtn = $(downloadBtnId).tooltip({placement: tooltipPlacement, container: "body"});
 
         // load the data for the tab
         this.updateTab(); 
