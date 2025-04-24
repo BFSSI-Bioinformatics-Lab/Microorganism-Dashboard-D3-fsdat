@@ -13,8 +13,6 @@ export class TrendsOverTimeGraph extends BaseGraph {
     }
 
     // setup(): Performs any initial one-time setup on the graph
-    // References:
-    //  Pannable (scrollable) graph: https://observablehq.com/@d3/pannable-chart
     setup() {
         super.setup();
 
@@ -40,15 +38,22 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .attr("y", Dims.trendsOverTimeGraph.HeadingFontSize * 1.25)
             .attr("fill", "var(--fontColour)");
 
-        this.hoverDetect = this.svgGraphContainer.append("rect");
-
         // subgraphs
         this.subgraphs = this.svgGraphContainer.append("g")
             .attr("transform", `translate(0, ${Dims.trendsOverTimeGraph.GraphTop})`);
 
-        this.prevTransform = {};
+        // zooming transformations
         this.zoomFuncs = {};
+        this.xAxisStrokeWidthZoom = new d3.ZoomTransform(1, 0, 0);
+        this.xAxisTickZoom = new d3.ZoomTransform(1, 0, 0);
+        this.xAxisLineZoom = new d3.ZoomTransform(1, 0, 0);
 
+        this.barContainerZoom = new d3.ZoomTransform(1, 0, 0);
+        this.barContainerZoomInv = new d3.ZoomTransform(1, 0, 0);
+        this.barZoom = new d3.ZoomTransform(1, 0, 0);
+        this.graphWidthHasShrank = false;
+
+        // class names and ids
         this.barContainerClsName = "trendsOverTimeBarContainer";
         this.barGroupClsName = "trendsOverTimeBarGroup";
         this.barClsName = "trendsOverTimeBar";
@@ -62,6 +67,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
         // tooltips
         this.shownTooltip;
         this.barTooltips = {};
+        this.pointTooltips = {};
         this.tooltipGroup = this.svg.append("g");
     }
 
@@ -353,25 +359,34 @@ export class TrendsOverTimeGraph extends BaseGraph {
         let samplePoints = {};
 
         for (const row of data) {
-            const dateTime = this.getTimeGroupName(timeGroup, row[SummaryAtts.DateTime]);
-            if (samplePoints[dateTime] === undefined) {
-                samplePoints[dateTime] = row[SummaryAtts.Samples];
+            const currTimeGroup = this.getTimeGroupName(timeGroup, row[SummaryAtts.DateTime]);
+
+            if (samplePoints[currTimeGroup] === undefined) {
+                samplePoints[currTimeGroup] = {[SummaryAtts.Samples]: row[SummaryAtts.Samples], 
+                                           [this.mainSummaryAtt]: row[this.mainSummaryAtt], 
+                                           [this.subSummaryAtt]: row[this.subSummaryAtt],
+                                           [SummaryAtts.DateTime]: row[SummaryAtts.DateTime]};
             } else {
-                samplePoints[dateTime] += row[SummaryAtts.Samples];
+                samplePoints[currTimeGroup][SummaryAtts.Samples] += row[SummaryAtts.Samples];
             }
         }
 
         const result = [];
-        for (const dateTime in samplePoints) {
-            result.push({dateTime, y: samplePoints[dateTime]});
+        for (const currTimeGroup in samplePoints) {
+            const samplePoint = samplePoints[currTimeGroup];
+            samplePoint["timeGroup"] = currTimeGroup;
+            samplePoint["y"] = samplePoint[SummaryAtts.Samples];
+
+            result.push(samplePoint);
         }
 
         return result;
     }
 
     // showTooltip(event, tooltip): Shows the tooltip
-    showTooltip(event, tooltip, mouseX, mouseY) {
+    showTooltip(event, tooltip, computeX) {
         if (tooltip === undefined) return;
+        //if (this.barContainerZoom === undefined) return;
 
         if (this.shownTooltip !== undefined) {
             this.shownTooltip.group
@@ -382,46 +397,63 @@ export class TrendsOverTimeGraph extends BaseGraph {
         const mousePos = d3.pointer(event);
 
         const transform = d3.select(event.target.parentElement).attr("transform");
-        const transformX = parseFloat(transform.match(/(?<=\().*(?=,)/g));
-        console.log("MOUS POS: ", mousePos, " AND ", event, " BNAD ", transform);
+        const transformX = transform !== null ? parseFloat(transform.match(/(?<=\().*(?=,)/g)) : 0;
 
         tooltip.group
             .attr("opacity", 1)
-            .attr("transform", `translate(${transformX + mousePos[0]}, ${mousePos[1]})`)
+            .attr("transform", `translate(${computeX(event, mousePos[0], transformX)}, ${mousePos[1]})`)
             .style("pointer-events", "auto");
 
         d3.select(event.target).style("cursor", "pointer");
         this.shownTooltip = tooltip;
     }
 
-    // onBarHover(event, data): Show the tooltip when the user hovers over the bar
-    onBarHover(event, data, timeGroup) {
-        console.log("DATA: ", data);
-
+    // onToolTipHover(event, data, timeGroup, tooltipGroup, computeTooltipX): Show a tooltip that belongs to a particular group of tooltips
+    onToolTipHover(event, data, timeGroup, tooltipGroup, computeTooltipX) {
         const mainKey = data[this.mainSummaryAtt];
         const subKey = data[this.subSummaryAtt];
         const time = this.getTimeGroupName(timeGroup, data[SummaryAtts.DateTime]);
 
-        if (this.barTooltips[mainKey] === undefined || this.barTooltips[mainKey][time] === undefined) return;
-        const tooltip = this.barTooltips[mainKey][time][subKey];
+        if (tooltipGroup[mainKey] === undefined || tooltipGroup[mainKey][time] === undefined) return;
+        const tooltip = tooltipGroup[mainKey][time][subKey];
 
-        this.showTooltip(event, tooltip);
+        this.showTooltip(event, tooltip, computeTooltipX);
     }
 
-    // onBarUnHover(event, data): Hides the tooltip when the user unhovers from the bar
-    onBarUnHover(event, data, timeGroup){
+    // onBarHover(event, data): Show the tooltip when the user hovers over the bar
+    onBarHover(event, data, timeGroup) {
+        this.onToolTipHover(event, data, timeGroup, this.barTooltips, (event, mouseX, transformX) => this.barContainerZoom.applyX(transformX) + mouseX);
+    }
+
+    // onPointHover(event, data): Show the tooltip when the user hovers on the point
+    onPointHover(event, data, timeGroup) {
+        this.onToolTipHover(event, data, timeGroup, this.pointTooltips, (event, mouseX, transformX) => transformX + mouseX);
+    }
+
+    // onToolTipUnHover(event, data, timeGroup, tooltipGroup): Hides the tooltip when the user unhovers from some element
+    onToolTipUnHover(event, data, timeGroup, tooltipGroup) {
         const mainKey = data[this.mainSummaryAtt];
         const subKey = data[this.subSummaryAtt];
         const time = this.getTimeGroupName(timeGroup, data[SummaryAtts.DateTime]);
 
-        if (this.barTooltips[mainKey] === undefined || this.barTooltips[mainKey][time] === undefined) return;
-        const tooltip = this.barTooltips[mainKey][time][subKey];
+        if (tooltipGroup[mainKey] === undefined || tooltipGroup[mainKey][time] === undefined) return;
+        const tooltip = tooltipGroup[mainKey][time][subKey];
 
         if (tooltip === undefined) return;
         this.hideTooltip(tooltip);
 
         d3.select(event.target).style("cursor", "default");
         this.shownTooltip = undefined;
+    }
+
+    // onBarUnHover(event, data): Hides the tooltip when the user unhovers from the bar
+    onBarUnHover(event, data, timeGroup){
+        this.onToolTipUnHover(event, data, timeGroup, this.barTooltips);
+    }
+
+    // onPointUnHover(event, data, timeGroup): Hides the tooltip when the user unhovers from a point
+    onPointUnHover(event, data, timeGroup) {
+        this.onToolTipUnHover(event, data, timeGroup, this.pointTooltips);
     }
 
     // buildSubGraph(mainKey, mainKeyInd, data, timeRange, timeGroup, subAttColours
@@ -500,10 +532,13 @@ export class TrendsOverTimeGraph extends BaseGraph {
 
         const groupedData = d3.group(data, d => this.getTimeGroupName(timeGroup, d[SummaryAtts.DateTime]));
 
-        // draw the hover tooltip for the bars
+        // draw the hover tooltips
         if (this.barTooltips[mainKey] === undefined) this.barTooltips[mainKey] = {};
+        if (this.pointTooltips[mainKey] === undefined) this.pointTooltips[mainKey] = {};
+
         groupedData.forEach((dataByTime, time) => {
             if (this.barTooltips[mainKey][time] === undefined) this.barTooltips[mainKey][time] = {};
+            if (this.pointTooltips[mainKey][time] === undefined) this.pointTooltips[mainKey][time] = {};
 
             for (const row of dataByTime) {
                 const subKey = row[this.subSummaryAtt];
@@ -513,7 +548,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
                     detectedNum += "%";
                 }
 
-                const descriptionLines = Translation.translate(`trendsOverTimeGraph.${this.mainSummaryAtt}.barTooltip`, {
+                const barDescriptionLines = Translation.translate(`trendsOverTimeGraph.barTooltip`, {
                     returnObjects: true, 
                     subKey,
                     dateTime: time,
@@ -521,7 +556,14 @@ export class TrendsOverTimeGraph extends BaseGraph {
                     testedNum: Translation.translateNum(row[SummaryAtts.Tested], null)
                 });
 
-                this.barTooltips[mainKey][time][subKey] = this.hoverTooltip({title: subGraphName, descriptionLines, colour: subAttColours[subKey], hide: true});
+                const pointDescriptionLines = Translation.translate(`trendsOverTimeGraph.pointTooltip`, {
+                    returnObjects: true,
+                    subKey,
+                    dateTime: time,
+                });
+
+                this.barTooltips[mainKey][time][subKey] = this.hoverTooltip({title: subGraphName, descriptionLines: barDescriptionLines, colour: subAttColours[subKey], hide: true});
+                this.pointTooltips[mainKey][time][subKey] = this.hoverTooltip({title: subGraphName, descriptionLines: pointDescriptionLines, colour: `var(--trendsOverTimePoint)`, hide: true});
             }
         });
 
@@ -553,7 +595,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
         const samplePoints = this.getSamplePoints(data, timeGroup);
         const newMaxSamples = samplePoints.reduce((acc, point) => Math.max(acc, point.y), 0);
         samplePoints.sort((pointA, pointB) => {
-            return fx(pointA.dateTime) - fx(pointB.dateTime);
+            return fx(pointA.timeGroup) - fx(pointB.timeGroup);
         });
 
         // right y-axis
@@ -578,7 +620,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .attr("stroke", "var(--trendsOverTimeLine)")
             .attr("stroke-width", 3)
             .attr("d", d3.line()
-                .x((d) => fx(d.dateTime) + keyWidth / 2)
+                .x((d) => fx(d.timeGroup) + keyWidth / 2)
                 .y((d) => rightY(d.y)))
 
         sampleLineContainer
@@ -589,9 +631,13 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .classed(this.linePointsClsName, true)
             .attr("fill", "var(--trendsOverTimePoint)")
             .attr("stroke", "none")
-            .attr("cx", (d) => fx(d.dateTime) + keyWidth / 2)
+            .attr("cx", (d) => fx(d.timeGroup) + keyWidth / 2)
             .attr("cy", (d) => rightY(d.y))
-            .attr("r", 2.5);
+            .attr("r", Dims.trendsOverTimeGraph.pointRadius)
+            .on("mouseover", (event, d) => this.onPointHover(event, d, timeGroup))
+            .on("mousemove", (event, d) => this.onPointHover(event, d, timeGroup))
+            .on("mouseenter", (event, d) => this.onPointHover(event, d, timeGroup))
+            .on("mouseleave", (event, d) => this.onPointUnHover(event, d, timeGroup));
 
         // label for the name of the subgraph
         const keyText = subGraph.append("text")
@@ -625,89 +671,103 @@ export class TrendsOverTimeGraph extends BaseGraph {
         Visuals.drawText({textGroup: rightYAxisLabel, text: Translation.translate(`trendsOverTimeGraph.${this.mainSummaryAtt}.yAxisRight`), 
             fontSize: Dims.trendsOverTimeGraph.AxesFontSize, width: Dims.trendsOverTimeGraph.SubGraphYAxisLabelMaxWidth});
 
-        // Set the zoom and Pan features: how much you can zoom, on which part, and what to do when there is a zooms
-        // API Reference: https://d3js.org/d3-zoom
+        // what graph components to move when zooming/panning
         this.zoomFuncs[mainKey] = (transform) => {
-            // zooming capability for discrete domains
-            // reference: https://stackoverflow.com/questions/49334856/scaleband-with-zoom
-            const scaleFactor = transform.k; 
-            const isLarger = scaleFactor >= 1;
-            const isZoomIn = scaleFactor > this.prevTransform[mainKey].k;
-
-            const xAxisStrokeWidthZoom = Math.max(1/transform.k, 0.3);
-            const xAxisTickZoom = isLarger ? d3.zoomIdentity.scale(1/transform.k) : null;
-
-            const xAxisZoomOutLeft = Dims.trendsOverTimeGraph.GraphLeft * (1 - scaleFactor);
-            const xAxisLineZoomXPos = isLarger ? transform.x : Math.min(transform.x, xAxisZoomOutLeft);
-            const xAxisLineZoom = new d3.ZoomTransform(transform.k, xAxisLineZoomXPos, graphBottom);
-
-            const barContainerZoom = new d3.ZoomTransform(transform.k, xAxisLineZoomXPos, 0);
-            const barContainerZoomInv = new d3.ZoomTransform(1 / transform.k, 0, 0);
-            const barZoom = new d3.ZoomTransform(transform.k, 0, 0);
-            
-            const xAxisRightPos = xAxisLineZoom.applyX(this.fullWidth);
-            const xAxisLeftPos = xAxisLineZoom.applyX(Dims.trendsOverTimeGraph.GraphLeft);
-            const xAxisWidth = xAxisRightPos - xAxisLeftPos;
-            let graphWidthHasShrank = false;
-
-            // anchor x-axis to the right
-            if (xAxisRightPos < graphRight && (isLarger || (xAxisLeftPos < graphLeft && xAxisWidth > graphWidth))) {
-                xAxisLineZoom.x += (graphRight - xAxisRightPos);
-                barContainerZoom.x += (graphRight - xAxisRightPos);
-                transform.x += (graphRight - xAxisRightPos);
-
-            // anchor x-axis to the left when zooming out
-            } else if (!isLarger && xAxisWidth <= graphWidth) {
-                xAxisLineZoom.x = xAxisZoomOutLeft;
-                barContainerZoom.x = xAxisZoomOutLeft;
-                transform.x = xAxisZoomOutLeft;
-                graphWidthHasShrank = true;
-
-            // anchor x-axis to the left
-            } else if (xAxisLeftPos > graphLeft) {
-                xAxisLineZoom.x += (graphLeft - xAxisLeftPos);
-                barContainerZoom.x += (graphLeft - xAxisLeftPos);
-                transform.x += (graphLeft - xAxisLeftPos);
-            }
-
             // update the x-axis
-            xAxisContainer.attr("transform", xAxisLineZoom);
-            xAxisContainer.selectAll("text").attr("transform", xAxisTickZoom);
-            xAxisContainer.selectAll("line").attr("transform", xAxisTickZoom);
-            xAxisContainer.selectAll("path").attr("stroke-width", xAxisStrokeWidthZoom);
+            xAxisContainer.attr("transform", `translate(${this.xAxisLineZoom.x}, ${graphBottom}) scale(${this.xAxisLineZoom.k})`);
+            xAxisContainer.selectAll("text").attr("transform", this.xAxisTickZoom);
+            xAxisContainer.selectAll("line").attr("transform", this.xAxisTickZoom);
+            xAxisContainer.selectAll("path").attr("stroke-width", this.xAxisStrokeWidthZoom);
 
             // update the position of the right y-axis
-            const rightYAxisXPos = graphWidthHasShrank ? xAxisLineZoom.applyX(this.fullWidth) : graphRight;
+            const rightYAxisXPos = this.graphWidthHasShrank ? this.xAxisLineZoom.applyX(this.fullWidth) : graphRight;
             rightYAxis.attr("transform", `translate(${rightYAxisXPos},0)`);
             rightYAxisLabel.attr("transform", `rotate(90) translate(${subGraphYPos + Dims.trendsOverTimeGraph.SubGraphHeight / 2}, ${-(rightYAxisXPos + Dims.trendsOverTimeGraph.SubGraphRightYAxisLabelLeft)})`)
 
-            const xAxisLabelXPos = graphWidthHasShrank ? xAxisLineZoom.applyX(this.fullWidth / 2) : this.width / 2;
+            const xAxisLabelXPos = this.graphWidthHasShrank ? this.xAxisLineZoom.applyX(this.fullWidth / 2) : this.width / 2;
             xAxisLabel.attr("transform", `translate(${xAxisLabelXPos}, ${ graphBottom + Dims.trendsOverTimeGraph.AxesFontSize * 2})`);
 
             // update the bars
-            subGraphContent.selectAll(`.${this.barContainerClsName}`).attr("transform", `translate(${barContainerZoom.x}, ${barContainerZoom.invertY(0)}) scale(${barContainerZoom.k})`);
+            subGraphContent.selectAll(`.${this.barContainerClsName}`).attr("transform", `translate(${this.barContainerZoom.x}, ${this.barContainerZoom.invertY(0)}) scale(${this.barContainerZoom.k})`);
 
-            x.range([0, keyWidth].map(d => barZoom.applyX(d)));
-            fx.range(fxRange.map(d => barZoom.applyX(d)));
+            x.range([0, keyWidth].map(d => this.barZoom.applyX(d)));
+            fx.range(fxRange.map(d => this.barZoom.applyX(d)));
             const newKeyWidth = fx.bandwidth();
 
             subGraphContent.selectAll(`.${this.barClsName}`)
-                .attr("transform", barContainerZoomInv)
+                .attr("transform", this.barContainerZoomInv)
                 .attr("x", d => x(d[this.subSummaryAtt]))
                 .attr("width", x.bandwidth());
 
             // update the line chart
-            subGraphContent.selectAll(`.${this.lineContainerClsName}`).attr("transform", `translate(${barContainerZoom.x}, ${barContainerZoom.invertY(0)}) scale(${barContainerZoom.k})`);
+            subGraphContent.selectAll(`.${this.lineContainerClsName}`).attr("transform", `translate(${this.barContainerZoom.x}, ${this.barContainerZoom.invertY(0)}) scale(${this.barContainerZoom.k})`);
 
             subGraphContent.selectAll(`.${this.lineClsName}`)
-                .attr("transform", barContainerZoomInv)
+                .attr("transform", this.barContainerZoomInv)
                 .attr("d", d3.line()
-                    .x((d) => fx(d.dateTime) + newKeyWidth / 2)
+                    .x((d) => fx(d.timeGroup) + newKeyWidth / 2)
                     .y((d) => rightY(d.y)))
 
             subGraphContent.selectAll(`.${this.linePointsClsName}`)
-                .attr("transform", barContainerZoomInv)
-                .attr("cx", (d) => fx(d.dateTime) + newKeyWidth / 2);
+                .attr("transform", this.barContainerZoomInv)
+                .attr("cx", (d) => fx(d.timeGroup) + newKeyWidth / 2);
+        }
+    }
+
+    // onZoom(event): Event listener when the graph is being zoomed/panned.
+    //  Set the zoom and Pan features: how much you can zoom, on which part, and what to do when there is a zooms
+    //  API Reference: https://d3js.org/d3-zoom
+    onZoom(event) {
+        const transform = event.transform;
+
+        const graphLeft = Dims.trendsOverTimeGraph.GraphLeft;
+        const graphRight = this.width - Dims.trendsOverTimeGraph.GraphRight;
+        const graphWidth = graphRight - graphLeft;
+
+        // zooming capability for discrete domains
+        // reference: https://stackoverflow.com/questions/49334856/scaleband-with-zoom
+        const scaleFactor = transform.k; 
+        const isLarger = scaleFactor >= 1;
+
+        this.xAxisStrokeWidthZoom = Math.max(1/transform.k, 0.3);
+        this.xAxisTickZoom = isLarger ? d3.zoomIdentity.scale(1/transform.k) : null;
+
+        const xAxisZoomOutLeft = Dims.trendsOverTimeGraph.GraphLeft * (1 - scaleFactor);
+        const xAxisLineZoomXPos = isLarger ? transform.x : Math.min(transform.x, xAxisZoomOutLeft);
+        this.xAxisLineZoom = new d3.ZoomTransform(transform.k, xAxisLineZoomXPos, 0);
+
+        this.barContainerZoom = new d3.ZoomTransform(transform.k, xAxisLineZoomXPos, 0);
+        this.barContainerZoomInv = new d3.ZoomTransform(1 / transform.k, 0, 0);
+        this.barZoom = new d3.ZoomTransform(transform.k, 0, 0);
+        
+        const xAxisRightPos = this.xAxisLineZoom.applyX(this.fullWidth);
+        const xAxisLeftPos = this.xAxisLineZoom.applyX(Dims.trendsOverTimeGraph.GraphLeft);
+        const xAxisWidth = xAxisRightPos - xAxisLeftPos;
+        this.graphWidthHasShrank = false;
+
+        // anchor x-axis to the right
+        if (xAxisRightPos < graphRight && (isLarger || (xAxisLeftPos < graphLeft && xAxisWidth > graphWidth))) {
+            this.xAxisLineZoom.x += (graphRight - xAxisRightPos);
+            this.barContainerZoom.x += (graphRight - xAxisRightPos);
+            transform.x += (graphRight - xAxisRightPos);
+
+        // anchor x-axis to the left when zooming out
+        } else if (!isLarger && xAxisWidth <= graphWidth) {
+            this.xAxisLineZoom.x = xAxisZoomOutLeft;
+            this.barContainerZoom.x = xAxisZoomOutLeft;
+            transform.x = xAxisZoomOutLeft;
+            this.graphWidthHasShrank = true;
+
+        // anchor x-axis to the left
+        } else if (xAxisLeftPos > graphLeft) {
+            this.xAxisLineZoom.x += (graphLeft - xAxisLeftPos);
+            this.barContainerZoom.x += (graphLeft - xAxisLeftPos);
+            transform.x += (graphLeft - xAxisLeftPos);
+        }
+
+        // update the position/sizes of all graph components
+        for (const key in this.zoomFuncs) {
+            this.zoomFuncs[key](event.transform);
         }
     }
 
@@ -807,8 +867,8 @@ export class TrendsOverTimeGraph extends BaseGraph {
 
         this.subgraphs.selectAll("*").remove();
         this.zoomFuncs = {};
-        this.prevTransform = {};
         this.barTooltips = {};
+        this.pointTooltips = {};
 
         // Controls the zooming and panning of the graph
         const minZoom = 0.1;
@@ -816,18 +876,24 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .scaleExtent([minZoom, 3])
             .translateExtent([[Dims.trendsOverTimeGraph.GraphLeft, -Infinity], [this.fullWidth + 1 / minZoom * Dims.trendsOverTimeGraph.GraphLeft, Infinity]])
             .extent([[Dims.trendsOverTimeGraph.GraphLeft, Dims.trendsOverTimeGraph.GraphTop], [this.width, this.height]])
-            .on("zoom", (event) => {
-                for (const key in this.zoomFuncs) {
-                    this.zoomFuncs[key](event.transform);
-                }
-            });
+            .on("zoom", (event) => this.onZoom(event));
+
+        this.hoverDetect = this.subgraphs.append("rect");
+
+        // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
+        this.hoverDetect
+            .attr("x", Dims.trendsOverTimeGraph.GraphLeft)
+            .attr("y", Dims.trendsOverTimeGraph.SubGraphMarginTop)
+            .attr("width", this.width - Dims.trendsOverTimeGraph.GraphRight - Dims.trendsOverTimeGraph.GraphLeft)
+            .attr("height", this.height - Dims.trendsOverTimeGraph.GraphBottom - Dims.trendsOverTimeGraph.GraphTop)
+            .style("fill", "none")
+            .style("pointer-events", "all");
 
         let currentSubGraphYPos = 0;
         let mainKeyInd = 0;
         const displayMainKey = this.mainSummaryAtt == SummaryAtts.Microorganism ? Model.getDisplayMicroorganism : null;
 
         for (const mainKey in data) {
-            this.prevTransform[mainKey] = new d3.ZoomTransform(1, 0, 0);
             this.buildSubGraph({mainKey, mainKeyInd, data: data[mainKey], timeRange, timeGroup, subAttColours: legendColours, 
                                 numberView, maxDetected, maxSamples, subGraphYPos: currentSubGraphYPos, displayMainKey});
 
@@ -835,14 +901,6 @@ export class TrendsOverTimeGraph extends BaseGraph {
             mainKeyInd += 1;
         }
 
-        // This add an invisible rect on top of the chart area. This rect can recover pointer events: necessary to understand when the user zoom
-        this.hoverDetect
-            .attr("x", Dims.trendsOverTimeGraph.GraphLeft)
-            .attr("y", Dims.trendsOverTimeGraph.GraphTop)
-            .attr("width", this.width - Dims.trendsOverTimeGraph.GraphRight - Dims.trendsOverTimeGraph.GraphLeft)
-            .attr("height", this.height - Dims.trendsOverTimeGraph.GraphBottom)
-            .style("fill", "none")
-            .style("pointer-events", "all")
-            .call(this.svgZoom);
+        this.subgraphs.call(this.svgZoom);
     }
 }
