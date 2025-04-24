@@ -637,8 +637,13 @@ class App {
             selectAllText: Translation.translate("selectAll"),
             noneSelectedText,
             noneResultsText: Translation.translate("noResultsFound")});
+        
+        if (orderedSelections.length == inputs.size) {
+            dropdown.selectpicker('selectAll');
+        } else {
+            dropdown.selectpicker('val', Array.from(inputs));
+        }
 
-        dropdown.selectpicker('val', Array.from(inputs));
         dropdown.on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
             if (onChange !== undefined) {
                 onChange(dropdown.val());
