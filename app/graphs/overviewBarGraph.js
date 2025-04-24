@@ -360,6 +360,7 @@ export class OverviewBarGraph extends BaseGraph {
         seriesKeys.delete(SampleState.InConclusive);
         if (numberView == NumberView.Percentage) {
             seriesKeys.delete(SampleState.NotTested);
+            seriesKeys.delete(SampleState.NotDetected);
         }
 
         const series = d3.stack()
@@ -528,9 +529,10 @@ export class OverviewBarGraph extends BaseGraph {
             .on("mouseleave", (event, d) => this.onBarUnHover(event, d));
 
         // colours for the legend
-        const legendStates = [SampleState.Detected, SampleState.NotDetected];
+        const legendStates = [SampleState.Detected];
         if (numberView == NumberView.Number) {
             legendStates.push(SampleState.NotTested);
+            legendStates.push(SampleState.NotDetected);
         }
 
         const legendColours = {};
