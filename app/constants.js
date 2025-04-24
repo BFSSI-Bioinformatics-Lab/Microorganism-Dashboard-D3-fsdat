@@ -468,6 +468,7 @@ export const Dims = {
         TooltipBorderWidth: 3,
         TooltipFontSize: 14,
         TooltipTitleMarginBtm: 10,
+        pointRadius: 3
     }
 }
 
@@ -964,31 +965,30 @@ overviewBarGraphEN[SummaryAtts.Microorganism] = {
 };
 
 // title/labels in the TrendsOverTime graph
-const trendsOverTimeGraphEN = {};
+const trendsOverTimeGraphEN = {
+    "barTooltip": [
+        "{{ subKey }}",
+        "{{ detectedNum }} detected samples",
+        "{{ testedNum }} tested samples",
+        "{{ dateTime }}"
+    ],
+    "pointTooltip": [
+        "{{ subKey }}",
+        "{{ dateTime }}"
+    ]
+};
 trendsOverTimeGraphEN[SummaryAtts.FoodName] = {
     "graphTitle": "Microorganisms Detected in Food",
     "xAxis": trendsOverTimeXAxisEN,
     "yAxis": trendsOverTimeYAxisEN,
-    "yAxisRight": "# Samples",
-
-    "barTooltip": [
-        "Microorganism: {{ subKey }}",
-        "Datetime: {{ dateTime }}",
-        "Detected: {{ number }}"
-    ],
+    "yAxisRight": "# Samples"
 }
 
 trendsOverTimeGraphEN[SummaryAtts.Microorganism] = {
     "graphTitle": "Food Detected in Microorganisms",
     "xAxis": trendsOverTimeXAxisEN,
     "yAxis": trendsOverTimeYAxisEN,
-    "yAxisRight": "# Samples",
-    
-    "barTooltip": [
-        "Food: {{ subKey }}",
-        "Datetime: {{ dateTime }}",
-        "Detected: {{ number }}"
-    ],
+    "yAxisRight": "# Samples"
 }
 
 const LangEN = {
@@ -1496,40 +1496,30 @@ overviewBarGraphFR[SummaryAtts.FoodName] = {
 overviewBarGraphFR[SummaryAtts.Microorganism] = {
     "graphTitle": REMPLACER_MOI,
     "xAxis": overviewBarGraphXAxisFR,
-    "yAxis": REMPLACER_MOI,
-    "yAxisRight": REMPLACER_MOI 
+    "yAxis": REMPLACER_MOI
 };
 
 // title/labels in the TrendsOverTime graph
 const trendsOverTimeGraphFR = {
     "barTooltip": [
-        "Datetime: {{ dateTime }}",
-        "Detected: {{ number }}"
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ subKey }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ detectedNum }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ testedNum }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`
     ],
 };
 trendsOverTimeGraphFR[SummaryAtts.FoodName] = {
     "graphTitle": REMPLACER_MOI,
     "xAxis": trendsOverTimeXAxisFR,
     "yAxis": trendsOverTimeYAxisFR,
-    "yAxisRight": REMPLACER_MOI,
-
-    "barTooltip": [
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ subKey }}`,
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`,
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ number }}`
-    ],
+    "yAxisRight": REMPLACER_MOI
 }
 
 trendsOverTimeGraphFR[SummaryAtts.Microorganism] = {
     "graphTitle": REMPLACER_MOI,
     "xAxis": trendsOverTimeXAxisFR,
     "yAxis": trendsOverTimeYAxisFR,
-
-    "barTooltip": [
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ subKey }}`,
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`,
-        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ number }}`
-    ],
+    "yAxisRight": REMPLACER_MOI
 }
 
 const LangFR = {
