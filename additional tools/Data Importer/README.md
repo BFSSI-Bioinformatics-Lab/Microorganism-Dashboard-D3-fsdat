@@ -3,6 +3,8 @@
 [![Static Badge](https://img.shields.io/badge/Python-254F72?style=for-the-badge)](https://www.python.org/downloads/)
 [![Static Badge](https://img.shields.io/badge/Jupyter%20Notebook-F37726?style=for-the-badge)](https://jupyter.org/)
 
+<br>
+
 Cleans/processes the raw data from CFIA and Health Canada to be used by the app
 
 <br>
