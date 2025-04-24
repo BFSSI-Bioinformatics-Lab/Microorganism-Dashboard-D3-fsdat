@@ -730,6 +730,24 @@ export class Model {
         return result;
     }
 
+    // formatMonth(dateMoment): Retrieves the pretty string for displaying months
+    static formatMonth(dateMoment) {
+        return dateMoment.format("YYYY MMM");
+    }
+
+    // formatYear(dateMoment): Retrieves the pretty string for displaying years
+    static formatYear(dateMoment) {
+        return dateMoment.format("YYYY");
+    }
+
+    // getTimeGroupName(timeGroup, dateTime): Retrieves the name of a particular time grouping
+    static getTimeGroupName(timeGroup, dateTime) {
+        if (timeGroup == TimeGroup.Months) dateTime = Model.formatMonth(moment(dateTime));
+        else if (timeGroup == TimeGroup.Years) dateTime = Model.formatYear(moment(dateTime));
+        else if (timeGroup == TimeGroup.Overall) dateTime = TimeGroup.Overall;
+        return dateTime;
+    }
+
     // getTabbedElement(att, page, tab): Retrieves the element for partitioned by tabs
     getTabbedElement(obj, page, tab) {
         page = page === undefined ? this.pageName : page;
@@ -1988,6 +2006,7 @@ export class Model {
             }
 
             currentData[SummaryAtts.DateTime] = dateTime.toDate();
+            currentData[SummaryAtts.TimeGroupName] = Model.getTimeGroupName(timeGroup, currentData[SummaryAtts.DateTime]);
         });
 
         const result = {};

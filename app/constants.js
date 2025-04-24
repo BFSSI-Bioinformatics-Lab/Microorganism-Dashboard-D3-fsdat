@@ -367,7 +367,8 @@ export const SummaryAtts = {
     SamplesWithConcentration: "samplesWithConcentrations",
     ConcentrationMean: "concentrationMean",
     ConcentrationRange: "concentrationRange",
-    DateTime: "dateTime"
+    DateTime: "dateTime",
+    TimeGroupName: "timeGroupName"
 }
 
 // Different ways of how to combine graphs
