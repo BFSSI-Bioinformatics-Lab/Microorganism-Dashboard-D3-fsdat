@@ -14,13 +14,16 @@ What it contains:
   <div class="col-12">
     <button id="menuCollapseBtn" class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMenu" aria-expanded="false" aria-controls="collapseMenu">
       <span class="me-2">Hide Menu</span>
-      <svg id="menuCollapseBtnIcon" viewBox="0 0 512 512" width="512" height="512">
+      <svg class="menuBtnIcon" id="menuCollapseBtnIcon" viewBox="0 0 512 512" width="512" height="512"></svg>
+    </button>
 
-      </svg>
+    <button id="clearFiltersBtn" class="btn btn-danger" type="button">
+      <span class="me-2">Clear Filters</span>
+      <svg class="menuBtnIcon" id="clearFiltersBtnIcon" viewBox="0 0 512 512" width="512" height="512"></svg>
     </button>
   </div>
 
-  <div class="mainMenuContainerCollapse collapse collapse-horizontal show" id="collapseMenu">
+  <div class="mainMenuContainerCollapse collapse collapse-horizontal show mt-3" id="collapseMenu">
     <div class="mainMenuContainer mt-4">
       <nav>
         <div class="nav nav-tabs flex-nowrap" id="nav-tab" role="tablist">
@@ -311,6 +314,13 @@ What it contains:
         </div>
       </div>
     </div>
+
+    <div class="col-12 mt-3">
+      <button type="button" class="btn btn-secondary mt-2" id="downloadGraphBtn">Download Graph</button>
+      <button type="button" class="btn btn-secondary mt-2" id="downloadTableBtn">Download Table</button>
+      <button type="button" class="btn btn-secondary mt-2" id="downloadDataBtn">Download Data</button>
+    </div>
+
   </div>
 
   <div class="visualContainer flex-grow-1 mt-4">
@@ -319,14 +329,15 @@ What it contains:
     </div>
 
     <div class="tableContainer">
-      <h2>Data for the Graph</h2>
-      <table id="tempGraphTable" class="table table-striped"></table>
-    </div>
-
-    <div class="tableContainer">
       <h2 id="tableTitle" class="mt-5">Statistical Summary</h2>
       <table id="visualTable" class="table table-striped"></table>
     </div>
+
+    <!-- Ucomment the below if we want to show the calculations results for the overview graph -->
+    <!-- <div class="tableContainer">
+      <h2>Data for the Graph</h2>
+      <table id="tempGraphTable" class="table table-striped"></table>
+    </div> -->
 
   </div>
 </div>

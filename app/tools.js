@@ -32,7 +32,8 @@ export class Translation {
     static translate(key, args){
         const result = i18next.t(key, args);
 
-        if (typeof result !== 'string') return result;
+        if (Object.prototype.toString.call(result) === '[object Array]') return result.map((line) => he.decode(line));
+        else if (typeof result !== 'string') return result;
         return he.decode(result);
     }
 
@@ -55,6 +56,24 @@ export class Translation {
         return this.translate("Number", translateArgs);
     }
 }
+
+
+// TextTools: Utility class for handling text
+export class TextTools {
+
+    // capitalizeFirstLetter(txt): Capitalize the first letter of a text
+    static capitalizeFirstLetter(txt) {
+        if (!txt) return txt;
+        return String(txt).charAt(0).toUpperCase() + String(txt).slice(1);
+    }
+
+    // capitalizeOnlyFirstLetter(txt): Only make the first letter of a text capital
+    static capitalizeOnlyFirstLetter(txt) {
+        txt = txt.toLowerCase();
+        return TextTools.capitalizeFirstLetter(txt);
+    }
+}
+
 
 // Range: Class for a range of values
 export class Range {
@@ -99,6 +118,11 @@ export class NumberTools {
         const factor = Math.pow(10, decimalPlaces);
         return Math.round(num * factor) / factor;
     }
+
+    // randomInt(min, max): Generates a random integer from 'start' to 'end' (inclusive)
+    static randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) ) + min;
+    }
 }
 
 
@@ -112,6 +136,17 @@ export class DateTimeTools {
     // getYearEnd(year, timezone): Retrieves the datetime for the end of the year
     static getYearEnd(year, timezone = ModelTimeZone) {
         return moment.tz(`${year}-12-31 23:59`, timezone);
+    }
+
+    // getMonthStart(year, month, timezone): Retrieves the datetime for the start of a month
+    static getMonthStart(year, month, timezone = ModelTimeZone) {
+        if (month < 10) month = `0${month}`;
+        return moment.tz(`${year}-${month}-01 00:00`, timezone);
+    }
+
+    // getToday(timezone): Retrieves the current datetime
+    static getToday(timezone = ModelTimeZone) {
+        return moment.tz(moment(), timezone);
     }
 
     // datetimeStrCmpFunc(datetimeStr1, datetimeStr2): Compare function for 2 datetimes that
@@ -215,6 +250,32 @@ export class MapTools {
 // TableTools: Class for handling any table-like data ex. list of lists/matrices, list of dictionaries
 //    dictionaries of dictionaries, dictionaries of lists, etc...
 export class TableTools {
+
+    // createCSVContent(matrix): Creates the string needed for exporting to CSV
+    static createCSVContent(matrix) {
+        let result = "";
+        for (const row of matrix) {
+            const colLen = row.length;
+            const csvRow = [];
+
+            // clean up the text for each cell
+            for (let i = 0; i < colLen; ++i) {
+                let cell = row[i];
+                if (Number.isNaN(cell) || cell === undefined || cell === null) {
+                    cell = "";
+                }
+
+                let cleanedText = `${cell}`.replace(/"/g, "'").replace('"', "'");
+                cleanedText = `"${cleanedText}"`;
+                csvRow.push(cleanedText);
+            }
+
+            result += csvRow.join(",") + "\r\n";
+        }
+
+        return result;
+    }
+
 
     // _groupAggregates(ind, aggregates, getAggregateDataFunc, keyFuncs): Interal function for grouping
     //  aggregates into different sets
@@ -432,5 +493,49 @@ export class Visuals {
         }
 
         return {width, textBottomYPos: textY - lineSpacing - fontSize, numLines};
+    }
+
+    // saveAsImage(): Saves some graph as an image
+    static async saveAsImage({svg, title="", backgroundColor = "white", preProcessor = undefined, postProcessor = undefined} = {}) {
+        // use await so that the below operations can happen in the order they are listed
+        //  to simulate a mutex.
+        // 
+        // We do not want the operations to run at the same time or have the compiler reorder the lines for optimization.
+        //  (or else you may have a picture of a graph without the source text)
+        // https://blog.mayflower.de/6369-javascript-mutex-synchronizing-async-operations.html
+
+        if (preProcessor !== undefined) {
+            await preProcessor();
+        }
+
+        await saveSvgAsPng(svg, `${title}.png`, {backgroundColor});
+
+        if (postProcessor !== undefined) {
+            await postProcessor();
+        }
+    }
+
+    // downloadCSV(csvConvent): Exports some table as a CSV file
+    // Note: For large CSV files, their string content are so big, that they take up
+    //  all of the browser's memory and end up not downloading the file.
+    //  We want to slowly stream the data download using 'URL.CreateObjectURL'.
+    //  https://stackoverflow.com/questions/30167326/unable-to-download-large-data-using-javascript
+    //
+    // WARNING: Remember to FREE UP the memory of the newly created URL object by calling 'URL.revokeObjectURL'
+    //  https://developer.mozilla.org/en-US/docs/Web/API/URL/revokeObjectURL_static
+    static downloadCSV({csvContent, fileName = ""} = {}) {
+        const universalBOM = "\uFEFF";
+
+        // creates a temporary link for exporting the table
+        const link = document.createElement('a');
+        var urlObjId = URL.createObjectURL( new Blob( [universalBOM + csvContent], {type:'text/csv;charset=utf-8'} ) );
+        link.setAttribute('href', urlObjId);
+        link.setAttribute('download', `${fileName}.csv`);
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        return urlObjId;
     }
 }

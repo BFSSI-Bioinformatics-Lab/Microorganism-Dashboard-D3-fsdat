@@ -11,10 +11,11 @@
 ////////////////////////////////////////////////////////////////////
 
 
-import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons, Tabs} from "./constants.js"
-import { Translation, DateTimeTools } from "./tools.js";
+import { Pages, PageSrc, DefaultLanguage, TranslationObj, ThemeNames, Themes, DefaultTheme,  Inputs, PhylogeneticDelim, SummaryAtts, ModelTimeZone, SVGIcons, Tabs, SummaryTableCols, MicroBioDataTypes} from "./constants.js"
+import { Translation, DateTimeTools, Visuals } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
+import { TrendsOverTimeGraph } from "./graphs/trendsOverTimeGraph.js";
 
 
 // App: The class for the overall application
@@ -27,10 +28,21 @@ class App {
         this.menuCollapsed = {};
         this.menuCollapsed[Pages.Overview] = false;
         this.menuCollapsed[Pages.TrendsOverTime] = false;
+
+        this.graphs = {};
+        this.graphs[Pages.Overview] = {};
+        this.graphs[Pages.TrendsOverTime] = {};
+
+        this.windowResizeHandlers = {};
+
+        this.tableDownloadURLObjId = undefined;
+        this.RawDownloadURLObjId = undefined;
     }
 
-    // init(): Initializes the entire app
-    async init() {
+    getGraph({page = undefined, tab = undefined} = {}) { return this.model.getTabbedElement(this.graphs, page, tab); }
+
+    // init(page): Initializes the entire app
+    async init(page = undefined) {
         const self = this;
         this.changeLanguage(self.lang);
 
@@ -41,7 +53,15 @@ class App {
         this.themeVars = document.querySelector(':root');
         this.setTheme();
 
-        this.loadMainPage();
+        this.loadMainPage(page);
+
+        // when resizing of the window occurs
+        $(window).on("resize", () => {
+            for (const handlerId in this.windowResizeHandlers) {
+                const handler = this.windowResizeHandlers[handlerId];
+                handler();
+            }
+        });
     }
 
     // =================== HEADER/FOOTER ===============================
@@ -59,10 +79,13 @@ class App {
                 selectedHeader = d3.select(selectedHeader);
                 const activeHeader = d3.select(".navBarContainer .nav-item .nav-link.active");
 
+                const page = selectedHeader.attr("value");
+                if (!self.model.loaded && page != Pages.Home) return;
+
                 self.setSelectedOpt(selectedHeader, activeHeader, data, (selectedOpt, data) => {
                     // load the new page
                     const page = data;
-                    if (page) {
+                    if (page && page != Pages.Home) {
                         self.model.pageName = page;
                         self.loadMainPage();
                     }
@@ -161,6 +184,14 @@ class App {
         const themeObj = Themes[this.theme];
         for (const themeKey in themeObj) {
             const themeColour = themeObj[themeKey];
+            
+            if (themeColour.constructor === Array) {
+                themeColour.forEach((colour, ind) => {
+                    this.themeVars.style.setProperty(`--${themeKey}${ind}`, colour);
+                });
+                continue;
+            } 
+
             this.themeVars.style.setProperty(`--${themeKey}`, themeColour);
         }
     }
@@ -178,11 +209,13 @@ class App {
         const newLanguage = this.headerLink.attr("value");
         this.changeLanguage(newLanguage);
 
+        this.updateHeaderText();
+        this.loadMainPage(Pages.Loading);
+
         this.model.clear();
 
         Promise.all([this.model.load()]).then(() => {
-            this.updateHeaderText();
-            this.updateMainPage();
+            this.loadMainPage();
         });
     }
 
@@ -226,13 +259,20 @@ class App {
     }
 
     // Loads the selected main page for the app
-    loadMainPage() {
+    loadMainPage(page = undefined) {
         const self = this;
-        $("#mainPage").load(PageSrc[self.model.pageName], function() { self.updateMainPage(); });
+        if (page === undefined) {
+            page = self.model.pageName;
+        }
+
+        $("#mainPage").load(PageSrc[page], function() { self.updateMainPage(page); });
 
         // flag all the tabs on the page to require a refresh in their UI
-        const tabsToRerender = this.model.needsRerender[self.model.pageName];
+        const tabsToRerender = this.model.needsRerender[page];
         if (tabsToRerender === undefined) return;
+
+        // reset the graphs for the page
+        this.graphs[page] = {};
 
         for (const tab in tabsToRerender) {
             tabsToRerender[tab] = true;
@@ -240,13 +280,18 @@ class App {
     }
 
     // updateMainPage(): Updates the entire main page without loading its corresponding HTML
-    updateMainPage() {
+    updateMainPage(page = undefined) {
         this.page = d3.select(".pageContainer");
+        if (page === undefined) {
+            page = this.model.pageName;
+        }
         
-        if (this.model.pageName == Pages.TrendsOverTime) {
+        if (page == Pages.TrendsOverTime) {
             this.updateTrendsOverTime();
-        } else if (this.model.pageName == Pages.Overview) {
+        } else if (page == Pages.Overview) {
             this.updateOverview();
+        } else if (page == Pages.Loading) {
+            this.updateLoadingPage();
         }
 
         // load the multiselect options
@@ -287,11 +332,93 @@ class App {
             const tab = d3.select(event.target);
             const tabValue = tab.attr("value");
             this.model.activeTabs[this.model.pageName] = tabValue;
+            this.graphs[this.model.pageName][tabValue] = undefined;
             this.updateTab({updateFilters: false});
         });
 
+        // when the user presses the download graph button
+        const downloadGraphBtn = d3.select("#downloadGraphBtn");
+        downloadGraphBtn.on("click", () => {
+            const graph = this.getGraph();
+            if (graph === undefined || !graph.isDrawn) {
+                this.showAlertPopup(Translation.translate("noData"), Translation.translate("noDataPopupDesc.graph"), Translation.translate("close"));
+                return;
+            }
+
+            graph.saveAsImage();
+        });
+
+        // when the user presses the download table button
+        const downloadTableBtn = d3.select("#downloadTableBtn");
+        downloadTableBtn.on("click", () => {
+            const graph = this.getGraph();
+            const tableCSV = this.model.getTableCSV();
+            if (!tableCSV || graph === undefined || !graph.isDrawn) {
+                this.showAlertPopup(Translation.translate("noData"), Translation.translate("noDataPopupDesc.table"), Translation.translate("close"));
+                return;
+            }
+
+            // free up the previous download object for table
+            if (this.tableDownloadURLObjId !== undefined) {
+                URL.revokeObjectURL(this.tableDownloadURLObjId);
+                this.tableDownloadURLObjId = undefined;
+            }
+
+            const summaryTableTitle = Translation.translate("tableTitle");
+            const csvTitle = Translation.translate("csvTitle.table", {graphTitle: graph.title, tableTitle: summaryTableTitle});
+            this.tableDownloadURLObjId = Visuals.downloadCSV({csvContent: tableCSV, fileName: csvTitle});
+        });
+
+        // when the user presses the download data button
+        const downloadBtnId = "#downloadDataBtn";
+        let downloadDataBtn = d3.select(downloadBtnId);
+        downloadDataBtn
+            .on("click", () => {
+            const graph = this.getGraph();
+            const rawCSV = this.model.getRawCSV();
+            if (!rawCSV || graph === undefined || !graph.isDrawn) {
+                this.showAlertPopup(Translation.translate("noData"), Translation.translate("noDataPopupDesc.table"), Translation.translate("close"));
+                return;
+            }
+
+            // free up the previous download object for table
+            if (this.RawDownloadURLObjId !== undefined) {
+                URL.revokeObjectURL(this.RawDownloadURLObjId);
+                this.RawDownloadURLObjId = undefined;
+            }
+
+            const csvTitle = Translation.translate("csvTitle.data", {graphTitle: graph.title});
+            this.RawDownloadURLObjId = Visuals.downloadCSV({csvContent: rawCSV, fileName: csvTitle});
+        });
+
+        // add a tooltip hover for the download data button
+        const tooltipPlacement = "bottom";
+        downloadDataBtn.attr("title", Translation.translate("downloadDataInfo"))
+            .attr("data-bs-html", "true")
+            .attr("data-toggle", "tooltip")
+            .attr("data-placement", tooltipPlacement);
+        
+        downloadDataBtn = $(downloadBtnId).tooltip({placement: tooltipPlacement, container: "body"});
+
         // load the data for the tab
         this.updateTab(); 
+    }
+
+    // showAlertPopup(title, description, buttonName): Shows an alert popup
+    showAlertPopup(title, description, buttonName) {
+        // update all the text in the popup
+        let popup = d3.select('#alertPopup');
+        popup.select(".modal-title").text(title);
+        popup.select(".modal-body")
+            .html("")
+            .append("p")
+            .text(description)
+
+        popup.select(".modal-footer button").text(buttonName);
+        popup.select(".modal .btn-close").attr("aria-label", Translation.translate("close"));
+
+        popup = new bootstrap.Modal('#alertPopup', {backdrop: 'static'});
+        popup.show();
     }
 
     // readCheckmarkSelect(selectId): Reads the selected values from a checkmark select widget
@@ -319,13 +446,43 @@ class App {
         btn.select("svg").html(btnIcon);
         btn.classed("collapsed", menuCollapsed);
 
-        // set whether the menu is shown/collapsed
-        this.page.select(".mainMenuContainerCollapse").classed("show", !menuCollapsed);
-
         btn.on("click", (event) => {
             this.menuCollapsed[this.model.pageName] = !this.menuCollapsed[this.model.pageName];
             btn = this.page.select("#menuCollapseBtn");
             this.updateMenuCollapse(btn);
+        });
+
+        // set whether the menu is shown/collapsed
+        let collapsible = this.page.select(".mainMenuContainerCollapse").classed("show", !menuCollapsed);
+
+        collapsible = document.getElementById("collapseMenu");
+        if (collapsible === null) return;
+
+        collapsible.addEventListener('hidden.bs.collapse', (event) => {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+            this.updateVisuals();
+        });
+
+        collapsible.addEventListener('shown.bs.collapse', (event) => {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            event.preventDefault();
+            this.updateVisuals();
+        });
+    }
+
+    updateClearFilter(btn) {
+        const btnText = Translation.translate("clearFilters");
+        const btnIcon = SVGIcons["GarbargeBin"]; 
+
+        btn.select("span").text(btnText);
+        btn.select("svg").html(btnIcon);
+        
+        btn.on("click", (event) => {
+            this.model.clearTab();
+            this.updateTab();
         });
     }
 
@@ -333,6 +490,9 @@ class App {
     updateMenuNames() {
         const menuCollapseBtn = this.page.select("#menuCollapseBtn");
         this.updateMenuCollapse(menuCollapseBtn);
+
+        const clearFiltersBtn = this.page.select("#clearFiltersBtn");
+        this.updateClearFilter(clearFiltersBtn);
 
         // translate names of the filters
         this.page.selectAll(".menuTab").each((tabData, tabInd, tabElements) => {
@@ -352,7 +512,10 @@ class App {
             "#foodLabel": "foodLabel",
             "#microorganismLabel": "microorganismLabel",
             "#showResultAsLabel": "showResultAsLabel",
-            "#tableTitle": "tableTitle"
+            "#tableTitle": "tableTitle",
+            "#downloadGraphBtn": "downloadGraph",
+            "#downloadTableBtn": "downloadTable",
+            "#downloadDataBtn": "downloadData"
         };
 
         for (const selector in labelTranslations) {
@@ -361,7 +524,7 @@ class App {
     }
 
     // updateRadioSelect(selectId, selections, inputs, onChange, translations): Updates the selections for the radio select widget
-    updateRadioSelect({selectId, selections, inputs, onChange = undefined, translations = undefined} = {}) {
+    updateRadioSelect({selectId, selections, inputs, onChange = undefined, translations = undefined, disabled = undefined} = {}) {
         let tab = this.getActiveTab();
         let tabName = this.model.getActiveTab();
         const radioSelections = tab.select(`.menuTab[value="${tabName}"] #${selectId}`)
@@ -380,6 +543,7 @@ class App {
             .attr("name", `${tabName}_${selectId}`)
             .attr("value", d => `${d}`)
             .attr("checked", d => inputs.has(d) ? true : null)
+            .property("disabled", d => disabled !== undefined && !disabled.has(d))
             .on("click", (event) => {
                 const radioInput = d3.select(event.target);
                 const radioValue = radioInput.attr("value");
@@ -442,7 +606,7 @@ class App {
 
         rangeSlider.parent().removeClass("d-none");
         rangeSlider.slider({ id: innerSliderId, min: selection.min, max: selection.max, range: true, value: [input.min, input.max] });
-        rangeSlider.slider('refresh', { useCurrentValue: true });
+        rangeSlider.slider('refresh');
         rangeSlider.on("slideStop", (event) => {
             // This is a bug with the bootstrap-slider library from firing 3 events
             //  after the slider stops moving
@@ -467,10 +631,13 @@ class App {
         let dropdown = $(dropdownSelector);
         dropdown.selectpicker('destroy');
 
+        const orderedSelections = Array.from(selections);
+        orderedSelections.sort();
+
         tab.select(dropdownSelector)
             .html("")
             .selectAll("option")
-            .data(selections)
+            .data(orderedSelections)
             .enter()
             .append("option")
             .text((d) => d);
@@ -480,8 +647,13 @@ class App {
             selectAllText: Translation.translate("selectAll"),
             noneSelectedText,
             noneResultsText: Translation.translate("noResultsFound")});
+        
+        if (orderedSelections.length == inputs.size) {
+            dropdown.selectpicker('selectAll');
+        } else {
+            dropdown.selectpicker('val', Array.from(inputs));
+        }
 
-        dropdown.selectpicker('val', Array.from(inputs));
         dropdown.on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
             if (onChange !== undefined) {
                 onChange(dropdown.val());
@@ -502,10 +674,17 @@ class App {
 
     // selectParents(event, node, tree, selectNodeFunc, checkNodeFunc, isSelectedFunc, allChildrenSelectedFunc): Selects/unselects the parent
     //  nodes of the selected node depending on whether the children of the parent are selected/unselected
-    selectParents(event, node, tree, selectNodeFunc, checkNodeFunc, isSelectedFunc, allChildrenSelectedFunc) {
+    selectParents(event, node, tree, selectNodeFunc, checkNodeFunc, isSelectedFunc, allChildrenSelectedFunc, processChildFunc = undefined) {
         let parent = tree.data("treeview").getParent(node.nodeId);
         while (parent !== undefined) {
             let children = parent.nodes;
+
+            if (processChildFunc !== undefined) {
+                for (const child of children) {
+                    processChildFunc(child);
+                }
+            }
+
             let selectedChildren = children.filter((child) => isSelectedFunc(child));
 
             if (allChildrenSelectedFunc(children, selectedChildren)) {
@@ -522,8 +701,9 @@ class App {
         const microorganismTree = this.model.getMicroOrganismTree();
         const treeData = microorganismTree.toTreeSelectData();
         let tabName = this.model.getActiveTab();
-
-        let tree = $(`.menuTab[value="${tabName}"] #${selectId}`);
+        
+        const treeSelector = `.menuTab[value="${tabName}"] #${selectId}`;
+        let tree = $(treeSelector);
         if (!tree.is(':empty')) {
             tree.treeview('remove');
         }
@@ -546,6 +726,14 @@ class App {
                        levels: 1
         });
 
+        // hide the Typed EColi that are not Virulent
+        const notVirulentKeyword = Translation.translate("notVirulent");
+        tree.data('treeview').search(notVirulentKeyword, {
+            ignoreCase: false,
+            exactMatch: true,
+            revealResults: false
+        });
+
         tree.on('nodeChecked', (event, node) => {
             this.selectSubTree(event, node,  tree.data("treeview").selectNode,  tree.data("treeview").checkNode);
             this.selectParents(event, node, tree, tree.data("treeview").selectNode, tree.data("treeview").checkNode, 
@@ -562,7 +750,12 @@ class App {
             this.selectSubTree(event, node,  tree.data("treeview").unselectNode,  tree.data("treeview").uncheckNode);
             this.selectParents(event, node, tree, tree.data("treeview").unselectNode, tree.data("treeview").uncheckNode, 
                               (child) => child.state !== undefined && child.state["checked"], 
-                              (children, selectedChildren) => children.length > selectedChildren.length);
+                              (children, selectedChildren) => children.length > selectedChildren.length,
+                              (child) => {
+                                if (child.state !== undefined && child.state["hidden"]) {
+                                    tree.data("treeview").unselectNode(child);
+                                }
+                              });
 
             const selected = tree.data("treeview").getSelected();
             if (onChange !== undefined) {
@@ -618,6 +811,17 @@ class App {
                                     onChange: (radioValue) => {
                                         inputs[Inputs.NumberView] = radioValue;
                                         this.updateVisuals();
+                                    }
+            })
+        }
+
+        // time group (months/years/overall/etc...)
+        if (inputs[Inputs.TimeGroup] !== undefined) {
+            this.updateRadioSelect({selectId: Inputs.TimeGroup, selections: selections[Inputs.TimeGroup], inputs: new Set([inputs[Inputs.TimeGroup]]),
+                                    translations: Translation.translate("timegroup", { returnObjects: true }),
+                                    onChange: (radioValue) => {
+                                        inputs[Inputs.TimeGroup] = radioValue;
+                                        this.updateTab({input: Inputs.TimeGroup});
                                     }
             })
         }
@@ -679,7 +883,8 @@ class App {
                                     onChange: (checkedVal) => {
                                         inputs[Inputs.DataType] = new Set([checkedVal]);
                                         this.updateTab({input: Inputs.DataType});
-                                    }});
+                                    },
+                                    disabled: new Set(MicroBioDataTypes.Concentration)}); // TODO: remove the "disabled" argument once the concentration data is added to the Trends Over time graph
         }
 
         // survey type filter
@@ -720,7 +925,7 @@ class App {
         // food selection
         if (inputOrderInds[Inputs.Food] !== undefined && inputOrderInds[Inputs.Food] > inputInd) {
             this.updateDropdownSelect({selectId: Inputs.Food, selections: selections[Inputs.Food], inputs: inputs[Inputs.Food], 
-                                       noneSelectedText: Translation.translate("allFoods"),
+                                       noneSelectedText: Translation.translate("selectFoods"),
                                        onChange: (selectedOptions) => {
                                             inputs[Inputs.Food] = new Set(selectedOptions);
                                             this.updateTab({input: Inputs.Food});
@@ -759,52 +964,72 @@ class App {
         const tableData = this.model.getTableData();
         if (tableData !== undefined) {
             const translations = Translation.translate("tableCols",{ returnObjects: true });
-            const tableColInfo = [
-                {title: translations[SummaryAtts.FoodName], data: SummaryAtts.FoodName},
-                {title: translations[SummaryAtts.Microorganism], data: SummaryAtts.Microorganism},
-                {title: translations[SummaryAtts.PercentDetected], data: SummaryAtts.PercentDetected},
-                {title: translations[SummaryAtts.Detected], data: SummaryAtts.Detected},
-                {title: translations[SummaryAtts.Samples], data: SummaryAtts.Samples},
-                {title: translations[SummaryAtts.ConcentrationMean], data: SummaryAtts.ConcentrationMean},
-                {title: translations[SummaryAtts.ConcentrationRange], data: SummaryAtts.ConcentrationRange},
-                {title: translations[SummaryAtts.SamplesWithConcentration], data: SummaryAtts.SamplesWithConcentration}
-            ];
+            const tableColInfo = SummaryTableCols.map((summaryAtt) => {
+                return {title: translations[summaryAtt], data: summaryAtt};
+            });
 
             this.updateTable("#visualTable", tableColInfo, tableData);
         }
 
         const graphData = this.model.getGraphData();
         const tab = this.model.getActiveTab();
-        let summaryAtt;
-
+        let summaryAtt, subSummaryAtt;
+        
         if (graphData !== undefined && tab == Tabs[Pages.Overview].ByMicroorganism) {
             summaryAtt = SummaryAtts.FoodName;
+            subSummaryAtt = SummaryAtts.Microorganism;
+            
+            // Uncomment the below if you want to display the table showing the calculations
+            //  results for the Overview graph by Microorganism
+            /*
             const tableColInfo = [
                 {title: "Food Name", data: SummaryAtts.FoodName},
                 {title: "# of Samples", data: SummaryAtts.Samples},
                 {title: "# of Detected", data: SummaryAtts.Detected},
                 {title: "# of Not Detected", data: SummaryAtts.NotDetected},
-                {title: "# of Not Tested", data: SummaryAtts.NotTested}
+                {title: "# of Not Tested", data: SummaryAtts.NotTested},
+                {title: "# of Tested", data: SummaryAtts.Tested}
             ];
 
-            this.updateTable("#tempGraphTable", tableColInfo, graphData);
+            this.updateTable("#tempGraphTable", tableColInfo, graphData);*/
 
-        } else if (tab == Tabs[Pages.Overview].ByFood) {
+        } else if (graphData !== undefined && tab == Tabs[Pages.Overview].ByFood) {
             summaryAtt = SummaryAtts.Microorganism;
+            subSummaryAtt = SummaryAtts.FoodName;
+
+            // Uncomment the below if you want to display the table showing the calculations
+            //  results for the Overview graph by Microorganism
+            /*
             const tableColInfo = [
                 {title: "Microorganism", data: SummaryAtts.Microorganism},
                 {title: "# of Samples", data: SummaryAtts.Samples},
                 {title: "# of Detected", data: SummaryAtts.Detected},
                 {title: "# of Not Detected", data: SummaryAtts.NotDetected},
-                {title: "# of Not Tested", data: SummaryAtts.NotTested}
+                {title: "# of Not Tested", data: SummaryAtts.NotTested},
+                {title: "# of Tested", data: SummaryAtts.Tested}
             ];
 
-            this.updateTable("#tempGraphTable", tableColInfo, graphData);
+            this.updateTable("#tempGraphTable", tableColInfo, graphData);*/
         }
 
-        if (graphData !== undefined) {
-            let overviewGraph = new OverviewBarGraph(this.model, summaryAtt);
+        if (graphData === undefined) return;
+
+        if (this.model.pageName == Pages.Overview) {
+            let overviewGraph = this.graphs[this.model.pageName][tab];
+            if (overviewGraph === undefined) {
+                overviewGraph = new OverviewBarGraph(this.model, summaryAtt);
+                this.graphs[this.model.pageName][tab] = overviewGraph;
+            }
+
             overviewGraph.update();
+        } else if (this.model.pageName == Pages.TrendsOverTime) {
+            let trendsOverTimeGraph = this.graphs[this.model.pageName][tab];
+            if (trendsOverTimeGraph === undefined) {
+                trendsOverTimeGraph = new TrendsOverTimeGraph(this, this.model, summaryAtt, subSummaryAtt);
+                this.graphs[this.model.pageName][tab] = trendsOverTimeGraph;
+            }
+
+            trendsOverTimeGraph.update();
         }
     }
 
@@ -833,6 +1058,7 @@ class App {
 
     // updateTrendsOverTime(): Updates the "Trends Over Time" page
     updateTrendsOverTime() {
+        this.model.pageName = Pages.TrendsOverTime;
         this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
 
         /* ------- update the text of the menu ------------ */
@@ -853,6 +1079,7 @@ class App {
 
     // updateOverview(): Updates the "overview" page
     updateOverview() {
+        this.model.pageName = Pages.Overview;
         this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
 
         /* ------- update the text of the menu ------------ */
@@ -870,6 +1097,12 @@ class App {
         this.setupMenuTabs();
     }
 
+    // updateLoadingPage(): Updates the "loading" page
+    updateLoadingPage() {
+        // change the text of the loading bubbles for accessbility purposes
+        d3.selectAll(".loadingContainer .spinner-grow span").text(Translation.translate("loading"));
+    }
+
     // =================================================================
 }
 
@@ -880,7 +1113,10 @@ class App {
 
 Translation.register(TranslationObj);
 let model = new Model();
-await model.load();
 
 let app = new App(model);
-await app.init();
+app.init(Pages.Loading);
+
+Promise.all([model.load()]).then(() => {
+    app.loadMainPage();
+});
