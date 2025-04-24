@@ -1,5 +1,8 @@
 # Data Importer
 
+[![Static Badge](https://img.shields.io/badge/Python-254F72?style=for-the-badge)](https://www.python.org/downloads/)
+[![Static Badge](https://img.shields.io/badge/Jupyter%20Notebook-F37726?style=for-the-badge)](https://jupyter.org/)
+
 Cleans/processes the raw data from CFIA and Health Canada to be used by the app
 
 <br>
@@ -25,9 +28,11 @@ Add the raw data files into the corresponding folder, grouped by organisation, a
 <br>
 
 > [!NOTE]
-> - For CFIA data, make sure the raw files are excel 2010+ files (.xlsx)
+> - For CFIA data, make sure the raw files are Excel 2010+ files (.xlsx)
 > - For HC data, make sure the raw files are CSV UTF-8 files (.csv)
 > - For HC data, make the name of each file ends with some language abbreviation (eg. someFile-en.csv)
+
+<br>
 
 The [Data Importer](DataImporter.ipynb) will read all of the files within each organisation folder with their corresponding file extensions
 (.xlsx for CFIA and .csv for HC)
