@@ -1068,6 +1068,7 @@ export class Model {
             selections[Inputs.MicroOrganism] = new Set();
             this.updateMicroorganismTree({microorganisms: selections[Inputs.MicroOrganism], page, tab});
             selections[Inputs.NumberView] = new Set(Object.values(NumberView));
+            selections[Inputs.TimeGroup] = new Set(Object.values(TimeGroup));
 
         // Overview ==> By Microorganism
         } else if (page == Pages.Overview && tab == OverviewTabs.ByMicroorganism) {

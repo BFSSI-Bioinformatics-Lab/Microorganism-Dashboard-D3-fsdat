@@ -376,7 +376,49 @@ What it contains:
               </h2>
               <div id="byFoodAdjustGraphFilter" class="accordion-collapse collapse show" aria-labelledby="byFoodAdjustGraphFilterHeading" data-bs-parent="#byFoodAdjustGraphFilterContainer">
                 <div class="accordion-body">
-                  <strong>This is the first item's accordion body.</strong> It is shown by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                  
+                  <div>
+                    <span id="showResultAsLabel">Show Result As:</span>
+  
+                    <div id="NumberView" class="d-flex flex-wrap">
+                      <label class="radioContainer">
+                        <span id="number">Dummy Number</span>
+                        <input type="radio" checked="checked" name="radio" value="number">
+                        <span class="radioIcon"></span>
+                      </label>
+                      
+                      <label class="radioContainer">
+                        <span id="percentage">Dummy Percentage</span>
+                        <input type="radio" name="radio" value="percentage">
+                        <span class="radioIcon"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="mt-3">
+                    <span id="showResultAsLabel">Display By:</span>
+  
+                    <div id="TimeGroup" class="d-flex flex-wrap">
+                      <label class="radioContainer">
+                        <span id="months">Dummy Months</span>
+                        <input type="radio" checked="checked" name="radio" value="months">
+                        <span class="radioIcon"></span>
+                      </label>
+                      
+                      <label class="radioContainer">
+                        <span id="years">Dummy Years</span>
+                        <input type="radio" name="radio" value="years">
+                        <span class="radioIcon"></span>
+                      </label>
+  
+                      <label class="radioContainer">
+                        <span id="overall">Dummy Overall</span>
+                        <input type="radio" name="radio" value="overall">
+                        <span class="radioIcon"></span>
+                      </label>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
