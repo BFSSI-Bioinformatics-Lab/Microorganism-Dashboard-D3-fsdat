@@ -85,16 +85,6 @@ export class TrendsOverTimeGraph extends BaseGraph {
         return data;
     }
 
-    // formatMonth(dateMoment): Retrieves the pretty string for displaying months
-    formatMonth(dateMoment) {
-        return dateMoment.format("YYYY MMM");
-    }
-
-    // formatYear(dateMoment): Retrieves the pretty string for displaying years
-    formatYear(dateMoment) {
-        return dateMoment.format("YYYY");
-    }
-
     // getTimeRange(timeGroup, data): Retrieves the min/max datetime in the data
     getTimeRange(timeGroup, data) {
         if (timeGroup == TimeGroup.Overall) return [TimeGroup.Overall];
@@ -128,18 +118,18 @@ export class TrendsOverTimeGraph extends BaseGraph {
         
         // add in the other months/years in between the min and max date
         if (timeGroupedByMonths) {
-            result.push(this.formatMonth(moment(minDate)));
+            result.push(Model.formatMonth(moment(minDate)));
         } else if (timeGroupedByYears) {
-            result.push(this.formatYear(moment(minDate)));
+            result.push(Model.formatYear(moment(minDate)));
         }
         
         const currentDate = new Date(minDate);
 
         for (let i = 0; i < dateDiff; ++i) {
             if (timeGroupedByMonths) {
-                result.push(this.formatMonth(moment(currentDate.setMonth(currentDate.getMonth() + 1))));
+                result.push(Model.formatMonth(moment(currentDate.setMonth(currentDate.getMonth() + 1))));
             } else if (timeGroupedByYears) {
-                result.push(this.formatYear(moment(currentDate.setFullYear(currentDate.getFullYear() + 1))));
+                result.push(Model.formatYear(moment(currentDate.setFullYear(currentDate.getFullYear() + 1))));
             }
         }
 
@@ -159,30 +149,34 @@ export class TrendsOverTimeGraph extends BaseGraph {
         return result;
     }
 
-    // getMaxAtt(data, attName): Retrieves the maximum value of some attribute
-    getMaxAtt(data, attName) {
+    // getMaxAtt(data, attName, accumulateRow): Retrieves the maximum value of some attribute
+    getMaxAtt(data, attName, accumulateRow) {
         let result = null;
         for (const mainKey in data) {
             const mainKeyData = data[mainKey];
-            for (const dataPoint of mainKeyData) {
-                const currentAtt = dataPoint[attName];
-                if (result === null || currentAtt > result) {
-                    result = currentAtt;
+
+            const groupedData = d3.group(mainKeyData, d => d[SummaryAtts.TimeGroupName]);
+
+            groupedData.forEach((dataByTime, timeGroupName) => {
+                const groupedSum = dataByTime.reduce((acc, row) => accumulateRow(acc, row[attName]), 0);
+                if (result === null || groupedSum > result) {
+                    result = groupedSum;
                 }
-            }
+            });
         }
 
         return result;
     }
 
     // getMaxDetected(data): Retrieves the highest detected count out of all the data points
-    getMaxDetected(data) {
-        return this.getMaxAtt(data, SummaryAtts.Detected);
+    getMaxDetected(data, numberView) {
+        const accumulateRowFunc = (numberView == NumberView.Percentage) ? ((acc, rowVal) => Math.max(acc, rowVal)) : ((acc, rowVal) => acc + rowVal);
+        return this.getMaxAtt(data, SummaryAtts.Detected, accumulateRowFunc);
     }
 
     // getMax(data): Retrieves the highest detected count out of all the data points
     getMaxSamples(data) {
-        return this.getMaxAtt(data, SummaryAtts.Samples);
+        return this.getMaxAtt(data, SummaryAtts.Samples, (acc, rowVal) => acc + rowVal);
     }
 
     // drawLegend(titleToColours, legendXPos): Draws the legend
@@ -345,21 +339,13 @@ export class TrendsOverTimeGraph extends BaseGraph {
         return toolTip;
     }
 
-    // getTimeGroupName(timeGroup, dateTime): Retrieves the name of a particular time grouping
-    getTimeGroupName(timeGroup, dateTime) {
-        if (timeGroup == TimeGroup.Months) dateTime = this.formatMonth(moment(dateTime));
-        else if (timeGroup == TimeGroup.Years) dateTime = this.formatYear(moment(dateTime));
-        else if (timeGroup == TimeGroup.Overall) dateTime = TimeGroup.Overall;
-        return dateTime;
-    }
-
     // getSamplePoints(date, timeGroup): Retrieves the unique sample point used to make
     //  the line graph for the samples
     getSamplePoints(data, timeGroup) {
         let samplePoints = {};
 
         for (const row of data) {
-            const currTimeGroup = this.getTimeGroupName(timeGroup, row[SummaryAtts.DateTime]);
+            const currTimeGroup = row[SummaryAtts.TimeGroupName];
 
             if (samplePoints[currTimeGroup] === undefined) {
                 samplePoints[currTimeGroup] = {[SummaryAtts.Samples]: row[SummaryAtts.Samples], 
@@ -374,7 +360,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
         const result = [];
         for (const currTimeGroup in samplePoints) {
             const samplePoint = samplePoints[currTimeGroup];
-            samplePoint["timeGroup"] = currTimeGroup;
+            samplePoint[SummaryAtts.TimeGroupName] = currTimeGroup;
             samplePoint["y"] = samplePoint[SummaryAtts.Samples];
 
             result.push(samplePoint);
@@ -408,11 +394,11 @@ export class TrendsOverTimeGraph extends BaseGraph {
         this.shownTooltip = tooltip;
     }
 
-    // onToolTipHover(event, data, timeGroup, tooltipGroup, computeTooltipX): Show a tooltip that belongs to a particular group of tooltips
-    onToolTipHover(event, data, timeGroup, tooltipGroup, computeTooltipX) {
+    // onToolTipHover(event, data, tooltipGroup, computeTooltipX): Show a tooltip that belongs to a particular group of tooltips
+    onToolTipHover(event, data, tooltipGroup, computeTooltipX) {
         const mainKey = data[this.mainSummaryAtt];
         const subKey = data[this.subSummaryAtt];
-        const time = this.getTimeGroupName(timeGroup, data[SummaryAtts.DateTime]);
+        const time = data[SummaryAtts.TimeGroupName];
 
         if (tooltipGroup[mainKey] === undefined || tooltipGroup[mainKey][time] === undefined) return;
         const tooltip = tooltipGroup[mainKey][time][subKey];
@@ -421,20 +407,20 @@ export class TrendsOverTimeGraph extends BaseGraph {
     }
 
     // onBarHover(event, data): Show the tooltip when the user hovers over the bar
-    onBarHover(event, data, timeGroup) {
-        this.onToolTipHover(event, data, timeGroup, this.barTooltips, (event, mouseX, transformX) => this.barContainerZoom.applyX(transformX) + mouseX);
+    onBarHover(event, data) {
+        this.onToolTipHover(event, data, this.barTooltips, (event, mouseX, transformX) => this.barContainerZoom.applyX(transformX) + mouseX);
     }
 
     // onPointHover(event, data): Show the tooltip when the user hovers on the point
-    onPointHover(event, data, timeGroup) {
-        this.onToolTipHover(event, data, timeGroup, this.pointTooltips, (event, mouseX, transformX) => transformX + mouseX);
+    onPointHover(event, data) {
+        this.onToolTipHover(event, data, this.pointTooltips, (event, mouseX, transformX) => transformX + mouseX);
     }
 
-    // onToolTipUnHover(event, data, timeGroup, tooltipGroup): Hides the tooltip when the user unhovers from some element
-    onToolTipUnHover(event, data, timeGroup, tooltipGroup) {
+    // onToolTipUnHover(event, data, tooltipGroup): Hides the tooltip when the user unhovers from some element
+    onToolTipUnHover(event, data, tooltipGroup) {
         const mainKey = data[this.mainSummaryAtt];
         const subKey = data[this.subSummaryAtt];
-        const time = this.getTimeGroupName(timeGroup, data[SummaryAtts.DateTime]);
+        const time = data[SummaryAtts.TimeGroupName];
 
         if (tooltipGroup[mainKey] === undefined || tooltipGroup[mainKey][time] === undefined) return;
         const tooltip = tooltipGroup[mainKey][time][subKey];
@@ -447,13 +433,13 @@ export class TrendsOverTimeGraph extends BaseGraph {
     }
 
     // onBarUnHover(event, data): Hides the tooltip when the user unhovers from the bar
-    onBarUnHover(event, data, timeGroup){
-        this.onToolTipUnHover(event, data, timeGroup, this.barTooltips);
+    onBarUnHover(event, data){
+        this.onToolTipUnHover(event, data, this.barTooltips);
     }
 
-    // onPointUnHover(event, data, timeGroup): Hides the tooltip when the user unhovers from a point
-    onPointUnHover(event, data, timeGroup) {
-        this.onToolTipUnHover(event, data, timeGroup, this.pointTooltips);
+    // onPointUnHover(event, data): Hides the tooltip when the user unhovers from a point
+    onPointUnHover(event, data) {
+        this.onToolTipUnHover(event, data, this.pointTooltips);
     }
 
     // buildSubGraph(mainKey, mainKeyInd, data, timeRange, timeGroup, subAttColours
@@ -530,15 +516,15 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .range(Object.values(subAttColours))
             .unknown("#ccc");
 
-        const groupedData = d3.group(data, d => this.getTimeGroupName(timeGroup, d[SummaryAtts.DateTime]));
+        const groupedData = d3.group(data, d =>  d[SummaryAtts.TimeGroupName]);
 
         // draw the hover tooltips
-        if (this.barTooltips[mainKey] === undefined) this.barTooltips[mainKey] = {};
-        if (this.pointTooltips[mainKey] === undefined) this.pointTooltips[mainKey] = {};
+        if (this.barTooltips[subGraphName] === undefined) this.barTooltips[subGraphName] = {};
+        if (this.pointTooltips[subGraphName] === undefined) this.pointTooltips[subGraphName] = {};
 
         groupedData.forEach((dataByTime, time) => {
-            if (this.barTooltips[mainKey][time] === undefined) this.barTooltips[mainKey][time] = {};
-            if (this.pointTooltips[mainKey][time] === undefined) this.pointTooltips[mainKey][time] = {};
+            if (this.barTooltips[subGraphName][time] === undefined) this.barTooltips[subGraphName][time] = {};
+            if (this.pointTooltips[subGraphName][time] === undefined) this.pointTooltips[subGraphName][time] = {};
 
             for (const row of dataByTime) {
                 const subKey = row[this.subSummaryAtt];
@@ -562,8 +548,8 @@ export class TrendsOverTimeGraph extends BaseGraph {
                     dateTime: time,
                 });
 
-                this.barTooltips[mainKey][time][subKey] = this.hoverTooltip({title: subGraphName, descriptionLines: barDescriptionLines, colour: subAttColours[subKey], hide: true});
-                this.pointTooltips[mainKey][time][subKey] = this.hoverTooltip({title: subGraphName, descriptionLines: pointDescriptionLines, colour: `var(--trendsOverTimePoint)`, hide: true});
+                this.barTooltips[subGraphName][time][subKey] = this.hoverTooltip({title: subGraphName, descriptionLines: barDescriptionLines, colour: subAttColours[subKey], hide: true});
+                this.pointTooltips[subGraphName][time][subKey] = this.hoverTooltip({title: subGraphName, descriptionLines: pointDescriptionLines, colour: `var(--trendsOverTimePoint)`, hide: true});
             }
         });
 
@@ -586,16 +572,16 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .attr("width", x.bandwidth())
             .attr("height", d => leftY(0) - leftY(d[SummaryAtts.Detected]))
             .attr("fill", d => color(d[this.subSummaryAtt]))
-            .on("mouseover", (event, d) => this.onBarHover(event, d, timeGroup))
-            .on("mousemove", (event, d) => this.onBarHover(event, d, timeGroup))
-            .on("mouseenter", (event, d) => this.onBarHover(event, d, timeGroup))
-            .on("mouseleave", (event, d) => this.onBarUnHover(event, d, timeGroup));
+            .on("mouseover", (event, d) => this.onBarHover(event, d))
+            .on("mousemove", (event, d) => this.onBarHover(event, d))
+            .on("mouseenter", (event, d) => this.onBarHover(event, d))
+            .on("mouseleave", (event, d) => this.onBarUnHover(event, d));
         
         // get the sample points needed for the line graph
         const samplePoints = this.getSamplePoints(data, timeGroup);
         const newMaxSamples = samplePoints.reduce((acc, point) => Math.max(acc, point.y), 0);
         samplePoints.sort((pointA, pointB) => {
-            return fx(pointA.timeGroup) - fx(pointB.timeGroup);
+            return fx(pointA[SummaryAtts.TimeGroupName]) - fx(pointB[SummaryAtts.TimeGroupName]);
         });
 
         // right y-axis
@@ -620,7 +606,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .attr("stroke", "var(--trendsOverTimeLine)")
             .attr("stroke-width", 3)
             .attr("d", d3.line()
-                .x((d) => fx(d.timeGroup) + keyWidth / 2)
+                .x((d) => fx(d[SummaryAtts.TimeGroupName]) + keyWidth / 2)
                 .y((d) => rightY(d.y)))
 
         sampleLineContainer
@@ -631,13 +617,13 @@ export class TrendsOverTimeGraph extends BaseGraph {
             .classed(this.linePointsClsName, true)
             .attr("fill", "var(--trendsOverTimePoint)")
             .attr("stroke", "none")
-            .attr("cx", (d) => fx(d.timeGroup) + keyWidth / 2)
+            .attr("cx", (d) => fx(d[SummaryAtts.TimeGroupName]) + keyWidth / 2)
             .attr("cy", (d) => rightY(d.y))
             .attr("r", Dims.trendsOverTimeGraph.pointRadius)
-            .on("mouseover", (event, d) => this.onPointHover(event, d, timeGroup))
-            .on("mousemove", (event, d) => this.onPointHover(event, d, timeGroup))
-            .on("mouseenter", (event, d) => this.onPointHover(event, d, timeGroup))
-            .on("mouseleave", (event, d) => this.onPointUnHover(event, d, timeGroup));
+            .on("mouseover", (event, d) => this.onPointHover(event, d))
+            .on("mousemove", (event, d) => this.onPointHover(event, d))
+            .on("mouseenter", (event, d) => this.onPointHover(event, d))
+            .on("mouseleave", (event, d) => this.onPointUnHover(event, d));
 
         // label for the name of the subgraph
         const keyText = subGraph.append("text")
@@ -705,12 +691,12 @@ export class TrendsOverTimeGraph extends BaseGraph {
             subGraphContent.selectAll(`.${this.lineClsName}`)
                 .attr("transform", this.barContainerZoomInv)
                 .attr("d", d3.line()
-                    .x((d) => fx(d.timeGroup) + newKeyWidth / 2)
+                    .x((d) => fx(d[SummaryAtts.TimeGroupName]) + newKeyWidth / 2)
                     .y((d) => rightY(d.y)))
 
             subGraphContent.selectAll(`.${this.linePointsClsName}`)
                 .attr("transform", this.barContainerZoomInv)
-                .attr("cx", (d) => fx(d.timeGroup) + newKeyWidth / 2);
+                .attr("cx", (d) => fx(d[SummaryAtts.TimeGroupName]) + newKeyWidth / 2);
         }
     }
 
@@ -824,7 +810,7 @@ export class TrendsOverTimeGraph extends BaseGraph {
         const timeRange = this.getTimeRange(timeGroup, data);
         let subKeys = this.getSubKeys(data);
         subKeys = Array.from(subKeys).sort();
-        const maxDetected = Math.max(1, numberView == NumberView.Number ? this.getMaxDetected(data) : 100);
+        const maxDetected = Math.max(1, this.getMaxDetected(data, numberView));
         const maxSamples = Math.max(1, this.getMaxSamples(data));
             
         let subGraphKeyWidth = Math.max(Dims.trendsOverTimeGraph.SubGraphMinKeyWidth, subKeys.length * Dims.trendsOverTimeGraph.SubGraphBarWidth);
