@@ -902,7 +902,7 @@ QualitaiveResultsEN[SampleState.InConclusive] = "inconclusive";
 
 // labels for the x-axis of the overview bar graph
 const overviewBarGraphXAxisEN = {};
-overviewBarGraphXAxisEN[NumberView.Number] = "Count";
+overviewBarGraphXAxisEN[NumberView.Number] = "Number of Samples";
 overviewBarGraphXAxisEN[NumberView.Percentage] = "Percentage";
 
 // labels for the x-axis of the TrendsOverTime graph
