@@ -12,7 +12,8 @@
 <br>
 
 >[!IMPORTANT]
-> The website on Github pages is synced with the [development](https://github.com/BFSSI-Bioinformatics-Lab/Microorganism-Dashboard-D3-fsdat/tree/development) branch
+> The website on Github pages is currently synced with the [development](https://github.com/BFSSI-Bioinformatics-Lab/Microorganism-Dashboard-D3-fsdat/tree/development) branch,
+> but you can change which branch the website is synced with [here](https://github.com/BFSSI-Bioinformatics-Lab/Microorganism-Dashboard-D3-fsdat/settings/pages)
 
 <br>
 
