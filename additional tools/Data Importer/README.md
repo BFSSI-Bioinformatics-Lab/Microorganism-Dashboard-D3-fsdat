@@ -29,12 +29,12 @@ Add the raw data files into the corresponding folder, grouped by organisation, a
 
 <br>
 
-### CFIA data
+#### CFIA data
 - Add new file of data into the [data/CFIA](data/CFIA/) folder 
 - Make sure the raw files are Excel 2010+ files (.xlsx)
 - Make sure headers of the new file match the other files (spaces, lower vs uppercase)
 
-### HC Data
+#### HC Data
 - New data should be added to the already existing files inside [data/Health Canada](data/Health%20Canada/) folder (Copy paste new rows to the existing files)
 - There is a file for English and French (“....-en.csv” / “....-fr.csv”) 
 
