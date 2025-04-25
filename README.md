@@ -11,6 +11,11 @@
 
 <br>
 
+>[!IMPORTANT]
+> The website on Github pages is synced with the [development](https://github.com/BFSSI-Bioinformatics-Lab/Microorganism-Dashboard-D3-fsdat/tree/development) branch
+
+<br>
+
 ## Additional Tools
 The below are some additional tools that accompany this app. The instructions (README) on how to use each tool
 is located in the respective folder for each tool.

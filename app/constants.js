@@ -975,6 +975,7 @@ const trendsOverTimeGraphEN = {
     ],
     "pointTooltip": [
         "{{ subKey }}",
+        "{{ testedNum }} samples tested",
         "{{ dateTime }}"
     ]
 };
@@ -1509,6 +1510,11 @@ const trendsOverTimeGraphFR = {
         `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ testedNum }}`,
         `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`
     ],
+    "pointTooltip": [
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ subKey }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ testedNum }}`,
+        `${REMPLACER_MOI_AVEC_ARGUMENTS} {{ dateTime }}`
+    ]
 };
 trendsOverTimeGraphFR[SummaryAtts.FoodName] = {
     "graphTitle": REMPLACER_MOI,

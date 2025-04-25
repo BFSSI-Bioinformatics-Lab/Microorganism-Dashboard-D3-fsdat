@@ -534,18 +534,21 @@ export class TrendsOverTimeGraph extends BaseGraph {
                     detectedNum += "%";
                 }
 
+                const testedNum = Translation.translateNum(row[SummaryAtts.Tested], null);
+
                 const barDescriptionLines = Translation.translate(`trendsOverTimeGraph.barTooltip`, {
                     returnObjects: true, 
                     subKey,
                     dateTime: time,
                     detectedNum,
-                    testedNum: Translation.translateNum(row[SummaryAtts.Tested], null)
+                    testedNum
                 });
 
                 const pointDescriptionLines = Translation.translate(`trendsOverTimeGraph.pointTooltip`, {
                     returnObjects: true,
                     subKey,
                     dateTime: time,
+                    testedNum
                 });
 
                 this.barTooltips[subGraphName][time][subKey] = this.hoverTooltip({title: subGraphName, descriptionLines: barDescriptionLines, colour: subAttColours[subKey], hide: true});
