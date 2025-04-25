@@ -29,12 +29,20 @@ Add the raw data files into the corresponding folder, grouped by organisation, a
 
 <br>
 
-> [!NOTE]
-> - For CFIA data, make sure the raw files are Excel 2010+ files (.xlsx)
-> - For HC data, make sure the raw files are CSV UTF-8 files (.csv)
-> - For HC data, make the name of each file ends with some language abbreviation (eg. someFile-en.csv)
+### CFIA data
+- Add new file of data into the [data/CFIA](data/CFIA/) folder 
+- Make sure the raw files are Excel 2010+ files (.xlsx)
+- Make sure headers of the new file match the other files (spaces, lower vs uppercase)
+
+### HC Data
+- New data should be added to the already existing files inside [data/Health Canada](data/Health%20Canada/) folder (Copy paste new rows to the existing files)
+- There is a file for English and French (“....-en.csv” / “....-fr.csv”) 
 
 <br>
 
 The [Data Importer](DataImporter.ipynb) will read all of the files within each organisation folder with their corresponding file extensions
 (.xlsx for CFIA and .csv for HC)
+
+<br>
+
+Once the Notebook runs new files are created. These new files are located in the main root of the app, inside the [data](../../data/) folder. These are the files use by the application.
