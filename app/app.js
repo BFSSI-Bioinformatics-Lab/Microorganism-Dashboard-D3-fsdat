@@ -16,6 +16,7 @@ import { Translation, DateTimeTools, Visuals } from "./tools.js";
 import { Model } from "./backend.js";
 import { OverviewBarGraph } from "./graphs/overviewBarGraph.js";
 import { TrendsOverTimeGraph } from "./graphs/trendsOverTimeGraph.js";
+import { DataSnapshotGraph } from "./graphs/dataSnapshotGraph.js";
 
 
 // App: The class for the overall application
@@ -292,6 +293,8 @@ class App {
             this.updateOverview();
         } else if (page == Pages.Loading) {
             this.updateLoadingPage();
+        } else if (page == Pages.DataSnapshot) {
+            this.updateDataSnapshot();
         }
 
         // load the multiselect options
@@ -1012,7 +1015,8 @@ class App {
             this.updateTable("#tempGraphTable", tableColInfo, graphData);*/
         }
 
-        if (graphData === undefined) return;
+        // TODO(miles): remove the second part of this && clause once DataSnapshot graph usine actual data
+        if (graphData === undefined && this.model.pageName !== Pages.DataSnapshot) return;
 
         if (this.model.pageName == Pages.Overview) {
             let overviewGraph = this.graphs[this.model.pageName][tab];
@@ -1030,6 +1034,14 @@ class App {
             }
 
             trendsOverTimeGraph.update();
+        } else if (this.model.pageName == Pages.DataSnapshot) {
+            let dataSnapshotGraph = this.graphs[this.model.pageName][tab];
+            if (dataSnapshotGraph === undefined) {
+                dataSnapshotGraph = new DataSnapshotGraph(this.model);
+                this.graphs[this.model.pageName][tab] = dataSnapshotGraph;
+            }
+
+            dataSnapshotGraph.update();
         }
     }
 
@@ -1088,6 +1100,26 @@ class App {
             const tab = d3.select(elements[ind]);
             const tabValue = tab.attr("value");
             return Translation.translate(`OverviewTabs.${tabValue}`);
+        });
+
+        this.updateMenuNames();
+
+        /* ------------------------------------------------ */
+
+        this.setupMenuTabs();
+    }
+
+    // updateDatSnapshot(): Updates the "DataSnapshot" page
+    updateDataSnapshot() {
+        this.model.pageName = Pages.DataSnapshot;
+        this.menuTabs = this.page.selectAll(".mainMenuContainer .nav-link");
+
+        /* ------- update the text of the menu ------------ */
+
+        this.menuTabs.text((data, ind, elements) => {
+            const tab = d3.select(elements[ind]);
+            const tabValue = tab.attr("value");
+            return Translation.translate(`DataSnapshotTabs.${tabValue}`);
         });
 
         this.updateMenuNames();

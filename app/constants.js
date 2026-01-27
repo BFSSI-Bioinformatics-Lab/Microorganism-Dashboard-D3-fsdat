@@ -10,6 +10,44 @@
 //                                                     //
 /////////////////////////////////////////////////////////
 
+// ################## DUMMY DATA ###############################
+export const DATA_SNAPSHOT_DUMMY_GRAPH_DATA = {
+    "name": "All Microorgranisms",
+    "children": [
+        {
+            "name": "Bacteria",
+            "children": [
+                {
+                    "name": "sub-bacteria",
+                    "children": [
+                        {
+                            "name": "species-1",
+                            "value": 100
+                        },
+                        {
+                            "name": "species-2",
+                            "value": 50
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Virus",
+            "children": [
+                {
+                    "name": "item B1",
+                    "value": 80
+                },
+                {
+                    "name": "item B2",
+                    "value": 30
+                }
+            ]
+        }
+    ]
+}
+
 
 // ################## CONSTANTS ###############################
 
@@ -18,6 +56,7 @@ export const Pages = {
     Home: "Home",
     TrendsOverTime: "TrendsOverTime",
     Overview: "Overview",
+    DataSnapshot: "DataSnapshot",
     About: "About",
     Contact: "Contact",
     Loading: "Loading"
@@ -30,6 +69,7 @@ PageSrc[Pages.Overview] = "./templates/overview.html"
 PageSrc[Pages.About] = "./templates/about.html"
 PageSrc[Pages.Contact] = "./templates/contact.html"
 PageSrc[Pages.Loading] = "./templates/loading.html"
+PageSrc[Pages.DataSnapshot] = "./templates/dataSnapshot.html"
 
 // SVG Icons that are inserted to the website at runtime
 export const SVGIcons = {
@@ -67,10 +107,16 @@ export const OverviewTabs = {
     ByOrg: "ByOrg"
 }
 
+// Tabs in the "Data Snapshot" page
+export const DataSnapshotTabs = {
+    ByMicroorganism: "ByMicroorganism",
+}
+
 // All tabs on the app
 export const Tabs = {};
 Tabs[Pages.TrendsOverTime] = TrendsOverTimeTabs;
 Tabs[Pages.Overview] = OverviewTabs;
+Tabs[Pages.DataSnapshot] = DataSnapshotTabs;
 
 // Inputs available
 export const Inputs = {
@@ -93,11 +139,13 @@ export const GroupNames = {
 export const FilterOrder = {};
 FilterOrder[Pages.TrendsOverTime] = {};
 FilterOrder[Pages.Overview] = {};
+FilterOrder[Pages.DataSnapshot] = {};
 FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = [Inputs.DataType, Inputs.SurveyType, Inputs.MicroOrganism, Inputs.FoodGroup, Inputs.Food];
 FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = [Inputs.DataType, Inputs.SurveyType, Inputs.FoodGroup, Inputs.Food, Inputs.MicroOrganism];
 FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.SurveyType];
 FilterOrder[Pages.Overview][OverviewTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
 FilterOrder[Pages.Overview][OverviewTabs.ByOrg] = [Inputs.SurveyType];
+FilterOrder[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = [Inputs.MicroOrganism];
 
 // indices for the order of the filter inputs in each tab
 export const FilterOrderInds = {};
@@ -117,20 +165,24 @@ for (const page in FilterOrder) {
 export const TabInputs = {};
 TabInputs[Pages.TrendsOverTime] = {};
 TabInputs[Pages.Overview] = {};
+TabInputs[Pages.DataSnapshot] = {};
 TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByMicroorganism].concat([Inputs.Year]));
 TabInputs[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = new Set(FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByMicroorganism] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByFood] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByFood].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByOrg] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByOrg].concat([Inputs.Year]));
+TabInputs[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = new Set(FilterOrder[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism].concat([Inputs.Year]));
 
 // Default selected pages and tabs
 export const DefaultPage = Pages.Overview;
 export const DefaultTrendsOverTimeSection = TrendsOverTimeTabs.ByMicroorganism;
 export const DefaultOverviewSection = OverviewTabs.ByMicroorganism;
+export const DefaultDataSnapshotSection = DataSnapshotTabs.ByMicroorganism;
 
 export const DefaultTabs = {};
 DefaultTabs[Pages.TrendsOverTime] = DefaultTrendsOverTimeSection;
 DefaultTabs[Pages.Overview] = DefaultOverviewSection;
+DefaultTabs[Pages.DataSnapshot] = DefaultDataSnapshotSection;
 
 // Available Languages
 export const Languages = {
@@ -777,6 +829,7 @@ const NavigationEN = {};
 NavigationEN[Pages.Home] = "Home";
 NavigationEN[Pages.TrendsOverTime] = "Trends Over Time";
 NavigationEN[Pages.Overview] = "Overview";
+NavigationEN[Pages.DataSnapshot] = "Data Snapshot";
 NavigationEN[Pages.About] = "About";
 NavigationEN[Pages.Contact] = "Contact";
 
@@ -797,12 +850,18 @@ OverviewTabsEN[OverviewTabs.ByFood] = "By Food";
 OverviewTabsEN[OverviewTabs.ByMicroorganism] = "By Microorganism";
 OverviewTabsEN[OverviewTabs.ByOrg] = "By Org";
 
+// names for the "Data Snapshot" sections
+const DataSnapshotTabsEN = {};
+DataSnapshotTabsEN[DataSnapshotTabs.ByMicroorganism] = "By Microorganism";
+
 // names for the filters
 const FilterNamesEN = {};
 FilterNamesEN[Pages.TrendsOverTime] = {};
 FilterNamesEN[Pages.Overview] = {};
+FilterNamesEN[Pages.DataSnapshot] = {};
 Object.keys(TrendsOverTimeTabs).forEach((section) => { FilterNamesEN[Pages.TrendsOverTime][section] = {} });
-Object.keys(OverviewTabs).forEach((section) => { FilterNamesEN[Pages.TrendsOverTime][section] = {} });
+Object.keys(OverviewTabs).forEach((section) => { FilterNamesEN[Pages.TrendsOverTime][section] = {} }); // TODO(miles): Should this be Pages.Overview?
+Object.keys(DataSnapshotTabs).forEach((section) => { FilterNamesEN[Pages.DataSnapshot][section] = {} });
 
 // Filter names for "Trends Over Time" ==> "By Food"
 FilterNamesEN[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
@@ -843,6 +902,14 @@ FilterNamesEN[Pages.Overview][OverviewTabs.ByFood] = {
 // Filter names for "Overview" ==> "By Org"
 FilterNamesEN[Pages.Overview][OverviewTabs.ByOrg] = {
     "surveyType": "1. Select Survey Type"
+}
+
+// Filter names for "Overview" ==> "By Microorganism"
+FilterNamesEN[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = {
+    "microorganism": "1. Select Microorganism",
+    "surveyType": "2. Select Survey Type",
+    "year": "3. Select Year",
+    "adjustGraph": "4. Adjust Graph"
 }
 
 // Survey Types
@@ -1011,6 +1078,7 @@ const LangEN = {
     themes: ColourThemesEN,
     TrendsOverTimeTabs: TrendsOverTimeTabsEN,
     OverviewTabs: OverviewTabsEN,
+    DataSnapshotTabs: DataSnapshotTabsEN,
     filterNames: FilterNamesEN,
 
     "allFoodGroups": "All Food Groups",

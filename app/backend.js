@@ -8,10 +8,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, CFIASurveyTypes, HealthCanadaSurveyTypes } from "./constants.js"
+import { DefaultPage, DefaultTabs, Pages, TrendsOverTimeTabs, Inputs, HCDataCols, PhylogeneticDelim, SurveyTypes, CFIASurveyTypes, HealthCanadaSurveyTypes, DataSnapshotTabs } from "./constants.js"
 import { FilterOrder, FilterOrderInds, OverviewTabs, MicroBioDataTypes, QuantitativeOps, GroupNames, SampleState, DownloadDataColOrder, ConcentrationNotApplicable } from "./constants.js"
 import { SummaryAtts, NumberView, TimeZone, TabInputs, TablePhylogenticDelim, ModelTimeZone, SummaryTableCols, CombineGraphTypes, TimeGroup, CFIADataCols } from "./constants.js"
 import { Translation, SetTools, MapTools, TableTools, NumberTools, Range, DateTimeTools } from "./tools.js";
+
+import {DATA_SNAPSHOT_DUMMY_GRAPH_DATA} from "./constants.js";
 
 
 // MicroorganismTree: Class for the phylogenetic tree used in the microorganism's naming
@@ -658,8 +660,10 @@ export class Model {
 
         this.groupings[Pages.TrendsOverTime] = {};
         this.groupings[Pages.Overview] = {};
+        this.groupings[Pages.DataSnapshot] = {};
         this.groupingStats[Pages.TrendsOverTime] = {};
         this.groupingStats[Pages.Overview] = {};
+        this.groupingStats[Pages.DataSnapshot] = {};
     }
 
     // initSelections(): Initialize the available selection options for the input filters
@@ -1065,7 +1069,21 @@ export class Model {
 
             this.groupings[Pages.Overview][OverviewTabs.ByOrg] = grouping;
             this.setupGroupingStat(page, tab, filterOrder, initGroupStat, accumulateGroupStat);
+
+        // DataSnapshot => By Microorganism
+        }  else if (page == Pages.DataSnapshot && tab == DataSnapshotTabs.ByMicroorganism) {
+            //TODO(miles): implement this
+            console.log("in setupGrouping for DataSnapshot, not yet implemented");
+            // grouping = TableTools.groupAggregates(this.samples, (aggregate) => aggregate.data, [
+            //     ind => this.data[ind][HCDataCols.Microorganism],
+            //     ind => this.data[ind][HCDataCols.SurveyType] 
+            // ]);
+
+            // this.groupings[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = grouping;
+            // this.setupGroupingStat(page, tab, filterOrder, initGroupStat, accumulateGroupStat);
         }
+
+
     }
 
     // setupSelections(page, tab): Initializes the selections for the filters when a tab first loads
@@ -1096,6 +1114,12 @@ export class Model {
         
         // Overview ==> By Food
         } else if (page == Pages.Overview && tab == OverviewTabs.ByFood) {
+            let selections = this.selections[page][tab];
+            selections[Inputs.SurveyType] = new Set();
+            selections[Inputs.NumberView] = new Set(Object.values(NumberView));
+
+        // Data Snapshot => By Microorganism
+        } else if (page == Pages.DataSnapshot && tab == DataSnapshotTabs.ByMicroorganism) {
             let selections = this.selections[page][tab];
             selections[Inputs.SurveyType] = new Set();
             selections[Inputs.NumberView] = new Set(Object.values(NumberView));
@@ -1245,6 +1269,15 @@ export class Model {
             let selections = this.selections[Pages.Overview][OverviewTabs.ByOrg];
             inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
             this.inputs[Pages.Overview][OverviewTabs.ByOrg] = inputs;
+
+        // Datasnapshot ==> By Microorganism
+        } else if (page == Pages.DataSnapshot && tab == DataSnapshotTabs.ByMicroorganism) {
+            let selections = this.selections[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism];
+            inputs[Inputs.MicroOrganism] = new Set();
+            inputs[Inputs.SurveyType] = structuredClone(selections[Inputs.SurveyType]);
+            inputs[Inputs.NumberView] = NumberView.Number;
+            inputs[Inputs.Year] = structuredClone(selections[Inputs.Year]);
+            this.inputs[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = inputs;
         }
     }
 
@@ -2118,6 +2151,12 @@ export class Model {
             this.tableData[page][tab] = tableData;
             this.tableCSV[page][tab] = csvContent;
             this.rawCSV[page][tab] = rawCSVContent;
+
+        // Data Snapshot --> By Microorganism
+        } else if (page == Pages.DataSnapshot && tab == DataSnapshotTabs.ByMicroorganism) {
+            // TODO(miles): Figure how this data needs to be created
+            console.log("in updateVisualData for DataSnapshot page... currently serving dummy data")
+            this.graphData[page][tab] = DATA_SNAPSHOT_DUMMY_GRAPH_DATA;
         }
     }
 
