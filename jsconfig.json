@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["DOM", "ES2020"],
+    "moduleResolution": "node"
+  },
+  "typeAcquisition": {
+    "enable": true,
+    "include": [
+      "jquery",
+      "d3",
+      "bootstrap",
+      "moment",
+      "moment-timezone",
+      "i18next",
+      "he",
+      "datatables.net"
+    ]
+  },
+  "include": [
+    "app/**/*.js",
+    "*.js",
+    "types/**/*.d.ts"
+  ]
+}
