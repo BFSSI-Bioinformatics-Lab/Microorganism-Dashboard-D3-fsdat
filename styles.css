@@ -438,6 +438,10 @@ body {
 }
 
 .treeview li .expand-icon {
+    margin-right: 10px !important;
+}
+
+.treeview li .check-icon {
     margin-right: 15px !important;
 }
 
@@ -993,7 +997,7 @@ body {
 
 @media screen and (min-width: 1200px) {
     .mainMenuContainerCollapse {
-        max-width: 380px;
+        max-width: 400px;
     }
 }
 
