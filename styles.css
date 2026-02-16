@@ -437,6 +437,10 @@ body {
     color: var(--onPrimaryHover);
 }
 
+.treeview li .expand-icon {
+    margin-right: 15px !important;
+}
+
 .treeview .badge {
     color: var(--onPrimary);
     background-color: var(--primary);
