@@ -9,6 +9,13 @@ export class DataSnapshotGraph extends BaseGraph {
         this.graph = d3.select(".visualGraph")
             .attr("position", "inherit")
             .html("");
+
+        this.breadcrumbLabel = this.graph.append("div")
+            .classed("dataSnapshotBreadcrumb", true)
+            .style("font-size", "14px")
+            .style("font-weight", "600")
+            .style("margin", "0 0 8px 0")
+            .style("min-height", "22px");
     }
 
     update() {
@@ -41,7 +48,8 @@ export class DataSnapshotGraph extends BaseGraph {
         const root = pack(data);
 
         // Create the SVG container.
-        this.graph.html("");
+        this.graph.selectAll("svg").remove();
+        this.breadcrumbLabel.text("");
         const svg = this.graph.append("svg")
             .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
             .attr("width", width)
@@ -69,12 +77,22 @@ export class DataSnapshotGraph extends BaseGraph {
             .join("text")
             .style("fill-opacity", d => d.parent === root ? 1 : 0)
             .style("display", d => d.parent === root ? "inline" : "none")
-            .text(d => d.data.name);
+            .text(d => d.children ? d.data.name : `${d.data.name} (${d.value} samples)`);
 
         // Create the zoom behavior and zoom immediately in to the initial focus node.
         svg.on("click", (event) => zoom(event, root));
         let focus = root;
         let view;
+        const updateBreadcrumb = (node) => {
+            const path = node.ancestors()
+                .reverse()
+                .map((ancestor) => ancestor.data.name)
+                .slice(1);
+
+            this.breadcrumbLabel.text(path.join(" -> "));
+        };
+
+        updateBreadcrumb(focus);
         zoomTo([focus.x, focus.y, focus.r * 2]);
 
         function zoomTo(v) {
@@ -91,6 +109,7 @@ export class DataSnapshotGraph extends BaseGraph {
             const focus0 = focus;
 
             focus = d;
+            updateBreadcrumb(focus);
 
             const transition = svg.transition()
                 .duration(event.altKey ? 7500 : 750)

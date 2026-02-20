@@ -277,7 +277,7 @@ export class TableTools {
     }
 
 
-    // _groupAggregates(ind, aggregates, getAggregateDataFunc, keyFuncs): Interal function for grouping
+    // _groupAggregates(ind, aggregates, getAggregateDataFunc, keyFuncs): Internal function for grouping
     //  aggregates into different sets
     static _groupAggregates(ind, aggregates, getAggregateDataFunc, keyFuncs) {
         const result = {};

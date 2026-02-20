@@ -145,7 +145,7 @@ FilterOrder[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = [Inputs.DataType,
 FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.SurveyType];
 FilterOrder[Pages.Overview][OverviewTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
 FilterOrder[Pages.Overview][OverviewTabs.ByOrg] = [Inputs.SurveyType];
-FilterOrder[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = [Inputs.MicroOrganism];
+FilterOrder[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.SurveyType];
 
 // indices for the order of the filter inputs in each tab
 export const FilterOrderInds = {};
@@ -904,7 +904,7 @@ FilterNamesEN[Pages.Overview][OverviewTabs.ByOrg] = {
     "surveyType": "1. Select Survey Type"
 }
 
-// Filter names for "Overview" ==> "By Microorganism"
+// Filter names for "Data Snapshot" ==> "By Microorganism"
 FilterNamesEN[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = {
     "microorganism": "1. Select Microorganism",
     "surveyType": "2. Select Survey Type",

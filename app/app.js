@@ -1015,8 +1015,7 @@ class App {
             this.updateTable("#tempGraphTable", tableColInfo, graphData);*/
         }
 
-        // TODO(miles): remove the second part of this && clause once DataSnapshot graph usine actual data
-        if (graphData === undefined && this.model.pageName !== Pages.DataSnapshot) return;
+        if (graphData === undefined) return;
 
         if (this.model.pageName == Pages.Overview) {
             let overviewGraph = this.graphs[this.model.pageName][tab];
