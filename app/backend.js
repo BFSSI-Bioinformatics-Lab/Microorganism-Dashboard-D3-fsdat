@@ -1635,7 +1635,7 @@ export class Model {
             let selections =
                 this.selections[Pages.DataSnapshot][DataSnapshotTabs.ByFood];
             inputs[Inputs.FoodGroup] = structuredClone(selections[Inputs.FoodGroup]);
-            inputs[Inputs.Food] = new Set();
+            inputs[Inputs.Food] = structuredClone(selections[Inputs.Food]);
             inputs[Inputs.SurveyType] = structuredClone(
                 selections[Inputs.SurveyType],
             );
