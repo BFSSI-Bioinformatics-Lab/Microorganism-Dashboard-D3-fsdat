@@ -1317,6 +1317,31 @@ export class Model {
                 initGroupStat,
                 accumulateGroupStat,
             );
+
+            // DataSnapshot => By Food
+        } else if (
+            page == Pages.DataSnapshot &&
+            tab == DataSnapshotTabs.ByFood
+        ) {
+            grouping = TableTools.groupAggregates(
+                this.samples,
+                (aggregate) => aggregate.data,
+                [
+                    (ind) => this.data[ind][HCDataCols.FoodGroup],
+                    (ind) => this.data[ind][HCDataCols.FoodName],
+                    (ind) => this.data[ind][HCDataCols.SurveyType],
+                ],
+            );
+
+            this.groupings[Pages.DataSnapshot][DataSnapshotTabs.ByFood] =
+                grouping;
+            this.setupGroupingStat(
+                page,
+                tab,
+                filterOrder,
+                initGroupStat,
+                accumulateGroupStat,
+            );
         }
     }
 
@@ -1366,6 +1391,14 @@ export class Model {
         } else if (
             page == Pages.DataSnapshot &&
             tab == DataSnapshotTabs.ByMicroorganism
+        ) {
+            let selections = this.selections[page][tab];
+            selections[Inputs.NumberView] = new Set(Object.values(NumberView));
+
+            // Data Snapshot => By Food
+        } else if (
+            page == Pages.DataSnapshot &&
+            tab == DataSnapshotTabs.ByFood
         ) {
             let selections = this.selections[page][tab];
             selections[Inputs.NumberView] = new Set(Object.values(NumberView));
@@ -1593,6 +1626,23 @@ export class Model {
 
             this.inputs[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] =
                 inputs;
+
+            // Datasnapshot ==> By Food
+        } else if (
+            page == Pages.DataSnapshot &&
+            tab == DataSnapshotTabs.ByFood
+        ) {
+            let selections =
+                this.selections[Pages.DataSnapshot][DataSnapshotTabs.ByFood];
+            inputs[Inputs.FoodGroup] = structuredClone(selections[Inputs.FoodGroup]);
+            inputs[Inputs.Food] = new Set();
+            inputs[Inputs.SurveyType] = structuredClone(
+                selections[Inputs.SurveyType],
+            );
+            inputs[Inputs.Year] = structuredClone(selections[Inputs.Year]);
+            inputs[Inputs.NumberView] = NumberView.Number;
+
+            this.inputs[Pages.DataSnapshot][DataSnapshotTabs.ByFood] = inputs;
         }
     }
 
@@ -2676,7 +2726,7 @@ export class Model {
         return result;
     }
 
-    // computeDataSnapshotGraphData(samples): Builds packed-hierarchy data for the Data Snapshot bubble graph.
+    // computeDataSnapshotGraphData(summaryData): Builds packed-hierarchy data for the Data Snapshot bubble graph.
     //
     // Output shape:
     //  {
@@ -2698,70 +2748,40 @@ export class Model {
     //  }
     //
     // Counting rule:
-    //  - Bubble size is based on number of unique sample contributions per leaf path.
-    //  - Within a sample, duplicated rows for the same
-    //    Food Group + Food Name + Microorganism path are counted once.
-    computeDataSnapshotGraphData(samples) {
+    //  - Bubble size is based on number of unique tested sample codes per genus.
+    computeDataSnapshotGraphData(summaryData) {
         const root = {
             name: Translation.translate("allFoods"),
             children: [],
         };
 
-        if (samples === undefined || Object.keys(samples).length === 0) {
+        if (summaryData === undefined || Object.keys(summaryData).length === 0) {
             return root;
         }
 
         // Intermediate hierarchy (before converting to graph node arrays)
         const groupedHierarchy = {};
-        const unknownLabel = "Unknown";
         const allMicroorganisms = Translation.translate("allMicroorganisms");
 
-        // Internal trie node
+        // Internal hierarchy node
         const createTrieNode = () => {
             return {
-                count: 0,
                 children: {},
+                sampleCodes: new Set(),
             };
         };
 
-        // Iterate over every sample and add microorganism paths under Food Group -> Food Name
-        for (const sampleName in samples) {
-            const sample = samples[sampleName];
-            if (
-                sample === undefined ||
-                sample.data === undefined ||
-                sample.data.length === 0
-            )
-                continue;
+        TableTools.forGroup(
+            summaryData,
+            ["foodGroup", "foodName", "microorganism", "timeGroup"],
+            (keys, values) => {
+                if (groupedHierarchy[keys.foodGroup] === undefined)
+                    groupedHierarchy[keys.foodGroup] = {};
+                if (groupedHierarchy[keys.foodGroup][keys.foodName] === undefined)
+                    groupedHierarchy[keys.foodGroup][keys.foodName] = createTrieNode();
 
-            // Deduplicate repeated rows in a sample for the same Food Group/Food Name/Microorganism path
-            //  TODO (miles): I think this is only necessary for ecoli? i.e. if two rows differ by Ecoli CFIA Category
-            const sampleMicroorganismRows = new Map();
-            for (const rowInd of sample.data) {
-                const dataRow = this.data[rowInd];
-                if (dataRow === undefined) continue;
-
-                const foodGroup = dataRow[HCDataCols.FoodGroup] || unknownLabel;
-                const foodName = dataRow[HCDataCols.FoodName] || unknownLabel;
-                const microorganism = dataRow[HCDataCols.Microorganism];
-                if (microorganism === undefined || microorganism === "") continue;
-
-                const rowKey = `${foodGroup}\u0000${foodName}\u0000${microorganism}`;
-                sampleMicroorganismRows.set(rowKey, {
-                    foodGroup,
-                    foodName,
-                    microorganism,
-                });
-            }
-
-            for (const { foodGroup, foodName, microorganism } of sampleMicroorganismRows.values()) {
-                if (groupedHierarchy[foodGroup] === undefined)
-                    groupedHierarchy[foodGroup] = {};
-                if (groupedHierarchy[foodGroup][foodName] === undefined)
-                    groupedHierarchy[foodGroup][foodName] = createTrieNode();
-
-                // Split full taxonomy
-                let microorganismParts = microorganism
+                // Split full taxonomy and keep only Agent and Genus levels
+                let microorganismParts = keys.microorganism
                     .split(PhylogeneticDelim)
                     .filter((part) => part !== undefined && part !== "");
                 if (
@@ -2770,55 +2790,53 @@ export class Model {
                 ) {
                     microorganismParts = microorganismParts.slice(1);
                 }
-                if (microorganismParts.length === 0) continue;
+                if (microorganismParts.length < 2) return;
 
+                const agent = microorganismParts[0];
+                const genus = microorganismParts[1];
 
-                // Recursively insert into trie
-                let currentNode = groupedHierarchy[foodGroup][foodName];
-                for (const microorganismPart of microorganismParts) {
-                    if (currentNode.children[microorganismPart] === undefined) {
-                        currentNode.children[microorganismPart] = createTrieNode();
+                // Build Food Group -> Food Name -> Agent -> Genus
+                let currentNode = groupedHierarchy[keys.foodGroup][keys.foodName];
+                if (currentNode.children[agent] === undefined) {
+                    currentNode.children[agent] = createTrieNode();
+                }
+                currentNode = currentNode.children[agent];
+                if (currentNode.children[genus] === undefined) {
+                    currentNode.children[genus] = createTrieNode();
+                }
+                currentNode = currentNode.children[genus];
+
+                const microorganismSummary = values.timeGroup;
+                const testedSamples = microorganismSummary[SummaryAtts.Tested];
+                if (testedSamples !== undefined) {
+                    for (const sampleCode of testedSamples) {
+                        currentNode.sampleCodes.add(sampleCode);
                     }
-
-                    currentNode = currentNode.children[microorganismPart];
                 }
+            },
+        );
 
-                currentNode.count += 1;
-            }
-        } // sample iteration
-
-        // Convert trie nodes to graph nodes recursively
-        const toMicroorganismNodes = (trieNode) => {
-            const result = [];
-
-            for (const nodeName in trieNode.children) {
-                const childTrieNode = trieNode.children[nodeName];
-                const childNodes = toMicroorganismNodes(childTrieNode);
-
-                const node = {
-                    name: nodeName,
-                    value: childTrieNode.count,
-                };
-
-                if (childNodes.length > 0) {
-                    node.children = childNodes;
-                }
-
-                result.push(node);
-            }
-
-            return result;
-        };
-
-        // Build final graph hierarchy: Food Group -> Food Name -> Microorganism
+        // Build final graph hierarchy: Food Group -> Food Name -> Agent -> Genus
         for (const foodGroup in groupedHierarchy) {
             const foodGroupNode = { name: foodGroup, children: [] };
 
             for (const foodName in groupedHierarchy[foodGroup]) {
-                const foodNode = {
-                    name: foodName,
-                    children: toMicroorganismNodes(groupedHierarchy[foodGroup][foodName]),
-                };
+                const foodNode = { name: foodName, children: [] };
+
+                const agentNodes = groupedHierarchy[foodGroup][foodName].children;
+                for (const agent in agentNodes) {
+                    const genusNodes = agentNodes[agent].children;
+                    const agentNode = { name: agent, children: [] };
+
+                    for (const genus in genusNodes) {
+                        agentNode.children.push({
+                            name: genus,
+                            value: genusNodes[genus].sampleCodes.size,
+                        });
+                    }
+
+                    foodNode.children.push(agentNode);
+                }
 
                 foodGroupNode.children.push(foodNode);
             }
@@ -2845,26 +2863,32 @@ export class Model {
         const inputs = this.getInputs({ page, tab });
         const timeGroup = inputs[Inputs.TimeGroup];
 
-        let groupedSamples = TableTools.groupAggregates(
-            samples,
-            (aggregate) => aggregate.data,
+        const groupingOrder = (
+            page == Pages.DataSnapshot
+        ) ?
+            [
+                (ind) => this.data[ind][HCDataCols.FoodGroup],
+                (ind) => this.data[ind][HCDataCols.FoodName],
+                (ind) => this.data[ind][HCDataCols.Microorganism],
+                (ind) => this.getTimeKey(ind, timeGroup),
+            ] :
             [
                 (ind) => this.data[ind][HCDataCols.SurveyType],
                 (ind) => this.data[ind][HCDataCols.FoodName],
                 (ind) => this.data[ind][HCDataCols.Microorganism],
                 (ind) => this.getTimeKey(ind, timeGroup),
-            ],
+            ];
+
+        let groupedSamples = TableTools.groupAggregates(
+            samples,
+            (aggregate) => aggregate.data,
+            groupingOrder,
         );
 
         let denomGroupedSamples = TableTools.groupAggregates(
             denomSamples,
             (aggregate) => aggregate.data,
-            [
-                (ind) => this.data[ind][HCDataCols.SurveyType],
-                (ind) => this.data[ind][HCDataCols.FoodName],
-                (ind) => this.data[ind][HCDataCols.Microorganism],
-                (ind) => this.getTimeKey(ind, timeGroup),
-            ],
+            groupingOrder,
         );
 
         const microorganismTree = this.getMicroOrganismTree({ page, tab });
@@ -3004,7 +3028,15 @@ export class Model {
             page == Pages.DataSnapshot &&
             tab == DataSnapshotTabs.ByMicroorganism
         ) {
-            this.graphData[page][tab] = this.computeDataSnapshotGraphData(samples);
+            // TODO: implement this
+            this.graphData[page][tab] = undefined; // this.computeDataSnapshotGraphData(summaryData);
+
+            // Data Snapshot --> By Food
+        } else if (
+            page == Pages.DataSnapshot &&
+            tab == DataSnapshotTabs.ByFood
+        ) {
+            this.graphData[page][tab] = this.computeDataSnapshotGraphData(summaryData);
         }
     }
 

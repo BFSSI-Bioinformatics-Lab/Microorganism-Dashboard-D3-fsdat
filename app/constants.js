@@ -110,6 +110,7 @@ export const OverviewTabs = {
 // Tabs in the "Data Snapshot" page
 export const DataSnapshotTabs = {
     ByMicroorganism: "ByMicroorganism",
+    ByFood: "ByFood",
 }
 
 // All tabs on the app
@@ -146,6 +147,7 @@ FilterOrder[Pages.Overview][OverviewTabs.ByMicroorganism] = [Inputs.MicroOrganis
 FilterOrder[Pages.Overview][OverviewTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
 FilterOrder[Pages.Overview][OverviewTabs.ByOrg] = [Inputs.SurveyType];
 FilterOrder[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = [Inputs.MicroOrganism, Inputs.SurveyType];
+FilterOrder[Pages.DataSnapshot][DataSnapshotTabs.ByFood] = [Inputs.FoodGroup, Inputs.Food, Inputs.SurveyType];
 
 // indices for the order of the filter inputs in each tab
 export const FilterOrderInds = {};
@@ -172,6 +174,7 @@ TabInputs[Pages.Overview][OverviewTabs.ByMicroorganism] = new Set(FilterOrder[Pa
 TabInputs[Pages.Overview][OverviewTabs.ByFood] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByFood].concat([Inputs.Year]));
 TabInputs[Pages.Overview][OverviewTabs.ByOrg] = new Set(FilterOrder[Pages.Overview][OverviewTabs.ByOrg].concat([Inputs.Year]));
 TabInputs[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = new Set(FilterOrder[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism].concat([Inputs.Year]));
+TabInputs[Pages.DataSnapshot][DataSnapshotTabs.ByFood] = new Set(FilterOrder[Pages.DataSnapshot][DataSnapshotTabs.ByFood].concat([Inputs.Year]));
 
 // Default selected pages and tabs
 export const DefaultPage = Pages.Overview;
@@ -853,6 +856,7 @@ OverviewTabsEN[OverviewTabs.ByOrg] = "By Org";
 // names for the "Data Snapshot" sections
 const DataSnapshotTabsEN = {};
 DataSnapshotTabsEN[DataSnapshotTabs.ByMicroorganism] = "By Microorganism";
+DataSnapshotTabsEN[DataSnapshotTabs.ByFood] = "By Food";
 
 // names for the filters
 const FilterNamesEN = {};
@@ -907,6 +911,14 @@ FilterNamesEN[Pages.Overview][OverviewTabs.ByOrg] = {
 // Filter names for "Data Snapshot" ==> "By Microorganism"
 FilterNamesEN[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = {
     "microorganism": "1. Select Microorganism",
+    "surveyType": "2. Select Survey Type",
+    "year": "3. Select Year",
+    "adjustGraph": "4. Adjust Graph"
+}
+
+// Filter names for "Data Snapshot" ==> "By Food"
+FilterNamesEN[Pages.DataSnapshot][DataSnapshotTabs.ByFood] = {
+    "food": "1. Select Food(s)",
     "surveyType": "2. Select Survey Type",
     "year": "3. Select Year",
     "adjustGraph": "4. Adjust Graph"
@@ -1406,12 +1418,19 @@ OverviewTabsFR[OverviewTabs.ByFood] = REMPLACER_MOI;
 OverviewTabsFR[OverviewTabs.ByMicroorganism] = REMPLACER_MOI;
 OverviewTabsFR[OverviewTabs.ByOrg] = REMPLACER_MOI;
 
+// names for the "Data Snapshot" sections
+const DataSnapshotTabsFR = {};
+DataSnapshotTabsFR[DataSnapshotTabs.ByMicroorganism] = REMPLACER_MOI;
+DataSnapshotTabsFR[DataSnapshotTabs.ByFood] = REMPLACER_MOI;
+
 // names for the filters
 const FilterNamesFR = {};
 FilterNamesFR[Pages.TrendsOverTime] = {};
 FilterNamesFR[Pages.Overview] = {};
+FilterNamesFR[Pages.DataSnapshot] = {};
 Object.keys(TrendsOverTimeTabs).forEach((section) => { FilterNamesFR[Pages.TrendsOverTime][section] = {} });
 Object.keys(OverviewTabs).forEach((section) => { FilterNamesFR[Pages.TrendsOverTime][section] = {} });
+Object.keys(DataSnapshotTabs).forEach((section) => { FilterNamesFR[Pages.DataSnapshot][section] = {} });
 
 // Filter names for "Trends Over Time" ==> "By Food"
 FilterNamesFR[Pages.TrendsOverTime][TrendsOverTimeTabs.ByFood] = {
@@ -1452,6 +1471,22 @@ FilterNamesFR[Pages.Overview][OverviewTabs.ByFood] = {
 // Filter names for "Overview" ==> "By Org"
 FilterNamesFR[Pages.Overview][OverviewTabs.ByOrg] = {
     "surveyType": REMPLACER_MOI
+}
+
+// Filter names for "Data Snapshot" ==> "By Microorganism"
+FilterNamesFR[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = {
+    "microorganism": REMPLACER_MOI,
+    "surveyType": REMPLACER_MOI,
+    "year": REMPLACER_MOI,
+    "adjustGraph": REMPLACER_MOI
+}
+
+// Filter names for "Data Snapshot" ==> "By Food"
+FilterNamesFR[Pages.DataSnapshot][DataSnapshotTabs.ByFood] = {
+    "food": REMPLACER_MOI,
+    "surveyType": REMPLACER_MOI,
+    "year": REMPLACER_MOI,
+    "adjustGraph": REMPLACER_MOI
 }
 
 // Survey Types
@@ -1616,6 +1651,7 @@ const LangFR = {
     themes: ColourThemesFR,
     TrendsOverTimeTabs: TrendsOverTimeTabsFR,
     OverviewTabs: OverviewTabsFR,
+    DataSnapshotTabs: DataSnapshotTabsFR,
     filterNames: FilterNamesFR,
 
     "allFoodGroups": REMPLACER_MOI,
