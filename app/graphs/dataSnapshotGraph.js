@@ -31,7 +31,7 @@ export class DataSnapshotGraph extends BaseGraph {
             this.noDataDrawn = false;
         }
 
-        const width = 1200;
+        const width = 900;
         const height = width;
 
         // Create the color scale.
@@ -76,7 +76,14 @@ export class DataSnapshotGraph extends BaseGraph {
                     clearHoveredNodes();
                 }
             })
-            .on("click", (event, d) => d.children && focus !== d && (zoom(event, d), event.stopPropagation()));
+            .on("click", (event, d) => {
+                const oneStepTarget = resolveOneStepTarget(d);
+
+                if (oneStepTarget && oneStepTarget.children && focus !== oneStepTarget) {
+                    zoom(event, oneStepTarget);
+                    event.stopPropagation();
+                }
+            });
 
         // Append boxed labels.
         const labelLayer = svg.append("g")
@@ -97,6 +104,8 @@ export class DataSnapshotGraph extends BaseGraph {
             .attr("y", 0)
             .attr("width", 0)
             .attr("height", 0)
+            .attr("rx", 4)
+            .attr("ry", 4)
             .attr("fill", "#000");
 
         labelGroup.append("text")
@@ -177,6 +186,37 @@ export class DataSnapshotGraph extends BaseGraph {
                 const isExpanded = hoveredNodes.has(nodeData);
                 updateSingleLabel(groupSelection, nodeData, isExpanded);
             });
+        };
+
+        const resolveOneStepTarget = (clickedNode) => {
+            if (!clickedNode || clickedNode === focus) {
+                return null;
+            }
+
+            const focusAncestors = new Set(focus.ancestors());
+            const clickedAncestors = clickedNode.ancestors();
+            const clickedContainsFocus = focusAncestors.has(clickedNode);
+            const focusContainsClicked = clickedAncestors.includes(focus);
+
+            if (focusContainsClicked) {
+                return clickedAncestors.find((ancestor) => ancestor.parent === focus) || null;
+            }
+
+            if (clickedContainsFocus) {
+                return focus.parent || null;
+            }
+
+            const commonAncestor = clickedAncestors.find((ancestor) => focusAncestors.has(ancestor));
+
+            if (!commonAncestor) {
+                return null;
+            }
+
+            if (commonAncestor === focus) {
+                return clickedAncestors.find((ancestor) => ancestor.parent === focus) || null;
+            }
+
+            return focus.parent || null;
         };
 
         const updateBreadcrumb = (node) => {
