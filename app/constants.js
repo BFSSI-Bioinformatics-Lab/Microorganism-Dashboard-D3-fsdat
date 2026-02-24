@@ -366,6 +366,31 @@ SampleStateColours[SampleState.Detected] = "var(--detected)";
 SampleStateColours[SampleState.NotDetected] = "var(--notDetected)";
 SampleStateColours[SampleState.NotTested] = "var(--notTested)";
 
+// Data Snapshot bubble colours
+export const DataSnapshotFoodCategoryColours = {
+    "Carrots": "#ffa600",
+    "Fresh Vegetables, Remaining": "#2a9d3d",
+    "Fresh mollusks, crustaceans, and echinoderms": "#4c78a8",
+    "Frozen fish, fish fillets, and fish products, incl mollusks, etc.": "#5e548e",
+    "Frozen fruit": "#f4a261",
+    "Peas": "#8ab17d",
+    "Processed fish and fish products, incl mollusks, etc.": "#457b9d",
+    "Dairy products and analogues, excl butter ": "#200fbd",
+    "Eggs and egg products": "#c9ff05",
+    "Environmental Samples": "#575757",
+    "Fish and fish products, including mollusks, crustaceans, and echinoderms": "#5e548e",
+    "Foodstuffs intended for particular nutritional uses": "#ff58f1",
+    "Fruits and vegetables (incl fungi, legumes, aloe), seaweeds, nuts, seeds": "#0fbd40",
+    "Meat and meat products, including poultry and game": "#ff0000",
+};
+
+export const DataSnapshotAgentColours = {
+    "Bacteria": "#3a86ff",
+    "Virus": "#ff006e",
+    "Parasite": "#8338ec",
+    "Indicator": "#2a9d8f",
+};
+
 export const MaxGraphColours = 50;
 
 // Attributes names for the summary data
