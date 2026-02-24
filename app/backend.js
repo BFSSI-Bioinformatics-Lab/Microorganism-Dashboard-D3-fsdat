@@ -2728,6 +2728,7 @@ export class Model {
 
     // computeDataSnapshotGraphData(summaryData): Converts summaryData into the format needed for the Data Snapshot bubble graph
     computeDataSnapshotGraphData(summaryData) {
+        console.log(summaryData);
         const root = {
             name: Translation.translate("allFoods"),
             children: [],
@@ -2745,7 +2746,8 @@ export class Model {
         const createTrieNode = () => {
             return {
                 children: {},
-                sampleCodes: new Set(),
+                testedSampleCodes: new Set(),
+                detectedSampleCodes: new Set(),
             };
         };
 
@@ -2774,21 +2776,32 @@ export class Model {
                 const genus = microorganismParts[1];
 
                 // Build Food Group -> Food Name -> Agent -> Genus
-                let currentNode = groupedHierarchy[keys.foodGroup][keys.foodName];
-                if (currentNode.children[agent] === undefined) {
-                    currentNode.children[agent] = createTrieNode();
+                const foodNode = groupedHierarchy[keys.foodGroup][keys.foodName];
+                if (foodNode.children[agent] === undefined) {
+                    foodNode.children[agent] = createTrieNode();
                 }
-                currentNode = currentNode.children[agent];
-                if (currentNode.children[genus] === undefined) {
-                    currentNode.children[genus] = createTrieNode();
+                const agentNode = foodNode.children[agent];
+                if (agentNode.children[genus] === undefined) {
+                    agentNode.children[genus] = createTrieNode();
                 }
-                currentNode = currentNode.children[genus];
+                const genusNode = agentNode.children[genus];
 
                 const microorganismSummary = values.timeGroup;
                 const testedSamples = microorganismSummary[SummaryAtts.Tested];
                 if (testedSamples !== undefined) {
                     for (const sampleCode of testedSamples) {
-                        currentNode.sampleCodes.add(sampleCode);
+                        foodNode.testedSampleCodes.add(sampleCode);
+                        agentNode.testedSampleCodes.add(sampleCode);
+                        genusNode.testedSampleCodes.add(sampleCode);
+                    }
+                }
+
+                const detectedSamples = microorganismSummary[SummaryAtts.Detected];
+                if (detectedSamples !== undefined) {
+                    for (const sampleCode of detectedSamples) {
+                        foodNode.detectedSampleCodes.add(sampleCode);
+                        agentNode.detectedSampleCodes.add(sampleCode);
+                        genusNode.detectedSampleCodes.add(sampleCode);
                     }
                 }
             },
@@ -2804,12 +2817,19 @@ export class Model {
                 const agentNodes = groupedHierarchy[foodGroup][foodName].children;
                 for (const agent in agentNodes) {
                     const genusNodes = agentNodes[agent].children;
-                    const agentNode = { name: agent, children: [] };
+                    const agentNode = {
+                        name: agent,
+                        testedCount: agentNodes[agent].testedSampleCodes.size,
+                        detectedCount: agentNodes[agent].detectedSampleCodes.size,
+                        children: [],
+                    };
 
                     for (const genus in genusNodes) {
                         agentNode.children.push({
                             name: genus,
-                            value: genusNodes[genus].sampleCodes.size,
+                            value: genusNodes[genus].testedSampleCodes.size,
+                            testedCount: genusNodes[genus].testedSampleCodes.size,
+                            detectedCount: genusNodes[genus].detectedSampleCodes.size,
                         });
                     }
 

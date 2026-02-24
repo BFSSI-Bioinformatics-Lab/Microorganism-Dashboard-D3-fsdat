@@ -227,7 +227,28 @@ export class DataSnapshotGraph extends BaseGraph {
         });
 
         const truncateLabel = (labelText, maxWidth) => this.getTruncatedLabel(labelText, maxWidth);
-        const fullLabelForNode = (nodeData) => nodeData.children ? nodeData.data.name : `${nodeData.data.name} (${nodeData.value} samples)`;
+        const fullLabelForNode = (nodeData) => {
+            const testedCount =
+                nodeData.data.testedCount === undefined
+                    ? (nodeData.value === undefined ? 0 : nodeData.value)
+                    : nodeData.data.testedCount;
+            const detectedCount =
+                nodeData.data.detectedCount === undefined
+                    ? 0
+                    : nodeData.data.detectedCount;
+
+            if (nodeData.depth === 3) {
+                return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
+            }
+
+            if (nodeData.depth === 4) {
+                return `${nodeData.data.name} (${detectedCount} detected)`;
+            }
+
+            return nodeData.children
+                ? nodeData.data.name
+                : `${nodeData.data.name} (${testedCount} samples)`;
+        };
 
         const updateSingleLabel = (groupSelection, nodeData, isExpanded = false) => {
             const radius = nodeData.r * currentScale;
