@@ -2726,29 +2726,7 @@ export class Model {
         return result;
     }
 
-    // computeDataSnapshotGraphData(summaryData): Builds packed-hierarchy data for the Data Snapshot bubble graph.
-    //
-    // Output shape:
-    //  {
-    //      name: "All Foods",
-    //      children: [
-    //          {
-    //              name: <Food Group>,
-    //              children: [
-    //                  {
-    //                      name: <Food Name>,
-    //                      children: [
-    //                          // nested microorganism taxonomy levels
-    //                          { name: <taxonomy node>, value?: <leaf count>, children?: [...] }
-    //                      ]
-    //                  }
-    //              ]
-    //          }
-    //      ]
-    //  }
-    //
-    // Counting rule:
-    //  - Bubble size is based on number of unique tested sample codes per genus.
+    // computeDataSnapshotGraphData(summaryData): Converts summaryData into the format needed for the Data Snapshot bubble graph
     computeDataSnapshotGraphData(summaryData) {
         const root = {
             name: Translation.translate("allFoods"),
@@ -3029,7 +3007,7 @@ export class Model {
             tab == DataSnapshotTabs.ByMicroorganism
         ) {
             // TODO: implement this
-            this.graphData[page][tab] = undefined; // this.computeDataSnapshotGraphData(summaryData);
+            this.graphData[page][tab] = []; // this.computeDataSnapshotGraphData(summaryData);
 
             // Data Snapshot --> By Food
         } else if (

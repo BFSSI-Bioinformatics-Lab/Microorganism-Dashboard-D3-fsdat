@@ -24,6 +24,19 @@ export class DataSnapshotGraph extends BaseGraph {
         super.update();
         // Specify the chart’s dimensions.
         let data = this.model.getGraphData();
+        console.log(data);
+        const dataEmpty =
+            data === undefined ||
+            data === null ||
+            data.children === undefined ||
+            data.children.length == 0;
+
+        // Display the "No Data" text when no data is available
+        if (dataEmpty && !this.noDataDrawn) {
+            this.drawNoData();
+        }
+
+        if (dataEmpty) return;
 
         if (!this.isDrawn) {
             this.setup();

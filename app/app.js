@@ -643,6 +643,7 @@ class App {
             .data(orderedSelections)
             .enter()
             .append("option")
+            .attr("value", (d) => d)
             .text((d) => d);
 
         dropdown = $(dropdownSelector).selectpicker({

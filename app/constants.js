@@ -10,45 +10,6 @@
 //                                                     //
 /////////////////////////////////////////////////////////
 
-// ################## DUMMY DATA ###############################
-export const DATA_SNAPSHOT_DUMMY_GRAPH_DATA = {
-    "name": "All Microorgranisms",
-    "children": [
-        {
-            "name": "Bacteria",
-            "children": [
-                {
-                    "name": "sub-bacteria",
-                    "children": [
-                        {
-                            "name": "species-1",
-                            "value": 100
-                        },
-                        {
-                            "name": "species-2",
-                            "value": 50
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "Virus",
-            "children": [
-                {
-                    "name": "item B1",
-                    "value": 80
-                },
-                {
-                    "name": "item B2",
-                    "value": 30
-                }
-            ]
-        }
-    ]
-}
-
-
 // ################## CONSTANTS ###############################
 
 // Different Pages in the App
