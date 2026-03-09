@@ -22,6 +22,36 @@ export class DataSnapshotGraph extends BaseGraph {
             .style("font-weight", "600")
             .style("margin", "0 0 8px 0")
             .style("min-height", "22px");
+
+        this.contentRow = this.graph.append("div")
+            .classed("dataSnapshotContentRow", true)
+            .style("display", "flex")
+            .style("align-items", "flex-start")
+            .style("gap", "14px")
+            .style("width", "100%");
+
+        this.chartContainer = this.contentRow.append("div")
+            .classed("dataSnapshotChartContainer", true)
+            .style("flex", "1 1 auto")
+            .style("min-width", "0");
+
+        this.legendContainer = this.contentRow.append("div")
+            .classed("dataSnapshotLegend", true)
+            .style("margin", "0")
+            .style("flex", "0 0 220px");
+
+        this.legendContainer.append("div")
+            .classed("dataSnapshotLegendTitle", true)
+            .style("font-size", "14px")
+            .style("font-weight", "600")
+            .style("margin", "0 0 6px 0")
+            .text("Food Groups");
+
+        this.legendItems = this.legendContainer.append("div")
+            .classed("dataSnapshotLegendItems", true)
+            .style("display", "flex")
+            .style("flex-direction", "column")
+            .style("gap", "6px");
     }
 
     update() {
@@ -238,10 +268,65 @@ export class DataSnapshotGraph extends BaseGraph {
             }
         });
 
+        const renderLegend = () => {
+            const foodGroupNodes = (root.children || [])
+                .slice()
+                .sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+            const entries = this.legendItems
+                .selectAll("button")
+                .data(foodGroupNodes, (nodeData) => nodeData.data.name)
+                .join(
+                    (enter) => {
+                        const button = enter.append("button")
+                            .attr("type", "button")
+                            .style("display", "inline-flex")
+                            .style("align-items", "center")
+                            .style("gap", "6px")
+                            .style("padding", "2px 4px")
+                            .style("border", "none")
+                            .style("background", "transparent")
+                            .style("cursor", "pointer")
+                            .style("font", "12px sans-serif")
+                            .style("color", "#191923");
+
+                        button.append("span")
+                            .classed("dataSnapshotLegendSwatch", true)
+                            .style("width", "15px")
+                            .style("height", "15px")
+                            .style("border", "1px solid #191923")
+                            .style("display", "inline-block")
+                            .style("flex", "0 0 auto");
+
+                        button.append("span")
+                            .classed("dataSnapshotLegendLabel", true)
+                            .style("text-align", "left");
+
+                        return button;
+                    },
+                    (update) => update,
+                    (exit) => exit.remove(),
+                );
+
+            entries
+                .on("click", (event, nodeData) => {
+                    event.preventDefault();
+                    if (focus !== nodeData) {
+                        zoom({ altKey: false }, nodeData);
+                    }
+                });
+
+            entries.select(".dataSnapshotLegendSwatch")
+                .style("background-color", (nodeData) => getBubbleFill(nodeData));
+
+            entries.select(".dataSnapshotLegendLabel")
+                .text((nodeData) => nodeData.data.name);
+        };
+
         // Create the SVG container.
-        this.graph.selectAll("svg").remove();
+        this.chartContainer.selectAll("svg").remove();
         this.breadcrumbLabel.text("");
-        const svg = this.graph.append("svg")
+        const svg = this.chartContainer.append("svg")
             .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
             .attr("width", width)
             .attr("height", height)
@@ -253,7 +338,7 @@ export class DataSnapshotGraph extends BaseGraph {
             .data(root.descendants().slice(1))
             .join("circle")
             .attr("fill", d => getBubbleFill(d))
-            .attr("stroke", "#000")
+            .attr("stroke", "#191923")
             .attr("stroke-width", 1)
             .attr("pointer-events", "all")
             .on("mouseover", (event, d) => {
@@ -444,6 +529,7 @@ export class DataSnapshotGraph extends BaseGraph {
 
         updateBreadcrumb(focus);
         zoomTo([focus.x, focus.y, focus.r * 2]);
+        renderLegend();
 
         function zoomTo(v) {
             const k = width / v[2];
