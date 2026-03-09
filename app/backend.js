@@ -2728,7 +2728,6 @@ export class Model {
 
     // computeDataSnapshotGraphData(summaryData): Converts summaryData into the format needed for the Data Snapshot bubble graph
     computeDataSnapshotGraphData(summaryData) {
-        console.log(summaryData);
         const root = {
             name: Translation.translate("allFoods"),
             children: [],
@@ -2755,10 +2754,16 @@ export class Model {
             summaryData,
             ["foodGroup", "foodName", "microorganism", "timeGroup"],
             (keys, values) => {
-                if (groupedHierarchy[keys.foodGroup] === undefined)
-                    groupedHierarchy[keys.foodGroup] = {};
-                if (groupedHierarchy[keys.foodGroup][keys.foodName] === undefined)
-                    groupedHierarchy[keys.foodGroup][keys.foodName] = createTrieNode();
+                if (groupedHierarchy[keys.foodGroup] === undefined) {
+                    groupedHierarchy[keys.foodGroup] = createTrieNode();
+                }
+                if (
+                    groupedHierarchy[keys.foodGroup].children[keys.foodName] ===
+                    undefined
+                ) {
+                    groupedHierarchy[keys.foodGroup].children[keys.foodName] =
+                        createTrieNode();
+                }
 
                 // Split full taxonomy and keep only Agent and Genus levels
                 let microorganismParts = keys.microorganism
@@ -2776,7 +2781,8 @@ export class Model {
                 const genus = microorganismParts[1];
 
                 // Build Food Group -> Food Name -> Agent -> Genus
-                const foodNode = groupedHierarchy[keys.foodGroup][keys.foodName];
+                const foodGroupNode = groupedHierarchy[keys.foodGroup];
+                const foodNode = foodGroupNode.children[keys.foodName];
                 if (foodNode.children[agent] === undefined) {
                     foodNode.children[agent] = createTrieNode();
                 }
@@ -2790,6 +2796,7 @@ export class Model {
                 const testedSamples = microorganismSummary[SummaryAtts.Tested];
                 if (testedSamples !== undefined) {
                     for (const sampleCode of testedSamples) {
+                        foodGroupNode.testedSampleCodes.add(sampleCode);
                         foodNode.testedSampleCodes.add(sampleCode);
                         agentNode.testedSampleCodes.add(sampleCode);
                         genusNode.testedSampleCodes.add(sampleCode);
@@ -2799,6 +2806,7 @@ export class Model {
                 const detectedSamples = microorganismSummary[SummaryAtts.Detected];
                 if (detectedSamples !== undefined) {
                     for (const sampleCode of detectedSamples) {
+                        foodGroupNode.detectedSampleCodes.add(sampleCode);
                         foodNode.detectedSampleCodes.add(sampleCode);
                         agentNode.detectedSampleCodes.add(sampleCode);
                         genusNode.detectedSampleCodes.add(sampleCode);
@@ -2809,12 +2817,24 @@ export class Model {
 
         // Build final graph hierarchy: Food Group -> Food Name -> Agent -> Genus
         for (const foodGroup in groupedHierarchy) {
-            const foodGroupNode = { name: foodGroup, children: [] };
+            const foodGroupData = groupedHierarchy[foodGroup];
+            const foodGroupNode = {
+                name: foodGroup,
+                testedCount: foodGroupData.testedSampleCodes.size,
+                detectedCount: foodGroupData.detectedSampleCodes.size,
+                children: [],
+            };
 
-            for (const foodName in groupedHierarchy[foodGroup]) {
-                const foodNode = { name: foodName, children: [] };
+            for (const foodName in foodGroupData.children) {
+                const foodData = foodGroupData.children[foodName];
+                const foodNode = {
+                    name: foodName,
+                    testedCount: foodData.testedSampleCodes.size,
+                    detectedCount: foodData.detectedSampleCodes.size,
+                    children: [],
+                };
 
-                const agentNodes = groupedHierarchy[foodGroup][foodName].children;
+                const agentNodes = foodData.children;
                 for (const agent in agentNodes) {
                     const genusNodes = agentNodes[agent].children;
                     const agentNode = {

@@ -904,10 +904,10 @@ FilterNamesEN[Pages.DataSnapshot][DataSnapshotTabs.ByMicroorganism] = {
 
 // Filter names for "Data Snapshot" ==> "By Food"
 FilterNamesEN[Pages.DataSnapshot][DataSnapshotTabs.ByFood] = {
-    "food": "1. Select Food(s)",
-    "surveyType": "2. Select Survey Type",
-    "year": "3. Select Year",
-    "adjustGraph": "4. Adjust Graph"
+    // "food": "1. Select Food(s)",
+    "surveyType": "1. Select Survey Type",
+    "year": "2. Select Year"
+    // "adjustGraph": "4. Adjust Graph"
 }
 
 // Survey Types

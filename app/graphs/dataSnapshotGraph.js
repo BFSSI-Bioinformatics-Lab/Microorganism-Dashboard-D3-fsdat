@@ -125,13 +125,118 @@ export class DataSnapshotGraph extends BaseGraph {
         };
 
         // Compute the layout.
-        const pack = data => d3.pack()
+        // Stage 1: size root -> foodGroup -> foodName -> agent using agent testedCount.
+        // Stage 2: size descendants within each fixed-size agent bubble.
+        const root = d3.hierarchy(data);
+
+        const getNodeWeight = (nodeData) => {
+            const testedCount = nodeData.data?.testedCount;
+            if (typeof testedCount === "number" && !Number.isNaN(testedCount)) {
+                return Math.max(0, testedCount);
+            }
+
+            const value = nodeData.data?.value;
+            if (typeof value === "number" && !Number.isNaN(value)) {
+                return Math.max(0, value);
+            }
+
+            if (nodeData.children && nodeData.children.length > 0) {
+                return d3.sum(nodeData.children, (childNode) => getNodeWeight(childNode));
+            }
+
+            return 0;
+        };
+
+        const topLevelData = {
+            name: data.name,
+            children: (data.children || []).map((foodGroup) => ({
+                name: foodGroup.name,
+                children: (foodGroup.children || []).map((foodName) => ({
+                    name: foodName.name,
+                    children: (foodName.children || []).map((agent) => ({
+                        name: agent.name,
+                        value: Math.max(0, agent.testedCount ?? agent.value ?? 0),
+                    })),
+                })),
+            })),
+        };
+
+        const topLevelRoot = d3.hierarchy(topLevelData)
+            .sum((nodeData) => nodeData.value || 0)
+            .sort((a, b) => (b.value || 0) - (a.value || 0));
+
+        d3.pack()
             .size([width, height])
             .padding(3)
-            (d3.hierarchy(data)
-                .sum(d => d.value)
-                .sort((a, b) => b.value - a.value));
-        const root = pack(data);
+            (topLevelRoot);
+
+        const positionByPath = new Map();
+        topLevelRoot.descendants().forEach((nodeData) => {
+            const pathKey = nodeData.ancestors()
+                .reverse()
+                .map((ancestor) => ancestor.data.name)
+                .join("||");
+            positionByPath.set(pathKey, { x: nodeData.x, y: nodeData.y, r: nodeData.r });
+        });
+
+        root.descendants().forEach((nodeData) => {
+            const pathKey = nodeData.ancestors()
+                .reverse()
+                .map((ancestor) => ancestor.data.name)
+                .join("||");
+            const positionedNode = positionByPath.get(pathKey);
+
+            if (positionedNode) {
+                nodeData.x = positionedNode.x;
+                nodeData.y = positionedNode.y;
+                nodeData.r = positionedNode.r;
+            }
+        });
+
+        const layoutChildrenInsideParent = (parentNode) => {
+            if (!parentNode.children || parentNode.children.length === 0) {
+                return;
+            }
+
+            const availableRadius = Math.max(0, parentNode.r - 3);
+            if (availableRadius <= 0) {
+                parentNode.children.forEach((childNode) => {
+                    childNode.x = parentNode.x;
+                    childNode.y = parentNode.y;
+                    childNode.r = 0;
+                    layoutChildrenInsideParent(childNode);
+                });
+                return;
+            }
+
+            const circles = parentNode.children.map((childNode) => {
+                const weight = getNodeWeight(childNode);
+                return {
+                    node: childNode,
+                    r: Math.sqrt(weight > 0 ? weight : 1),
+                };
+            });
+
+            d3.packSiblings(circles);
+            const enclosingCircle = d3.packEnclose(circles);
+            const enclosingRadius = Math.max(1, enclosingCircle.r);
+            const scale = availableRadius / enclosingRadius;
+
+            circles.forEach((circle) => {
+                const childNode = circle.node;
+                childNode.x = parentNode.x + (circle.x * scale);
+                childNode.y = parentNode.y + (circle.y * scale);
+                childNode.r = circle.r * scale;
+
+                layoutChildrenInsideParent(childNode);
+            });
+        };
+
+        root.descendants().forEach((nodeData) => {
+            if (nodeData.depth === 3) {
+                layoutChildrenInsideParent(nodeData);
+            }
+        });
 
         // Create the SVG container.
         this.graph.selectAll("svg").remove();
@@ -237,17 +342,21 @@ export class DataSnapshotGraph extends BaseGraph {
                     ? 0
                     : nodeData.data.detectedCount;
 
+            if (nodeData.depth === 1 || nodeData.depth === 2) {
+                return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
+            }
+
             if (nodeData.depth === 3) {
                 return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
             }
 
             if (nodeData.depth === 4) {
-                return `${nodeData.data.name} (${detectedCount} detected)`;
+                return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
             }
 
             return nodeData.children
                 ? nodeData.data.name
-                : `${nodeData.data.name} (${testedCount} samples)`;
+                : `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
         };
 
         const updateSingleLabel = (groupSelection, nodeData, isExpanded = false) => {
