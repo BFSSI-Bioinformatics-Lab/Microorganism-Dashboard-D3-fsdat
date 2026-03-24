@@ -196,6 +196,25 @@ export class DataSnapshotGraph extends BaseGraph {
             return 0;
         };
 
+        const foodCategoryPadding = 20;
+        const foodBubblePadding = 6;
+        const agentBubblePadding = 6;
+        const innerHierarchyPadding = 2;
+
+        const getAgentWeight = (agentNodeData) => {
+            const testedCount = agentNodeData?.testedCount;
+            if (typeof testedCount === "number" && !Number.isNaN(testedCount)) {
+                return Math.max(0, testedCount);
+            }
+
+            const value = agentNodeData?.value;
+            if (typeof value === "number" && !Number.isNaN(value)) {
+                return Math.max(0, value);
+            }
+
+            return 0;
+        };
+
         const topLevelData = {
             name: data.name,
             children: (data.children || []).map((foodGroup) => ({
@@ -204,7 +223,7 @@ export class DataSnapshotGraph extends BaseGraph {
                     name: foodName.name,
                     children: (foodName.children || []).map((agent) => ({
                         name: agent.name,
-                        value: Math.max(0, agent.testedCount ?? agent.value ?? 0),
+                        value: getAgentWeight(agent),
                     })),
                 })),
             })),
@@ -216,7 +235,21 @@ export class DataSnapshotGraph extends BaseGraph {
 
         d3.pack()
             .size([width, height])
-            .padding(3)
+            .padding((nodeData) => {
+                if (nodeData.depth === 0) {
+                    return foodCategoryPadding;
+                }
+
+                if (nodeData.depth === 1) {
+                    return foodBubblePadding;
+                }
+
+                if (nodeData.depth === 2) {
+                    return agentBubblePadding;
+                }
+
+                return 0;
+            })
             (topLevelRoot);
 
         const positionByPath = new Map();
@@ -228,6 +261,10 @@ export class DataSnapshotGraph extends BaseGraph {
             positionByPath.set(pathKey, { x: nodeData.x, y: nodeData.y, r: nodeData.r });
         });
 
+        root.x = topLevelRoot.x;
+        root.y = topLevelRoot.y;
+        root.r = topLevelRoot.r;
+
         root.descendants().forEach((nodeData) => {
             const pathKey = nodeData.ancestors()
                 .reverse()
@@ -235,55 +272,57 @@ export class DataSnapshotGraph extends BaseGraph {
                 .join("||");
             const positionedNode = positionByPath.get(pathKey);
 
-            if (positionedNode) {
+            if (positionedNode && nodeData.depth <= 3) {
                 nodeData.x = positionedNode.x;
                 nodeData.y = positionedNode.y;
                 nodeData.r = positionedNode.r;
             }
         });
 
-        const layoutChildrenInsideParent = (parentNode) => {
-            if (!parentNode.children || parentNode.children.length === 0) {
+        const buildSubtreeData = (sourceNode) => ({
+            nodeRef: sourceNode,
+            name: sourceNode.data.name,
+            value: getNodeWeight(sourceNode),
+            children: (sourceNode.children || []).map((childNode) => buildSubtreeData(childNode)),
+        });
+
+        const layoutDescendantsInsideAgent = (agentNode) => {
+            if (!agentNode.children || agentNode.children.length === 0) {
                 return;
             }
 
-            const availableRadius = Math.max(0, parentNode.r - 3);
+            const availableRadius = Math.max(0, agentNode.r - 2);
             if (availableRadius <= 0) {
-                parentNode.children.forEach((childNode) => {
-                    childNode.x = parentNode.x;
-                    childNode.y = parentNode.y;
-                    childNode.r = 0;
-                    layoutChildrenInsideParent(childNode);
-                });
                 return;
             }
 
-            const circles = parentNode.children.map((childNode) => {
-                const weight = getNodeWeight(childNode);
-                return {
-                    node: childNode,
-                    r: Math.sqrt(weight > 0 ? weight : 1),
-                };
-            });
+            const subtreeRoot = d3.hierarchy(buildSubtreeData(agentNode))
+                .sum((nodeData) => nodeData.value || 0)
+                .sort((a, b) => (b.value || 0) - (a.value || 0));
 
-            d3.packSiblings(circles);
-            const enclosingCircle = d3.packEnclose(circles);
-            const enclosingRadius = Math.max(1, enclosingCircle.r);
-            const scale = availableRadius / enclosingRadius;
+            d3.pack()
+                .size([availableRadius * 2, availableRadius * 2])
+                .padding(innerHierarchyPadding)
+                (subtreeRoot);
 
-            circles.forEach((circle) => {
-                const childNode = circle.node;
-                childNode.x = parentNode.x + (circle.x * scale);
-                childNode.y = parentNode.y + (circle.y * scale);
-                childNode.r = circle.r * scale;
+            const scale = subtreeRoot.r > 0 ? (availableRadius / subtreeRoot.r) : 1;
 
-                layoutChildrenInsideParent(childNode);
+            subtreeRoot.descendants().forEach((packedNode) => {
+                const sourceNode = packedNode.data.nodeRef;
+
+                if (!sourceNode || sourceNode === agentNode) {
+                    return;
+                }
+
+                sourceNode.x = agentNode.x + ((packedNode.x - subtreeRoot.x) * scale);
+                sourceNode.y = agentNode.y + ((packedNode.y - subtreeRoot.y) * scale);
+                sourceNode.r = Math.max(0, packedNode.r * scale);
             });
         };
 
         root.descendants().forEach((nodeData) => {
             if (nodeData.depth === 3) {
-                layoutChildrenInsideParent(nodeData);
+                layoutDescendantsInsideAgent(nodeData);
             }
         });
 
@@ -380,9 +419,10 @@ export class DataSnapshotGraph extends BaseGraph {
                 }
             });
 
-        // Append boxed labels.
+        // Append curved labels.
         const labelLayer = svg.append("g")
             .style("font", "12px sans-serif")
+            .style("font-weight", "bold")
             .attr("pointer-events", "none");
 
         const labelGroup = labelLayer
@@ -394,20 +434,17 @@ export class DataSnapshotGraph extends BaseGraph {
             .style("display", d => d.parent === root ? "inline" : "none")
             .attr("transform", "translate(0,0)");
 
-        labelGroup.append("rect")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", 0)
-            .attr("height", 0)
-            .attr("rx", 4)
-            .attr("ry", 4)
-            .attr("fill", "#000");
+        labelGroup.append("path")
+            .classed("dataSnapshotLabelPath", true)
+            .attr("fill", "none")
+            .attr("stroke", "none");
 
         labelGroup.append("text")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("dominant-baseline", "middle")
-            .attr("fill", "#fff")
+            .attr("dominant-baseline", "alphabetic")
+            .attr("fill", "#000")
+            .append("textPath")
+            .attr("startOffset", "50%")
+            .attr("text-anchor", "middle")
             .text("");
 
         // Create the zoom behavior and zoom immediately in to the initial focus node.
@@ -417,8 +454,6 @@ export class DataSnapshotGraph extends BaseGraph {
         let currentScale = 1;
         let hoveredNodes = new Set();
         const horizontalPadding = 6;
-        const verticalPadding = 3;
-        const fontSize = 12;
 
         const clearHoveredNodes = () => {
             if (hoveredNodes.size === 0) {
@@ -437,67 +472,84 @@ export class DataSnapshotGraph extends BaseGraph {
             clearHoveredNodes();
         });
 
-        const truncateLabel = (labelText, maxWidth) => this.getTruncatedLabel(labelText, maxWidth);
         const fullLabelForNode = (nodeData) => {
-            const testedCount =
-                nodeData.data.testedCount === undefined
-                    ? (nodeData.value === undefined ? 0 : nodeData.value)
-                    : nodeData.data.testedCount;
-            const detectedCount =
-                nodeData.data.detectedCount === undefined
-                    ? 0
-                    : nodeData.data.detectedCount;
+            // const testedCount =
+            //     nodeData.data.testedCount === undefined
+            //         ? (nodeData.value === undefined ? 0 : nodeData.value)
+            //         : nodeData.data.testedCount;
+            // return `${testedCount}`;
+            return `${nodeData.data.name}`;
+            // const testedCount =
+            //     nodeData.data.testedCount === undefined
+            //         ? (nodeData.value === undefined ? 0 : nodeData.value)
+            //         : nodeData.data.testedCount;
+            // const detectedCount =
+            //     nodeData.data.detectedCount === undefined
+            //         ? 0
+            //         : nodeData.data.detectedCount;
 
-            if (nodeData.depth === 1 || nodeData.depth === 2) {
-                return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
-            }
 
-            if (nodeData.depth === 3) {
-                return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
-            }
+            // if (nodeData.depth === 1 || nodeData.depth === 2) {
+            //     return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
+            // }
 
-            if (nodeData.depth === 4) {
-                return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
-            }
+            // if (nodeData.depth === 3) {
+            //     return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
+            // }
 
-            return nodeData.children
-                ? nodeData.data.name
-                : `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
+            // if (nodeData.depth === 4) {
+            //     return `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
+            // }
+
+            // return nodeData.children
+            //     ? nodeData.data.name
+            //     : `${nodeData.data.name} (${testedCount} samples, ${detectedCount} detected)`;
         };
 
         const updateSingleLabel = (groupSelection, nodeData, isExpanded = false) => {
             const radius = nodeData.r * currentScale;
-            const bubbleMaxWidth = Math.max(0, radius * 2 - 8);
+            const labelRadius = radius + 2;
+            const centerAngleDegrees = -100;
+            const halfSpanDegrees = 55;
+            const spanRadians = (halfSpanDegrees * 2) * (Math.PI / 180);
+            const maxArcLength = Math.max(0, (labelRadius * spanRadians) - (horizontalPadding * 2));
             const fullLabel = fullLabelForNode(nodeData);
-            const textWidthLimit = Math.max(0, bubbleMaxWidth - (horizontalPadding * 2));
-            const displayedText = isExpanded ? fullLabel : truncateLabel(fullLabel, textWidthLimit);
-            const displayedTextWidth = this.getTextWidth(displayedText);
-            const naturalBoxWidth = displayedTextWidth + (horizontalPadding * 2);
-            const boxWidth = isExpanded ? naturalBoxWidth : Math.min(naturalBoxWidth, bubbleMaxWidth);
-            const boxHeight = fontSize + (verticalPadding * 2);
-
-            const hasVisibleContent = displayedText.length > 0 && boxWidth > 0 && boxHeight > 0;
-            const rect = groupSelection.select("rect");
+            const displayedText = this.getTruncatedLabel(fullLabel, maxArcLength);
+            const hasVisibleContent = displayedText.length > 0;
+            const path = groupSelection.select(".dataSnapshotLabelPath");
+            const textPath = groupSelection.select("textPath");
             const text = groupSelection.select("text");
 
             if (!hasVisibleContent) {
-                rect.style("display", "none");
+                path.style("display", "none");
                 text.style("display", "none");
                 return;
             }
 
-            rect
+            const pathKey = nodeData.ancestors()
+                .reverse()
+                .map((ancestor) => ancestor.data.name)
+                .join("||");
+            const pathId = `dataSnapshotLabelPath-${hashString(pathKey)}`;
+
+            const startAngle = (centerAngleDegrees - halfSpanDegrees) * (Math.PI / 180);
+            const endAngle = (centerAngleDegrees + halfSpanDegrees) * (Math.PI / 180);
+            const startX = labelRadius * Math.cos(startAngle);
+            const startY = labelRadius * Math.sin(startAngle);
+            const endX = labelRadius * Math.cos(endAngle);
+            const endY = labelRadius * Math.sin(endAngle);
+
+            path
                 .style("display", "inline")
-                .attr("x", -boxWidth / 2)
-                .attr("y", -boxHeight / 2)
-                .attr("width", boxWidth)
-                .attr("height", boxHeight);
+                .attr("id", pathId)
+                .attr("d", `M ${startX} ${startY} A ${labelRadius} ${labelRadius} 0 0 1 ${endX} ${endY}`);
+
+            textPath
+                .attr("href", `#${pathId}`)
+                .text(displayedText);
 
             text
-                .style("display", "inline")
-                .attr("x", 0)
-                .attr("y", 1)
-                .text(displayedText);
+                .style("display", "inline");
         };
 
         const refreshLabels = () => {
