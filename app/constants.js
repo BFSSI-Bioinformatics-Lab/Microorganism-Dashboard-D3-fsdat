@@ -366,6 +366,34 @@ SampleStateColours[SampleState.Detected] = "var(--detected)";
 SampleStateColours[SampleState.NotDetected] = "var(--notDetected)";
 SampleStateColours[SampleState.NotTested] = "var(--notTested)";
 
+export const DataSnapshotFoodCategoryColourPairs = {
+    "Frozen fruit": { color: "#FFE4B5", opacity: 0.4 },
+    "Fresh Vegetables, Remaining": { color: "#3CB371", opacity: 0.3 },
+    "Eggs and egg products": { color: "#FFD700", opacity: 0.1 },
+    "Carrots": { color: "#FF8C00", opacity: 0.1 },
+
+    "Fish and fish products, including mollusks, crustaceans, and echinoderms": { color: "#8A2BE2", opacity: 0.3 },
+    "Frozen fish, fish fillets, and fish products, incl mollusks, etc.": { color: "#00CED1", opacity: 0.4 },
+    "Fresh mollusks, crustaceans, and echinoderms": { color: "#4682B4", opacity: 0.3 },
+
+    "Dairy products and analogues, excl butter ": { color: "#5F9EA0", opacity: 0.4 },
+    "Fruits and vegetables (incl fungi, legumes, aloe), seaweeds, nuts, seeds": { color: "#32CD32", opacity: 0.2 },
+    "Meat and meat products, including poultry and game": { color: "#DC143C", opacity: 0.2 },
+    "Peas": { color: "#9C8B80", opacity: 0.3 },
+
+    "Processed fish and fish products, incl mollusks, etc.": { color: "#483D8B", opacity: 0.2 },
+    "Foodstuffs intended for particular nutritional uses": { color: "#FF69B4", opacity: 0.2 },
+    "Environmental Samples": { color: "#522A27", opacity: 0.3 },
+
+    // extra colours from palette
+    // color5: { color: "#FF4500", opacity: 0.1 },
+    // color15: { color: "#C59849", opacity: 0.2 },
+    // color17: { color: "#960200", opacity: 0.2 },
+    // color18: { color: "#747274", opacity: 0.2 },
+    // color19: { color: "#2A4747", opacity: 0.2 },
+    // color20: { color: "#9B7E46", opacity: 0.2 }
+};
+
 // Data Snapshot bubble colours
 export const DataSnapshotFoodCategoryColours = {
     "Carrots": "#ffa600",
@@ -383,6 +411,13 @@ export const DataSnapshotFoodCategoryColours = {
     "Fruits and vegetables (incl fungi, legumes, aloe), seaweeds, nuts, seeds": "#0fbd40",
     "Meat and meat products, including poultry and game": "#ff0000",
 };
+
+export const DataSnapshotAgentColourPairs = {
+    "Bacteria": { color: "#960200", opacity: 0.2 },
+    "Virus": { color: "#747274", opacity: 0.2 },
+    "Parasite": { color: "#2A4747", opacity: 0.2 },
+    "Indicator": { color: "#9B7E46", opacity: 0.2 }
+}
 
 export const DataSnapshotAgentColours = {
     "Bacteria": "#3a86ff",

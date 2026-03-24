@@ -1,7 +1,7 @@
 import { BaseGraph } from "./baseGraph.js";
 import {
-    DataSnapshotFoodCategoryColours,
-    DataSnapshotAgentColours,
+    DataSnapshotFoodCategoryColourPairs,
+    DataSnapshotAgentColourPairs,
 } from "../constants.js";
 
 export class DataSnapshotGraph extends BaseGraph {
@@ -101,57 +101,76 @@ export class DataSnapshotGraph extends BaseGraph {
             return d3.hsl(hue, 0.55, 0.5).formatHex();
         };
 
-        const getFoodCategoryColour = (foodCategory) => {
-            const constantColour = DataSnapshotFoodCategoryColours[foodCategory];
-            return constantColour === undefined
-                ? getFallbackBaseColour(foodCategory)
-                : constantColour;
+        const getFallbackPair = (label) => ({
+            color: getFallbackBaseColour(label),
+            opacity: 0.2,
+        });
+
+        const getFoodCategoryPair = (foodCategory) => {
+            const constantPair = DataSnapshotFoodCategoryColourPairs[foodCategory];
+            return constantPair === undefined
+                ? getFallbackPair(foodCategory)
+                : constantPair;
         };
 
-        const getAgentColour = (agent) => {
-            const constantColour = DataSnapshotAgentColours[agent];
-            return constantColour === undefined
-                ? getFallbackBaseColour(agent)
-                : constantColour;
+        const getAgentPair = (agent) => {
+            const constantPair = DataSnapshotAgentColourPairs[agent];
+            return constantPair === undefined
+                ? getFallbackPair(agent)
+                : constantPair;
         };
 
-        const shadeFromParent = (baseColour, childName) => {
-            const hash = hashString(childName);
-            const hsl = d3.hsl(baseColour);
+        const getAdjustedChildOpacity = (parentOpacity) => {
+            const numericOpacity = Number.isFinite(parentOpacity) ? parentOpacity : 0.2;
 
-            const saturationShift = ((hash % 5) - 2) * 0.04;
-            const lightnessShift = (((hash >> 3) % 7) - 3) * 0.05;
+            if (numericOpacity <= 0.65) {
+                return clamp(numericOpacity + 0.25, 0.05, 1);
+            }
 
-            hsl.s = clamp(hsl.s + saturationShift, 0.3, 0.85);
-            hsl.l = clamp(hsl.l + lightnessShift, 0.25, 0.82);
-
-            return hsl.formatHex();
+            return clamp(numericOpacity - 0.2, 0.05, 1);
         };
 
-        const getBubbleFill = (nodeData) => {
+        const getBubbleStyle = (nodeData) => {
             const label = nodeData.data.name;
 
             if (nodeData.depth === 1) {
-                return getFoodCategoryColour(label);
+                return getFoodCategoryPair(label);
             }
 
             if (nodeData.depth === 2) {
                 const parentLabel = nodeData.parent?.data?.name || "";
-                const parentColour = getFoodCategoryColour(parentLabel);
-                return shadeFromParent(parentColour, label);
+                const parentPair = getFoodCategoryPair(parentLabel);
+                return {
+                    color: parentPair.color,
+                    opacity: getAdjustedChildOpacity(parentPair.opacity),
+                };
             }
 
             if (nodeData.depth === 3) {
-                return getAgentColour(label);
+                return getAgentPair(label);
             }
 
             if (nodeData.depth >= 4) {
                 const parentLabel = nodeData.parent?.data?.name || "";
-                const parentColour = getAgentColour(parentLabel);
-                return shadeFromParent(parentColour, label);
+                const parentPair = getAgentPair(parentLabel);
+                return {
+                    color: parentPair.color,
+                    opacity: getAdjustedChildOpacity(parentPair.opacity),
+                };
             }
 
-            return "#ffffff";
+            return { color: "#ffffff", opacity: 1 };
+        };
+
+        const getCssColour = (nodeStyle) => {
+            const color = d3.color(nodeStyle.color);
+
+            if (!color) {
+                return nodeStyle.color;
+            }
+
+            color.opacity = Number.isFinite(nodeStyle.opacity) ? nodeStyle.opacity : 1;
+            return color.formatRgb();
         };
 
         // Compute the layout.
@@ -317,7 +336,7 @@ export class DataSnapshotGraph extends BaseGraph {
                 });
 
             entries.select(".dataSnapshotLegendSwatch")
-                .style("background-color", (nodeData) => getBubbleFill(nodeData));
+                .style("background-color", (nodeData) => getCssColour(getBubbleStyle(nodeData)));
 
             entries.select(".dataSnapshotLegendLabel")
                 .text((nodeData) => nodeData.data.name);
@@ -337,8 +356,10 @@ export class DataSnapshotGraph extends BaseGraph {
             .selectAll("circle")
             .data(root.descendants().slice(1))
             .join("circle")
-            .attr("fill", d => getBubbleFill(d))
+            .attr("fill", (d) => getBubbleStyle(d).color)
+            .attr("fill-opacity", (d) => getBubbleStyle(d).opacity)
             .attr("stroke", "#191923")
+            .attr("stroke-opacity", 0.5)
             .attr("stroke-width", 1)
             .attr("pointer-events", "all")
             .on("mouseover", (event, d) => {
